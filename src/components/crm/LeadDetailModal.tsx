@@ -39,6 +39,8 @@ import type { Lead } from "@/types"
 import { formatRelativeTime, formatCurrency, formatDate, cn } from "@/lib/utils"
 import { ESTADOS_LEAD, PRIORIDADES_LEAD } from "@/lib/constants"
 
+import { StatusBadge } from "./StatusBadge"
+
 interface LeadDetailModalProps {
     lead: Lead
     open: boolean
@@ -64,13 +66,15 @@ export function LeadDetailModal({ lead, open, onClose }: LeadDetailModalProps) {
                                 {lead.cliente?.nombre} {lead.cliente?.apellidos}
                             </DialogTitle>
                             <div className="flex items-center gap-2 mt-2">
-                                <Badge variant={lead.estado as 'nuevo' | 'contactado'}>
-                                    {ESTADOS_LEAD.find(e => e.value === lead.estado)?.label}
-                                </Badge>
-                                <Badge variant={lead.prioridad as 'alta' | 'media' | 'baja'}>
-                                    Prioridad: {lead.prioridad}
-                                </Badge>
-                                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                <StatusBadge 
+                                    status={lead.estado} 
+                                    label={ESTADOS_LEAD.find(e => e.value === lead.estado)?.label} 
+                                />
+                                <StatusBadge 
+                                    status={lead.prioridad} 
+                                    type="priority" 
+                                />
+                                <div className="flex items-center gap-1 text-sm text-muted-foreground ml-2">
                                     {getSentimentIcon(lead.sentimiento_ia)}
                                     <span className="capitalize">{lead.sentimiento_ia}</span>
                                 </div>
