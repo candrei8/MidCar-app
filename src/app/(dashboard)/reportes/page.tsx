@@ -184,7 +184,7 @@ export default function ReportesPage() {
                                 <ResponsiveContainer width="100%" height="100%">
                                     <PieChart>
                                         <Pie
-                                            data={origenLeads}
+                                            data={salesByOrigin}
                                             cx="50%"
                                             cy="50%"
                                             innerRadius={60}
@@ -192,7 +192,7 @@ export default function ReportesPage() {
                                             paddingAngle={5}
                                             dataKey="value"
                                         >
-                                            {origenLeads.map((entry, index) => (
+                                            {salesByOrigin.map((entry, index) => (
                                                 <Cell key={`cell-${index}`} fill={entry.color} />
                                             ))}
                                         </Pie>
@@ -200,7 +200,7 @@ export default function ReportesPage() {
                                 </ResponsiveContainer>
                             </div>
                             <div className="flex-1 space-y-3">
-                                {origenLeads.map((item, index) => (
+                                {salesByOrigin.map((item, index) => (
                                     <div key={index} className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
                                             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
