@@ -168,7 +168,6 @@ export function Header() {
                                     <button className="flex items-center gap-2 px-2 py-1 rounded-md hover:bg-white/[0.04] transition-colors group">
                                         <div className="relative">
                                             <Avatar className="h-5 w-5">
-                                                <AvatarImage src="/avatars/user.jpg" />
                                                 <AvatarFallback className="text-[8px] font-semibold bg-gradient-to-br from-gray-700 to-gray-900 text-white/60">AD</AvatarFallback>
                                             </Avatar>
                                             {/* Online indicator */}

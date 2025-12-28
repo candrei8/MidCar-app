@@ -52,11 +52,10 @@
     border-color: rgba(255, 255, 255, 0.05);
   }
 
-  html {
-    scroll-behavior: smooth;
-  }
+  /* Smooth scrolling applied to body to avoid Next.js warning */
 
   body {
+    scroll-behavior: smooth;
     background: #080808;
     background-attachment: fixed;
     color: #fafafa;
