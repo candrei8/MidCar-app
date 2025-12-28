@@ -43,12 +43,13 @@ import { formatDate, cn } from "@/lib/utils"
 import { PolizaSeguro, Vehicle, INSURANCE_STATE_CONFIG, InsuranceState } from "@/types"
 import { InsurancePolicyModal } from "@/components/insurance/InsurancePolicyModal"
 import { InsuranceDetailPanel } from "@/components/insurance/InsuranceDetailPanel"
+import { ImportPreviewModal, ImportResult, ParsedPolicy, MatchedPolicy } from "@/components/insurance/ImportPreviewModal"
+import { defaultCoverages } from "@/lib/mock-insurance"
 import * as XLSX from 'xlsx'
 
-interface InsuredVehicle {
-    matricula: string
-    fechaAlta: string
-    tipoPoliza?: string
+// Helper to normalize license plates
+const normalizeMatricula = (mat: string): string => {
+    return mat.toUpperCase().replace(/[\s\-\.]/g, '')
 }
 
 type FilterType = 'all' | 'insured' | 'uninsured' | 'expiring' | 'expired'
@@ -56,10 +57,15 @@ type FilterType = 'all' | 'insured' | 'uninsured' | 'expiring' | 'expired'
 export default function SeguroPage() {
     // State
     const [policies, setPolicies] = useState<PolizaSeguro[]>(mockInsurancePolicies)
-    const [importedVehicles, setImportedVehicles] = useState<InsuredVehicle[]>([])
     const [isLoading, setIsLoading] = useState(false)
     const [fileName, setFileName] = useState<string | null>(null)
     const [filter, setFilter] = useState<FilterType>('all')
+
+    // Import state
+    const [importResult, setImportResult] = useState<ImportResult | null>(null)
+    const [showImportPreview, setShowImportPreview] = useState(false)
+    const [isImporting, setIsImporting] = useState(false)
+    const [importError, setImportError] = useState<string | null>(null)
     const [searchQuery, setSearchQuery] = useState("")
 
     // Modal state
@@ -133,48 +139,122 @@ export default function SeguroPage() {
             .sort((a, b) => (a.daysRemaining || 0) - (b.daysRemaining || 0))
     }, [comparisonData])
 
-    // File handlers
+    // File handlers - FULL AXA IMPORT
     const handleFileUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]
         if (!file) return
 
+        // Validate file type
+        if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls') && !file.name.endsWith('.csv')) {
+            setImportError('Por favor, sube un archivo Excel (.xlsx, .xls) o CSV')
+            return
+        }
+
         setIsLoading(true)
         setFileName(file.name)
+        setImportError(null)
 
         try {
             const data = await file.arrayBuffer()
-            const workbook = XLSX.read(data)
+            const workbook = XLSX.read(data, { cellDates: true })
             const sheetName = workbook.SheetNames[0]
             const worksheet = workbook.Sheets[sheetName]
             const jsonData = XLSX.utils.sheet_to_json(worksheet)
 
-            const parsed: InsuredVehicle[] = []
+            // Parse policies from Excel
+            const parsedPolicies: ParsedPolicy[] = []
             jsonData.forEach((row: any) => {
+                // Try multiple column name variations
                 const matricula =
                     row['Matrícula'] || row['MATRICULA'] || row['matricula'] ||
                     row['Matrícula vehículo'] || row['MATRICULA VEHICULO'] ||
-                    row['Placa'] || row['PLACA']
+                    row['Placa'] || row['PLACA'] || row['Registration'] || row['Plate']
+
+                if (!matricula) return
+
+                const numeroPoliza =
+                    row['Nº Póliza'] || row['Número Póliza'] || row['NUMERO POLIZA'] ||
+                    row['Poliza'] || row['POLIZA'] || row['Policy'] || row['Póliza'] || `AXA-${Date.now()}`
 
                 const fechaAlta =
-                    row['Fecha Alta'] || row['FECHA ALTA'] || row['fecha_alta'] ||
-                    row['Fecha'] || row['FECHA'] || new Date().toISOString().split('T')[0]
+                    row['Fecha Alta'] || row['FECHA ALTA'] || row['Alta'] ||
+                    row['Inicio'] || row['Start'] || new Date().toISOString().split('T')[0]
+
+                const fechaVencimiento =
+                    row['Fecha Vencimiento'] || row['FECHA VENCIMIENTO'] || row['Vencimiento'] ||
+                    row['VENCIMIENTO'] || row['Expiry'] || row['Fin'] || null
 
                 const tipoPoliza =
-                    row['Tipo Póliza'] || row['TIPO POLIZA'] || row['tipo_poliza'] ||
-                    row['Póliza'] || row['POLIZA'] || 'Estándar'
+                    row['Tipo'] || row['TIPO'] || row['Tipo Póliza'] || row['TIPO POLIZA'] ||
+                    row['Cobertura'] || row['Type'] || 'Todo Riesgo'
 
-                if (matricula) {
-                    parsed.push({
-                        matricula: String(matricula).trim(),
-                        fechaAlta: String(fechaAlta),
-                        tipoPoliza: String(tipoPoliza),
+                const prima = parseFloat(
+                    row['Prima'] || row['PRIMA'] || row['Importe'] || row['Amount'] || '0'
+                ) || undefined
+
+                const marcaModelo =
+                    row['Vehículo'] || row['Vehiculo'] || row['VEHICULO'] ||
+                    row['Marca Modelo'] || row['Vehicle'] || undefined
+
+                parsedPolicies.push({
+                    numeroPoliza: String(numeroPoliza).trim(),
+                    matricula: normalizeMatricula(String(matricula)),
+                    marcaModelo: marcaModelo ? String(marcaModelo).trim() : undefined,
+                    fechaAlta: fechaAlta ? String(fechaAlta).split('T')[0] : null,
+                    fechaVencimiento: fechaVencimiento ? String(fechaVencimiento).split('T')[0] : null,
+                    tipoPoliza: String(tipoPoliza).trim(),
+                    prima,
+                })
+            })
+
+            if (parsedPolicies.length === 0) {
+                setImportError('No se encontraron pólizas en el archivo. Verifica que tenga una columna "Matrícula".')
+                setIsLoading(false)
+                return
+            }
+
+            // Match with vehicles in stock
+            const activeVehicles = mockVehicles.filter(v => v.estado !== 'vendido')
+            const vehiclesByMatricula = new Map<string, Vehicle>()
+            activeVehicles.forEach(v => {
+                vehiclesByMatricula.set(normalizeMatricula(v.matricula), v)
+            })
+
+            const matched: MatchedPolicy[] = []
+            const unmatched: ParsedPolicy[] = []
+            const matchedVehicleIds = new Set<string>()
+
+            parsedPolicies.forEach(policy => {
+                const vehicle = vehiclesByMatricula.get(policy.matricula)
+                if (vehicle) {
+                    matched.push({
+                        policy,
+                        vehicleId: vehicle.id,
+                        vehicleName: `${vehicle.marca} ${vehicle.modelo}`,
+                        matricula: vehicle.matricula,
                     })
+                    matchedVehicleIds.add(vehicle.id)
+                } else {
+                    unmatched.push(policy)
                 }
             })
 
-            setImportedVehicles(parsed)
+            const vehiclesWithoutPolicy = activeVehicles
+                .filter(v => !matchedVehicleIds.has(v.id))
+                .map(v => v.matricula)
+
+            // Set result and show preview modal
+            setImportResult({
+                totalPolicies: parsedPolicies.length,
+                matched,
+                unmatched,
+                vehiclesWithoutPolicy,
+            })
+            setShowImportPreview(true)
+
         } catch (error) {
             console.error('Error parsing file:', error)
+            setImportError(`Error procesando archivo: ${error}`)
         } finally {
             setIsLoading(false)
         }
@@ -191,8 +271,66 @@ export default function SeguroPage() {
     }, [handleFileUpload])
 
     const clearFile = () => {
-        setImportedVehicles([])
         setFileName(null)
+        setImportResult(null)
+        setImportError(null)
+    }
+
+    // Confirm import - create policies for matched vehicles
+    const handleConfirmImport = async () => {
+        if (!importResult) return
+
+        setIsImporting(true)
+
+        try {
+            const newPolicies: PolizaSeguro[] = importResult.matched.map(match => ({
+                id: `ins-import-${Date.now()}-${match.vehicleId}`,
+                vehiculoId: match.vehicleId,
+                companiaAseguradora: 'AXA',
+                numeroPoliza: match.policy.numeroPoliza,
+                tipoPoliza: match.policy.tipoPoliza?.toLowerCase().includes('tercero')
+                    ? 'terceros_ampliado'
+                    : 'todo_riesgo_franquicia',
+                fechaAlta: match.policy.fechaAlta || new Date().toISOString().split('T')[0],
+                fechaVencimiento: match.policy.fechaVencimiento || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                primaAnual: match.policy.prima || 0,
+                franquicia: 300,
+                tomadorNombre: 'MidCar Concesionario S.L.',
+                tomadorNif: 'B12345678',
+                coberturas: {
+                    ...defaultCoverages,
+                    rcObligatoria: true,
+                    rcVoluntaria: true,
+                    asistenciaViaje: true,
+                },
+                documentos: {},
+                estado: 'asegurado',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            }))
+
+            // Add new policies (avoiding duplicates by vehiculoId)
+            setPolicies(prev => {
+                const existingVehicleIds = new Set(prev.map(p => p.vehiculoId))
+                const uniqueNew = newPolicies.filter(p => !existingVehicleIds.has(p.vehiculoId))
+                const updated = prev.map(p => {
+                    const match = newPolicies.find(np => np.vehiculoId === p.vehiculoId)
+                    return match ? { ...p, ...match, id: p.id } : p
+                })
+                return [...updated, ...uniqueNew]
+            })
+
+            // Close modal and show success
+            setShowImportPreview(false)
+            setImportResult(null)
+            setFileName(null)
+            alert(`✅ ${importResult.matched.length} vehículos actualizados con pólizas de AXA`)
+
+        } catch (error) {
+            setImportError(`Error guardando pólizas: ${error}`)
+        } finally {
+            setIsImporting(false)
+        }
     }
 
     const exportUninsured = () => {
@@ -405,7 +543,7 @@ export default function SeguroPage() {
                             <div>
                                 <p className="text-xs font-medium text-white/70">{fileName}</p>
                                 <p className="text-[10px] text-white/30">
-                                    {importedVehicles.length} vehículos encontrados
+                                    {importResult ? `${importResult.matched.length} coincidencias encontradas` : 'Procesando...'}
                                 </p>
                             </div>
                         </div>
@@ -428,6 +566,11 @@ export default function SeguroPage() {
                             </button>
                         </div>
                     </div>
+                )}
+
+                {/* Import Error */}
+                {importError && (
+                    <p className="mt-3 text-xs text-red-400 text-center">{importError}</p>
                 )}
             </div>
 
@@ -632,6 +775,15 @@ export default function SeguroPage() {
                     onDelete={() => handleDeletePolicy(selectedPolicy.id)}
                 />
             )}
+
+            {/* Import Preview Modal */}
+            <ImportPreviewModal
+                open={showImportPreview}
+                onClose={() => setShowImportPreview(false)}
+                result={importResult}
+                onConfirm={handleConfirmImport}
+                isImporting={isImporting}
+            />
         </div>
     )
 }

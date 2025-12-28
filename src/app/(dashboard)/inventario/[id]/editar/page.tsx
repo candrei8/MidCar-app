@@ -101,7 +101,8 @@ export default function EditarVehiculoPage({ params }: PageProps) {
         // Simulate API call
         await new Promise(resolve => setTimeout(resolve, 1000))
 
-        console.log('Vehicle updated:', { id, ...formData })
+        // Show success and redirect
+        alert('✓ Vehículo actualizado correctamente')
         setIsSaving(false)
 
         // Redirect to detail
@@ -129,10 +130,10 @@ export default function EditarVehiculoPage({ params }: PageProps) {
                 </div>
             </div>
 
-            <VehicleForm 
-                initialData={initialData} 
-                onSubmit={handleSave} 
-                isSubmitting={isSaving} 
+            <VehicleForm
+                initialData={initialData}
+                onSubmit={handleSave}
+                isSubmitting={isSaving}
             />
         </div>
     )

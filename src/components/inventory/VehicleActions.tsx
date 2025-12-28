@@ -18,8 +18,8 @@ export function VehicleActions({ vehicle }: VehicleActionsProps) {
     const [showShareModal, setShowShareModal] = useState(false)
 
     const handleSaveWebLink = (url: string) => {
-        // In a real app, this would save to the database
-        console.log('Web URL saved:', url)
+        // En producción guardaría en base de datos
+        alert(`✓ Enlace web guardado: ${url}`)
     }
 
     return (
@@ -44,9 +44,9 @@ export function VehicleActions({ vehicle }: VehicleActionsProps) {
                 Generar Anuncio
             </Button>
 
-            <Button 
-                variant="outline" 
-                size="sm" 
+            <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setShowShareModal(true)}
                 className="gap-2"
             >

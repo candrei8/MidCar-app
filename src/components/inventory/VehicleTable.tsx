@@ -56,7 +56,7 @@ export function VehicleTable({ vehicles }: VehicleTableProps) {
     }
 
     const handleSaveWebLink = (url: string) => {
-        console.log('Web URL saved:', url)
+        alert(`✓ Enlace web guardado: ${url}`)
     }
 
     const getEstadoBadge = (estado: string) => {

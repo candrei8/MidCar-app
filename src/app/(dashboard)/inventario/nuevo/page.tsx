@@ -39,7 +39,8 @@ export default function NuevoVehiculoPage() {
             updated_at: new Date().toISOString(),
         }
 
-        console.log('Vehicle created:', newVehicle)
+        // Show success notification
+        alert(`✓ Vehículo creado: ${formData.marca} ${formData.modelo}`)
         setIsSaving(false)
 
         // Redirect to inventory

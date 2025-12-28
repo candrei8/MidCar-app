@@ -54,6 +54,12 @@ import { formatDate, formatCurrency, cn } from "@/lib/utils"
 import { ORIGENES_CONTACTO, ESTADOS_BACKOFFICE, TIPOS_PAGO, CATEGORIAS_CONTACTO } from "@/lib/constants"
 import { mockVehicles, mockUsers } from "@/lib/mock-data"
 import { VehicleSelector } from "./VehicleSelector"
+import { NewInteractionModal, InteractionData } from "./NewInteractionModal"
+import { AddTaskModal, TaskData } from "./AddTaskModal"
+import { SetPriorityModal } from "./SetPriorityModal"
+import { PostponeContactModal } from "./PostponeContactModal"
+import { AssignCommercialModal } from "./AssignCommercialModal"
+import { DocumentModal } from "./DocumentModal"
 
 interface ContactDetailModalProps {
     contact: Contact
@@ -65,9 +71,21 @@ export function ContactDetailModal({ contact, open, onClose }: ContactDetailModa
     const [editedContact, setEditedContact] = useState<Contact>(contact)
     const [isVehicleSelectorOpen, setIsVehicleSelectorOpen] = useState(false)
     const [hasChanges, setHasChanges] = useState(false)
+    const [notification, setNotification] = useState<{ message: string; type: 'success' | 'info' } | null>(null)
     const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(
         contact.vehiculos_interes[0] || null
     )
+
+    // CRM Action Modals state
+    const [showInteractionModal, setShowInteractionModal] = useState(false)
+    const [showTaskModal, setShowTaskModal] = useState(false)
+    const [showPriorityModal, setShowPriorityModal] = useState(false)
+    const [showPostponeModal, setShowPostponeModal] = useState(false)
+    const [showAssignModal, setShowAssignModal] = useState(false)
+    const [showDocumentModal, setShowDocumentModal] = useState(false)
+    const [documentType, setDocumentType] = useState<'proforma' | 'senal' | 'contrato' | 'factura'>('proforma')
+    const [interactions, setInteractions] = useState<InteractionData[]>([])
+    const [tasks, setTasks] = useState<TaskData[]>([])
 
     // Get vehicles data
     const contactVehicles = editedContact.vehiculos_interes
@@ -97,8 +115,52 @@ export function ContactDetailModal({ contact, open, onClose }: ContactDetailModa
     }
 
     const handleSave = () => {
-        console.log('Saving contact:', editedContact)
+        // Simular guardado (en producción guardaría en base de datos)
+        setNotification({ message: '✓ Contacto guardado correctamente', type: 'success' })
         setHasChanges(false)
+        setTimeout(() => setNotification(null), 3000)
+    }
+
+    // CRM Action Handlers
+    const handleSaveInteraction = (data: InteractionData) => {
+        setInteractions(prev => [data, ...prev])
+        setNotification({ message: '✓ Interacción registrada', type: 'success' })
+        setTimeout(() => setNotification(null), 2000)
+    }
+
+    const handleSaveTask = (data: TaskData) => {
+        setTasks(prev => [data, ...prev])
+        setNotification({ message: '✓ Tarea creada', type: 'success' })
+        setTimeout(() => setNotification(null), 2000)
+    }
+
+    const handleSetPriority = (priority: string | null) => {
+        updateField('prioridad' as any, priority)
+        setNotification({ message: `✓ Prioridad actualizada: ${priority || 'Sin prioridad'}`, type: 'success' })
+        setTimeout(() => setNotification(null), 2000)
+    }
+
+    const handlePostpone = (data: { fecha: string; hora: string; motivo: string }) => {
+        updateField('aplazado_hasta' as any, data.fecha)
+        setNotification({ message: `✓ Contacto aplazado hasta ${data.fecha}`, type: 'success' })
+        setTimeout(() => setNotification(null), 2000)
+    }
+
+    const handleAssignCommercial = (commercialId: string) => {
+        updateField('comercial_asignado', commercialId)
+        const commercial = mockUsers.find(u => u.id === commercialId)
+        setNotification({ message: `✓ Asignado a ${commercial?.nombre || 'comercial'}`, type: 'success' })
+        setTimeout(() => setNotification(null), 2000)
+    }
+
+    const handleGenerateDocument = (data: any) => {
+        setNotification({ message: `✓ Documento generado: ${data.numero}`, type: 'success' })
+        setTimeout(() => setNotification(null), 2000)
+    }
+
+    const openDocumentModal = (type: 'proforma' | 'senal' | 'contrato' | 'factura') => {
+        setDocumentType(type)
+        setShowDocumentModal(true)
     }
 
     const getOrigenIcon = (origen: string) => {
@@ -416,43 +478,53 @@ export function ContactDetailModal({ contact, open, onClose }: ContactDetailModa
 
                     {/* Action bar */}
                     <div className="px-4 py-3 border-t border-card-border bg-muted/30 flex flex-wrap gap-2">
-                        <Button variant="outline" size="sm" className="gap-1">
+                        <Button variant="outline" size="sm" className="gap-1" onClick={() => setShowInteractionModal(true)}>
                             <MessageCircle className="h-4 w-4" />
                             Nueva interacción
                         </Button>
-                        <Button variant="outline" size="sm" className="gap-1">
+                        <Button variant="outline" size="sm" className="gap-1" onClick={() => setShowPriorityModal(true)}>
                             <Star className="h-4 w-4" />
                             Prioridad
                         </Button>
-                        <Button variant="outline" size="sm" className="gap-1">
+                        <Button variant="outline" size="sm" className="gap-1" onClick={() => setShowPostponeModal(true)}>
                             <Clock className="h-4 w-4" />
                             Aplazar
                         </Button>
-                        <Button variant="outline" size="sm" className="gap-1">
+                        <Button variant="outline" size="sm" className="gap-1" onClick={() => setShowAssignModal(true)}>
                             <UserPlus className="h-4 w-4" />
                             Asignar comercial
                         </Button>
-                        <Button variant="outline" size="sm" className="gap-1">
+                        <Button variant="outline" size="sm" className="gap-1" onClick={() => setShowTaskModal(true)}>
                             <CheckSquare className="h-4 w-4" />
                             Añadir tarea
                         </Button>
-                        <Button variant="outline" size="sm" className="gap-1">
+                        <Button variant="outline" size="sm" className="gap-1" onClick={() => openDocumentModal('proforma')}>
                             <FileText className="h-4 w-4" />
                             Proforma
                         </Button>
-                        <Button variant="outline" size="sm" className="gap-1">
+                        <Button variant="outline" size="sm" className="gap-1" onClick={() => openDocumentModal('senal')}>
                             <Bookmark className="h-4 w-4" />
                             Señal
                         </Button>
-                        <Button variant="outline" size="sm" className="gap-1">
+                        <Button variant="outline" size="sm" className="gap-1" onClick={() => openDocumentModal('contrato')}>
                             <FileSignature className="h-4 w-4" />
                             Contrato
                         </Button>
-                        <Button variant="outline" size="sm" className="gap-1">
+                        <Button variant="outline" size="sm" className="gap-1" onClick={() => openDocumentModal('factura')}>
                             <Receipt className="h-4 w-4" />
                             Factura
                         </Button>
                     </div>
+
+                    {/* Notification Toast */}
+                    {notification && (
+                        <div className={cn(
+                            "fixed bottom-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 animate-in",
+                            notification.type === 'success' ? "bg-green-500/90 text-white" : "bg-blue-500/90 text-white"
+                        )}>
+                            {notification.message}
+                        </div>
+                    )}
 
                     {/* Footer with save button */}
                     <div className="p-4 border-t flex justify-end gap-3">
@@ -473,6 +545,53 @@ export function ContactDetailModal({ contact, open, onClose }: ContactDetailModa
                 onClose={() => setIsVehicleSelectorOpen(false)}
                 onSelect={handleAddVehicles}
                 excludeIds={editedContact.vehiculos_interes}
+            />
+
+            {/* CRM Action Modals */}
+            <NewInteractionModal
+                open={showInteractionModal}
+                onClose={() => setShowInteractionModal(false)}
+                contactId={contact.id}
+                contactName={`${contact.nombre} ${contact.apellidos}`}
+                onSave={handleSaveInteraction}
+            />
+
+            <AddTaskModal
+                open={showTaskModal}
+                onClose={() => setShowTaskModal(false)}
+                contactId={contact.id}
+                contactName={`${contact.nombre} ${contact.apellidos}`}
+                onSave={handleSaveTask}
+            />
+
+            <SetPriorityModal
+                open={showPriorityModal}
+                onClose={() => setShowPriorityModal(false)}
+                currentPriority={(editedContact as any).prioridad || null}
+                onSave={handleSetPriority}
+            />
+
+            <PostponeContactModal
+                open={showPostponeModal}
+                onClose={() => setShowPostponeModal(false)}
+                contactName={`${contact.nombre} ${contact.apellidos}`}
+                onSave={handlePostpone}
+            />
+
+            <AssignCommercialModal
+                open={showAssignModal}
+                onClose={() => setShowAssignModal(false)}
+                currentCommercialId={editedContact.comercial_asignado || null}
+                onSave={(id) => handleAssignCommercial(id)}
+            />
+
+            <DocumentModal
+                open={showDocumentModal}
+                onClose={() => setShowDocumentModal(false)}
+                type={documentType}
+                contact={editedContact}
+                vehicle={selectedVehicle}
+                onGenerate={handleGenerateDocument}
             />
         </>
     )
