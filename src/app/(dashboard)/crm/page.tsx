@@ -49,7 +49,7 @@ import { mockLeads, mockUsers } from "@/lib/mock-data"
 import { formatRelativeTime, formatCurrency, cn } from "@/lib/utils"
 import { ESTADOS_LEAD, PRIORIDADES_LEAD } from "@/lib/constants"
 import type { Lead } from "@/types"
-import { LeadDetailModal, StatusBadge } from "@/components/crm"
+import { LeadDetailModal, StatusBadge, NewLeadModal } from "@/components/crm"
 
 export default function CRMPage() {
     const [searchQuery, setSearchQuery] = useState("")
@@ -57,6 +57,7 @@ export default function CRMPage() {
     const [prioridadFilter, setPrioridadFilter] = useState<string>("todos")
     const [vendedorFilter, setVendedorFilter] = useState<string>("todos")
     const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
+    const [showNewLeadModal, setShowNewLeadModal] = useState(false)
 
     // Filter leads
     const filteredLeads = mockLeads.filter(lead => {
@@ -98,11 +99,18 @@ export default function CRMPage() {
                     </p>
                 </div>
                 <div className="flex items-center gap-4">
-                    <Button variant="ghost" className="btn-ghost-luxury gap-2">
+                    <Button 
+                        variant="ghost" 
+                        className="btn-ghost-luxury gap-2"
+                        onClick={() => alert("Generando reporte de leads...")}
+                    >
                         <Download className="h-4 w-4" />
                         <span>Reporte</span>
                     </Button>
-                    <Button className="btn-luxury gap-2 px-6">
+                    <Button 
+                        className="btn-luxury gap-2 px-6"
+                        onClick={() => setShowNewLeadModal(true)}
+                    >
                         <Plus className="h-4 w-4" />
                         <span>Nuevo Lead</span>
                     </Button>
@@ -143,12 +151,12 @@ export default function CRMPage() {
                 {/* Unified Toolbar */}
                 <div className="p-5 border-b border-white/5 bg-white/[0.02] flex flex-col lg:flex-row gap-4 justify-between items-center backdrop-blur-sm sticky top-0 z-10">
                     <div className="relative w-full lg:w-96 group">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-hover:text-primary" />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-hover:text-primary z-10" />
                         <Input
                             placeholder="Buscar cliente, marca, modelo..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="input-luxury pl-10 w-full"
+                            className="input-luxury pl-12 w-full"
                         />
                     </div>
                     
@@ -335,6 +343,12 @@ export default function CRMPage() {
                     onClose={() => setSelectedLead(null)}
                 />
             )}
+            
+            {/* New Lead Modal */}
+            <NewLeadModal
+                open={showNewLeadModal}
+                onClose={() => setShowNewLeadModal(false)}
+            />
         </div>
     )
 }
