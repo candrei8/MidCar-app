@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -43,7 +42,8 @@ import {
     Users,
     TrendingUp,
     Clock,
-    CheckCircle2
+    CheckCircle2,
+    SlidersHorizontal
 } from "lucide-react"
 import { mockLeads, mockUsers } from "@/lib/mock-data"
 import { formatRelativeTime, formatCurrency, cn } from "@/lib/utils"
@@ -86,266 +86,246 @@ export default function CRMPage() {
     }
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500 pb-10">
-            {/* Header Section */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b pb-6">
+        <div className="space-y-10 animate-in">
+            {/* Header Section - Clean & Minimal */}
+            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 pb-2 border-b border-white/5">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-foreground">CRM</h1>
-                    <p className="text-muted-foreground mt-1 text-sm">
-                        Gestión avanzada de leads y oportunidades comerciales.
+                    <h1 className="text-4xl font-bold tracking-tight mb-2 bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">
+                        Gestión Comercial
+                    </h1>
+                    <p className="text-muted-foreground text-lg font-light">
+                        Vista unificada de oportunidades y rendimiento.
                     </p>
                 </div>
-                <div className="flex items-center gap-3">
-                    <Button variant="outline" className="gap-2 h-10 border-dashed">
+                <div className="flex items-center gap-4">
+                    <Button variant="ghost" className="btn-ghost-luxury gap-2">
                         <Download className="h-4 w-4" />
-                        <span className="hidden sm:inline">Exportar Datos</span>
+                        <span>Reporte</span>
                     </Button>
-                    <Button className="gap-2 h-10 bg-primary hover:bg-primary/90 text-primary-foreground shadow-md transition-all hover:scale-[1.02]">
+                    <Button className="btn-luxury gap-2 px-6">
                         <Plus className="h-4 w-4" />
                         <span>Nuevo Lead</span>
                     </Button>
                 </div>
             </div>
 
-            {/* Stats Overview */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-                <StatsCard 
-                    title="Total Leads" 
+            {/* Stats Overview - Floating & Minimal */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 px-2">
+                <MinimalStat 
+                    label="Total Oportunidades" 
                     value={stats.total} 
-                    icon={Users} 
-                    trend="+12% vs mes anterior"
-                    color="blue"
+                    trend="+12%" 
+                    trendUp={true}
                 />
-                <StatsCard 
-                    title="Nuevos" 
+                <MinimalStat 
+                    label="Nuevos Leads" 
                     value={stats.nuevos} 
-                    icon={TrendingUp} 
-                    trend="+4 hoy"
-                    color="indigo"
+                    trend="+4" 
+                    trendUp={true}
+                    highlight
                 />
-                <StatsCard 
-                    title="En Negociación" 
+                <MinimalStat 
+                    label="En Negociación" 
                     value={stats.enProceso} 
-                    icon={Clock} 
-                    trend="8 activos"
-                    color="orange"
+                    trend="8 activos" 
+                    trendUp={null}
                 />
-                <StatsCard 
-                    title="Ventas Cerradas" 
+                <MinimalStat 
+                    label="Ventas Cerradas" 
                     value={stats.vendidos} 
-                    icon={CheckCircle2} 
-                    trend="+2 esta semana"
-                    color="emerald"
+                    trend="+2" 
+                    trendUp={true}
                 />
             </div>
 
-            {/* Main Content Area */}
-            <Card className="border-none shadow-xl bg-card/50 backdrop-blur-sm ring-1 ring-border/50">
-                <div className="p-6 space-y-6">
-                    {/* Toolbar / Filters */}
-                    <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center bg-background/50 p-4 rounded-lg border border-border/50">
-                        <div className="relative w-full lg:w-96 group">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-hover:text-primary" />
-                            <Input
-                                placeholder="Buscar por cliente, vehículo..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-10 bg-background border-border/60 focus-visible:ring-primary/20 transition-all"
-                            />
-                        </div>
-                        <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-                            <Select value={estadoFilter} onValueChange={setEstadoFilter}>
-                                <SelectTrigger className="w-full sm:w-[160px] bg-background border-border/60">
-                                    <Filter className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
-                                    <SelectValue placeholder="Estado" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="todos">Todos los estados</SelectItem>
-                                    {ESTADOS_LEAD.map(estado => (
-                                        <SelectItem key={estado.value} value={estado.value}>
-                                            {estado.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-
-                            <Select value={prioridadFilter} onValueChange={setPrioridadFilter}>
-                                <SelectTrigger className="w-full sm:w-[140px] bg-background border-border/60">
-                                    <SelectValue placeholder="Prioridad" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="todos">Todas</SelectItem>
-                                    {PRIORIDADES_LEAD.map(p => (
-                                        <SelectItem key={p.value} value={p.value}>
-                                            {p.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-
-                            <Select value={vendedorFilter} onValueChange={setVendedorFilter}>
-                                <SelectTrigger className="w-full sm:w-[160px] bg-background border-border/60">
-                                    <SelectValue placeholder="Vendedor" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="todos">Todos</SelectItem>
-                                    {mockUsers.filter(u => u.rol === 'vendedor').map(user => (
-                                        <SelectItem key={user.id} value={user.id}>
-                                            {user.nombre} {user.apellidos}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
+            {/* Main Content Area - Unified Glass Container */}
+            <div className="card-luxury p-0 overflow-hidden min-h-[600px] flex flex-col">
+                {/* Unified Toolbar */}
+                <div className="p-5 border-b border-white/5 bg-white/[0.02] flex flex-col lg:flex-row gap-4 justify-between items-center backdrop-blur-sm sticky top-0 z-10">
+                    <div className="relative w-full lg:w-96 group">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-hover:text-primary" />
+                        <Input
+                            placeholder="Buscar cliente, marca, modelo..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="input-luxury pl-10 w-full"
+                        />
                     </div>
-
-                    {/* Table */}
-                    <div className="rounded-md border border-border/50 overflow-hidden bg-background">
-                        <Table>
-                            <TableHeader>
-                                <TableRow className="bg-muted/50 hover:bg-muted/50">
-                                    <TableHead className="w-[120px] font-semibold text-xs uppercase tracking-wider text-muted-foreground/80">Fecha</TableHead>
-                                    <TableHead className="font-semibold text-xs uppercase tracking-wider text-muted-foreground/80">Cliente</TableHead>
-                                    <TableHead className="font-semibold text-xs uppercase tracking-wider text-muted-foreground/80">Vehículo</TableHead>
-                                    <TableHead className="w-[160px] font-semibold text-xs uppercase tracking-wider text-muted-foreground/80">Estado</TableHead>
-                                    <TableHead className="w-[120px] font-semibold text-xs uppercase tracking-wider text-muted-foreground/80">Prioridad</TableHead>
-                                    <TableHead className="w-[180px] font-semibold text-xs uppercase tracking-wider text-muted-foreground/80">Asignado a</TableHead>
-                                    <TableHead className="w-[80px] text-right font-semibold text-xs uppercase tracking-wider text-muted-foreground/80">Acción</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {filteredLeads.map((lead) => (
-                                    <TableRow
-                                        key={lead.id}
-                                        className="group cursor-pointer hover:bg-muted/30 transition-colors border-b border-border/50 last:border-0"
-                                        onClick={() => setSelectedLead(lead)}
-                                    >
-                                        <TableCell className="text-sm text-muted-foreground font-medium whitespace-nowrap">
-                                            {formatRelativeTime(lead.fecha_creacion)}
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex flex-col gap-0.5">
-                                                <span className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                                                    {lead.cliente?.nombre} {lead.cliente?.apellidos}
-                                                </span>
-                                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                                    <Mail className="h-3 w-3" />
-                                                    <span className="truncate max-w-[140px]">{lead.cliente?.email}</span>
-                                                </div>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            {lead.vehiculo ? (
-                                                <div className="flex items-center gap-2.5">
-                                                    <div className="h-8 w-8 rounded bg-muted flex items-center justify-center shrink-0">
-                                                        <Car className="h-4 w-4 text-muted-foreground" />
-                                                    </div>
-                                                    <div className="flex flex-col gap-0.5">
-                                                        <span className="font-medium text-sm leading-none">
-                                                            {lead.vehiculo.marca} {lead.vehiculo.modelo}
-                                                        </span>
-                                                        <span className="text-xs text-muted-foreground">
-                                                            {formatCurrency(lead.vehiculo.precio_venta)}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <span className="text-muted-foreground text-sm">-</span>
-                                            )}
-                                        </TableCell>
-                                        <TableCell className="align-middle">
-                                            <StatusBadge 
-                                                status={lead.estado} 
-                                                label={ESTADOS_LEAD.find(e => e.value === lead.estado)?.label}
-                                            />
-                                        </TableCell>
-                                        <TableCell className="align-middle">
-                                            <StatusBadge 
-                                                status={lead.prioridad} 
-                                                type="priority"
-                                            />
-                                        </TableCell>
-                                        <TableCell>
-                                            {lead.vendedor ? (
-                                                <div className="flex items-center gap-2">
-                                                    <Avatar className="h-7 w-7 border border-border">
-                                                        <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
-                                                            {getInitials(lead.vendedor.nombre, lead.vendedor.apellidos)}
-                                                        </AvatarFallback>
-                                                    </Avatar>
-                                                    <span className="text-sm font-medium text-muted-foreground">
-                                                        {lead.vendedor.nombre}
-                                                    </span>
-                                                </div>
-                                            ) : (
-                                                <span className="text-sm text-muted-foreground italic">Sin asignar</span>
-                                            )}
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        <MoreHorizontal className="h-4 w-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end" className="w-48">
-                                                    <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                                                    <DropdownMenuSeparator />
-                                                    <DropdownMenuItem onClick={() => setSelectedLead(lead)}>
-                                                        <Eye className="mr-2 h-4 w-4" />
-                                                        Ver ficha completa
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem>
-                                                        <Phone className="mr-2 h-4 w-4" />
-                                                        Llamar
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem>
-                                                        <Mail className="mr-2 h-4 w-4" />
-                                                        Enviar email
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem>
-                                                        <MessageCircle className="mr-2 h-4 w-4" />
-                                                        WhatsApp
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuSeparator />
-                                                    <DropdownMenuItem>
-                                                        <Calendar className="mr-2 h-4 w-4" />
-                                                        Programar cita
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </TableCell>
-                                    </TableRow>
+                    
+                    <div className="flex items-center gap-3 w-full lg:w-auto overflow-x-auto pb-2 lg:pb-0 no-scrollbar">
+                        <FilterSelect 
+                            value={estadoFilter} 
+                            onChange={setEstadoFilter} 
+                            placeholder="Estado" 
+                            icon={Filter}
+                            options={ESTADOS_LEAD}
+                        />
+                        <FilterSelect 
+                            value={prioridadFilter} 
+                            onChange={setPrioridadFilter} 
+                            placeholder="Prioridad" 
+                            icon={SlidersHorizontal}
+                            options={PRIORIDADES_LEAD}
+                        />
+                        <Select value={vendedorFilter} onValueChange={setVendedorFilter}>
+                            <SelectTrigger className="w-[160px] input-luxury border-0 bg-white/5 hover:bg-white/10">
+                                <Users className="h-3.5 w-3.5 mr-2 opacity-70" />
+                                <SelectValue placeholder="Vendedor" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-[#1a1a1a] border-white/10 text-white">
+                                <SelectItem value="todos">Todos</SelectItem>
+                                {mockUsers.filter(u => u.rol === 'vendedor').map(user => (
+                                    <SelectItem key={user.id} value={user.id}>
+                                        {user.nombre} {user.apellidos}
+                                    </SelectItem>
                                 ))}
-                            </TableBody>
-                        </Table>
-
-                        {filteredLeads.length === 0 && (
-                            <div className="p-16 text-center">
-                                <div className="bg-muted/30 h-16 w-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <Search className="h-8 w-8 text-muted-foreground/50" />
-                                </div>
-                                <h3 className="text-lg font-semibold text-foreground mb-2">No se encontraron resultados</h3>
-                                <p className="text-muted-foreground max-w-sm mx-auto">
-                                    No hay leads que coincidan con los filtros seleccionados. Intenta limpiar la búsqueda.
-                                </p>
-                                <Button 
-                                    variant="outline" 
-                                    className="mt-6"
-                                    onClick={() => {
-                                        setSearchQuery("")
-                                        setEstadoFilter("todos")
-                                        setPrioridadFilter("todos")
-                                        setVendedorFilter("todos")
-                                    }}
-                                >
-                                    Limpiar filtros
-                                </Button>
-                            </div>
-                        )}
+                            </SelectContent>
+                        </Select>
                     </div>
                 </div>
-            </Card>
+
+                {/* Table Content */}
+                <div className="flex-1 overflow-auto">
+                    <Table className="table-luxury w-full">
+                        <TableHeader>
+                            <TableRow className="border-b border-white/5 hover:bg-transparent">
+                                <TableHead className="pl-6 w-[140px]">Fecha</TableHead>
+                                <TableHead>Cliente</TableHead>
+                                <TableHead>Vehículo</TableHead>
+                                <TableHead className="w-[180px]">Estado</TableHead>
+                                <TableHead className="w-[140px]">Prioridad</TableHead>
+                                <TableHead className="w-[180px]">Asignado</TableHead>
+                                <TableHead className="w-[80px] text-right pr-6">Acción</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {filteredLeads.map((lead) => (
+                                <TableRow
+                                    key={lead.id}
+                                    className="group cursor-pointer border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-all duration-300"
+                                    onClick={() => setSelectedLead(lead)}
+                                >
+                                    <TableCell className="pl-6 text-muted-foreground font-medium text-xs">
+                                        {formatRelativeTime(lead.fecha_creacion)}
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex flex-col py-1">
+                                            <span className="text-sm font-medium text-white/90 group-hover:text-primary transition-colors">
+                                                {lead.cliente?.nombre} {lead.cliente?.apellidos}
+                                            </span>
+                                            <span className="text-[11px] text-muted-foreground font-light tracking-wide mt-0.5">
+                                                {lead.cliente?.email}
+                                            </span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        {lead.vehiculo ? (
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-9 w-9 rounded bg-white/5 flex items-center justify-center shrink-0 border border-white/5">
+                                                    <Car className="h-4 w-4 text-white/60" />
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs font-semibold text-white/80">
+                                                        {lead.vehiculo.marca} {lead.vehiculo.modelo}
+                                                    </span>
+                                                    <span className="text-[10px] text-muted-foreground">
+                                                        {formatCurrency(lead.vehiculo.precio_venta)}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <span className="text-muted-foreground text-xs">-</span>
+                                        )}
+                                    </TableCell>
+                                    <TableCell>
+                                        <StatusBadge 
+                                            status={lead.estado} 
+                                            className="bg-transparent border-0 ring-1 ring-white/10"
+                                            label={ESTADOS_LEAD.find(e => e.value === lead.estado)?.label}
+                                        />
+                                    </TableCell>
+                                    <TableCell>
+                                        <StatusBadge 
+                                            status={lead.prioridad} 
+                                            type="priority"
+                                            className="bg-transparent border-0 opacity-90"
+                                        />
+                                    </TableCell>
+                                    <TableCell>
+                                        {lead.vendedor ? (
+                                            <div className="flex items-center gap-2">
+                                                <Avatar className="h-6 w-6 ring-1 ring-white/10">
+                                                    <AvatarFallback className="text-[9px] bg-gradient-to-br from-neutral-800 to-neutral-900 text-white/70">
+                                                        {getInitials(lead.vendedor.nombre, lead.vendedor.apellidos)}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <span className="text-xs text-white/60">
+                                                    {lead.vendedor.nombre}
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            <span className="text-xs text-muted-foreground italic opacity-50">--</span>
+                                        )}
+                                    </TableCell>
+                                    <TableCell className="text-right pr-6">
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white hover:bg-white/10 opacity-0 group-hover:opacity-100 transition-all">
+                                                    <MoreHorizontal className="h-4 w-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end" className="w-56 bg-[#1a1a1a] border-white/10 text-white">
+                                                <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider">Acciones</DropdownMenuLabel>
+                                                <DropdownMenuSeparator className="bg-white/10" />
+                                                <DropdownMenuItem onClick={() => setSelectedLead(lead)} className="hover:bg-white/5 cursor-pointer">
+                                                    <Eye className="mr-2 h-4 w-4" />
+                                                    Ver ficha completa
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem className="hover:bg-white/5 cursor-pointer">
+                                                    <Phone className="mr-2 h-4 w-4" />
+                                                    Llamar
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem className="hover:bg-white/5 cursor-pointer">
+                                                    <Mail className="mr-2 h-4 w-4" />
+                                                    Enviar email
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem className="hover:bg-white/5 cursor-pointer">
+                                                    <MessageCircle className="mr-2 h-4 w-4" />
+                                                    WhatsApp
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+
+                    {filteredLeads.length === 0 && (
+                        <div className="h-64 flex flex-col items-center justify-center text-center p-8">
+                            <div className="h-16 w-16 rounded-full bg-white/[0.02] flex items-center justify-center mb-4 ring-1 ring-white/5">
+                                <Search className="h-6 w-6 text-muted-foreground/40" />
+                            </div>
+                            <h3 className="text-lg font-medium text-white/80 mb-1">Sin resultados</h3>
+                            <p className="text-sm text-muted-foreground max-w-xs">
+                                No encontramos leads con los filtros actuales.
+                            </p>
+                            <Button 
+                                variant="link" 
+                                className="text-primary mt-2"
+                                onClick={() => {
+                                    setSearchQuery("")
+                                    setEstadoFilter("todos")
+                                    setPrioridadFilter("todos")
+                                    setVendedorFilter("todos")
+                                }}
+                            >
+                                Limpiar todos los filtros
+                            </Button>
+                        </div>
+                    )}
+                </div>
+            </div>
 
             {/* Lead Detail Modal */}
             {selectedLead && (
@@ -359,35 +339,57 @@ export default function CRMPage() {
     )
 }
 
-function StatsCard({ title, value, icon: Icon, trend, color }: { title: string, value: number, icon: any, trend: string, color: string }) {
-    const colorStyles = {
-        blue: "text-blue-500 bg-blue-500/10",
-        indigo: "text-indigo-500 bg-indigo-500/10",
-        orange: "text-orange-500 bg-orange-500/10",
-        emerald: "text-emerald-500 bg-emerald-500/10",
-    }
-    const colorClass = colorStyles[color as keyof typeof colorStyles] || colorStyles.blue
-
+function MinimalStat({ label, value, trend, trendUp, highlight = false }: { 
+    label: string, 
+    value: number, 
+    trend?: string, 
+    trendUp?: boolean | null,
+    highlight?: boolean 
+}) {
     return (
-        <Card className="border-none shadow-lg bg-card/80 backdrop-blur-sm hover:shadow-xl transition-shadow duration-300">
-            <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <p className="text-sm font-medium text-muted-foreground">{title}</p>
-                        <h3 className="text-3xl font-bold mt-2 text-foreground">{value}</h3>
-                    </div>
-                    <div className={cn("h-12 w-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110", colorClass)}>
-                        <Icon className="h-6 w-6" />
-                    </div>
-                </div>
-                <div className="mt-4 flex items-center text-xs">
-                    <span className="text-emerald-500 font-medium flex items-center">
-                        <TrendingUp className="h-3 w-3 mr-1" />
+        <div className={cn(
+            "flex flex-col gap-1 p-4 rounded-xl transition-all duration-300",
+            highlight ? "bg-white/[0.03] border border-white/5" : "hover:bg-white/[0.01]"
+        )}>
+            <span className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold">
+                {label}
+            </span>
+            <div className="flex items-baseline gap-3">
+                <span className={cn(
+                    "text-3xl font-light tracking-tight",
+                    highlight ? "text-primary drop-shadow-[0_0_15px_rgba(220,38,38,0.3)]" : "text-white"
+                )}>
+                    {value}
+                </span>
+                {trend && (
+                    <span className={cn(
+                        "text-xs font-medium flex items-center gap-0.5",
+                        trendUp === true ? "text-emerald-500" : trendUp === false ? "text-rose-500" : "text-amber-500"
+                    )}>
+                        {trendUp === true ? <TrendingUp className="h-3 w-3" /> : null}
                         {trend}
                     </span>
-                    <span className="text-muted-foreground/60 ml-2">vs último periodo</span>
-                </div>
-            </CardContent>
-        </Card>
+                )}
+            </div>
+        </div>
+    )
+}
+
+function FilterSelect({ value, onChange, placeholder, icon: Icon, options }: any) {
+    return (
+        <Select value={value} onValueChange={onChange}>
+            <SelectTrigger className="w-[160px] input-luxury border-0 bg-white/5 hover:bg-white/10">
+                <Icon className="h-3.5 w-3.5 mr-2 opacity-70" />
+                <SelectValue placeholder={placeholder} />
+            </SelectTrigger>
+            <SelectContent className="bg-[#1a1a1a] border-white/10 text-white">
+                <SelectItem value="todos">Todos</SelectItem>
+                {options.map((opt: any) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                    </SelectItem>
+                ))}
+            </SelectContent>
+        </Select>
     )
 }
