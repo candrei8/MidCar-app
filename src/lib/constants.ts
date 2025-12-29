@@ -201,7 +201,6 @@ export const NAV_ITEMS = [
     { href: '/crm', label: 'CRM', icon: 'Users' },
     { href: '/inventario', label: 'Inventario', icon: 'Car' },
     { href: '/reportes', label: 'Reportes', icon: 'BarChart3' },
-    { href: '/configuracion', label: 'Configuración', icon: 'Settings' },
 ] as const
 
 // Menú Utilidades

@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import {
     LayoutDashboard,
     Users,
@@ -15,7 +15,8 @@ import {
     LogOut,
     User,
     Menu,
-    X
+    X,
+    Loader2
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -28,14 +29,14 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
+import { mockVehicles, mockClients, mockLeads } from "@/lib/mock-data"
 
 const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/crm', label: 'CRM', icon: Users },
     { href: '/inventario', label: 'Inventario', icon: Car },
     { href: '/reportes', label: 'Reportes', icon: BarChart3 },
-    { href: '/configuracion', label: 'Ajustes', icon: Settings },
 ]
 
 // Mock notifications
@@ -45,10 +46,99 @@ const mockNotifications = [
     { id: '3', tipo: 'alerta', titulo: 'Vehículo 60+ días', mensaje: 'Audi A4 lleva 65 días en stock', leida: true },
 ]
 
+type SearchResult = {
+    id: string
+    type: 'vehiculo' | 'cliente' | 'lead'
+    title: string
+    subtitle: string
+    url: string
+}
+
 export function Header() {
     const pathname = usePathname()
+    const router = useRouter()
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
     const unreadCount = mockNotifications.filter(n => !n.leida).length
+    
+    // Search state
+    const [searchQuery, setSearchQuery] = useState("")
+    const [searchResults, setSearchResults] = useState<SearchResult[]>([])
+    const [isSearching, setIsSearching] = useState(false)
+    const [showResults, setShowResults] = useState(false)
+    const searchRef = useRef<HTMLDivElement>(null)
+
+    // Close search results when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+                setShowResults(false)
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside)
+        return () => document.removeEventListener("mousedown", handleClickOutside)
+    }, [])
+
+    // Search logic
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (searchQuery.length < 2) {
+                setSearchResults([])
+                return
+            }
+
+            setIsSearching(true)
+            
+            // Simulate search delay
+            const results: SearchResult[] = []
+            const query = searchQuery.toLowerCase()
+
+            // Search vehicles
+            mockVehicles.forEach(v => {
+                if (
+                    v.marca.toLowerCase().includes(query) || 
+                    v.modelo.toLowerCase().includes(query) || 
+                    v.matricula.toLowerCase().includes(query)
+                ) {
+                    results.push({
+                        id: v.id,
+                        type: 'vehiculo',
+                        title: `${v.marca} ${v.modelo} ${v.version}`,
+                        subtitle: `${v.matricula} • ${v.estado}`,
+                        url: `/inventario/${v.id}`
+                    })
+                }
+            })
+
+            // Search clients
+            mockClients.forEach(c => {
+                if (
+                    c.nombre.toLowerCase().includes(query) || 
+                    c.apellidos.toLowerCase().includes(query) || 
+                    c.email.toLowerCase().includes(query)
+                ) {
+                    results.push({
+                        id: c.id,
+                        type: 'cliente',
+                        title: `${c.nombre} ${c.apellidos}`,
+                        subtitle: c.email,
+                        url: `/contactos` // Idealmente a detalle de contacto
+                    })
+                }
+            })
+
+            setSearchResults(results.slice(0, 5)) // Limit to 5 results
+            setIsSearching(false)
+            setShowResults(true)
+        }, 300)
+
+        return () => clearTimeout(timer)
+    }, [searchQuery])
+
+    const handleResultClick = (url: string) => {
+        router.push(url)
+        setShowResults(false)
+        setSearchQuery("")
+    }
 
     return (
         <>
@@ -109,13 +199,54 @@ export function Header() {
                         {/* Right side */}
                         <div className="ml-auto flex items-center gap-1.5">
                             {/* Search */}
-                            <div className="hidden md:flex relative group">
+                            <div ref={searchRef} className="hidden md:flex relative group">
                                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-white/20 group-focus-within:text-white/40 transition-colors" />
                                 <input
                                     type="text"
                                     placeholder="Buscar..."
-                                    className="w-[140px] h-7 pl-7 pr-3 text-[11px] bg-white/[0.02] border border-white/[0.04] rounded-md text-white/80 placeholder:text-white/20 focus:outline-none focus:border-white/[0.08] focus:bg-white/[0.03] focus:w-[180px] transition-all duration-300"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onFocus={() => {
+                                        if (searchResults.length > 0) setShowResults(true)
+                                    }}
+                                    className="w-[140px] h-7 pl-7 pr-3 text-[11px] bg-white/[0.02] border border-white/[0.04] rounded-md text-white/80 placeholder:text-white/20 focus:outline-none focus:border-white/[0.08] focus:bg-white/[0.03] focus:w-[240px] transition-all duration-300"
                                 />
+                                {isSearching && (
+                                    <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-white/20 animate-spin" />
+                                )}
+                                
+                                {/* Search Results Dropdown */}
+                                {showResults && searchQuery.length >= 2 && (
+                                    <div className="absolute top-full mt-2 left-0 w-[240px] bg-[#0a0a0a] border border-white/[0.08] rounded-md shadow-xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
+                                        <div className="py-1">
+                                            {searchResults.length > 0 ? (
+                                                searchResults.map((result) => (
+                                                    <button
+                                                        key={`${result.type}-${result.id}`}
+                                                        onClick={() => handleResultClick(result.url)}
+                                                        className="w-full text-left px-3 py-2 hover:bg-white/[0.04] transition-colors group/item"
+                                                    >
+                                                        <div className="flex items-start gap-3">
+                                                            <div className="mt-0.5">
+                                                                {result.type === 'vehiculo' && <Car className="h-3.5 w-3.5 text-white/40 group-hover/item:text-white/60" />}
+                                                                {result.type === 'cliente' && <User className="h-3.5 w-3.5 text-white/40 group-hover/item:text-white/60" />}
+                                                                {result.type === 'lead' && <Users className="h-3.5 w-3.5 text-white/40 group-hover/item:text-white/60" />}
+                                                            </div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="text-[11px] font-medium text-white/80 truncate group-hover/item:text-white">{result.title}</p>
+                                                                <p className="text-[10px] text-white/40 truncate">{result.subtitle}</p>
+                                                            </div>
+                                                        </div>
+                                                    </button>
+                                                ))
+                                            ) : (
+                                                <div className="px-3 py-4 text-center text-[10px] text-white/30">
+                                                    No se encontraron resultados
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Notifications */}
@@ -187,10 +318,6 @@ export function Header() {
                                             <User className="mr-2 h-3.5 w-3.5" />
                                             Mi perfil
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem className="px-3 py-2 text-[11px] text-white/60 hover:text-white/80 hover:bg-white/[0.03] cursor-pointer">
-                                            <Settings className="mr-2 h-3.5 w-3.5" />
-                                            Configuración
-                                        </DropdownMenuItem>
                                     </div>
                                     <div className="border-t border-white/[0.04] py-1">
                                         <DropdownMenuItem className="px-3 py-2 text-[11px] text-red-400/80 hover:text-red-400 hover:bg-red-500/5 cursor-pointer">
@@ -243,8 +370,44 @@ export function Header() {
                                 <input
                                     type="text"
                                     placeholder="Buscar..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
                                     className="w-full h-9 pl-9 pr-3 text-xs bg-white/[0.02] border border-white/[0.04] rounded-lg text-white/80 placeholder:text-white/20 focus:outline-none focus:border-white/[0.08]"
                                 />
+                                {showResults && searchQuery.length >= 2 && (
+                                    <div className="absolute top-full mt-2 left-0 w-full bg-[#0a0a0a] border border-white/[0.08] rounded-md shadow-xl overflow-hidden z-50">
+                                        <div className="py-1">
+                                            {searchResults.length > 0 ? (
+                                                searchResults.map((result) => (
+                                                    <button
+                                                        key={`${result.type}-${result.id}`}
+                                                        onClick={() => {
+                                                            handleResultClick(result.url)
+                                                            setMobileMenuOpen(false)
+                                                        }}
+                                                        className="w-full text-left px-3 py-2 hover:bg-white/[0.04] transition-colors"
+                                                    >
+                                                        <div className="flex items-start gap-3">
+                                                            <div className="mt-0.5">
+                                                                {result.type === 'vehiculo' && <Car className="h-3.5 w-3.5 text-white/40" />}
+                                                                {result.type === 'cliente' && <User className="h-3.5 w-3.5 text-white/40" />}
+                                                                {result.type === 'lead' && <Users className="h-3.5 w-3.5 text-white/40" />}
+                                                            </div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="text-[11px] font-medium text-white/80 truncate">{result.title}</p>
+                                                                <p className="text-[10px] text-white/40 truncate">{result.subtitle}</p>
+                                                            </div>
+                                                        </div>
+                                                    </button>
+                                                ))
+                                            ) : (
+                                                <div className="px-3 py-4 text-center text-[10px] text-white/30">
+                                                    No se encontraron resultados
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </nav>

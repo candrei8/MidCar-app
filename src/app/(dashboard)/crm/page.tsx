@@ -1,6 +1,8 @@
 "use client"
 
 import { useState } from "react"
+import * as XLSX from 'xlsx'
+import { saveAs } from 'file-saver'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -86,6 +88,34 @@ export default function CRMPage() {
         return `${nombre.charAt(0)}${apellidos.charAt(0)}`.toUpperCase()
     }
 
+    const handleExport = () => {
+        try {
+            const dataToExport = filteredLeads.map(lead => ({
+                Fecha: new Date(lead.fecha_creacion).toLocaleDateString(),
+                Cliente: `${lead.cliente?.nombre || ''} ${lead.cliente?.apellidos || ''}`,
+                Email: lead.cliente?.email || '',
+                Telefono: lead.cliente?.telefono || '',
+                Vehiculo: lead.vehiculo ? `${lead.vehiculo.marca} ${lead.vehiculo.modelo}` : 'N/A',
+                Precio: lead.vehiculo?.precio_venta || 0,
+                Estado: lead.estado,
+                Prioridad: lead.prioridad,
+                Vendedor: lead.vendedor?.nombre || 'Sin asignar'
+            }))
+
+            const worksheet = XLSX.utils.json_to_sheet(dataToExport)
+            const workbook = XLSX.utils.book_new()
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Leads")
+
+            const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' })
+            const data = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' })
+            
+            saveAs(data, `midcar_leads_${new Date().toISOString().split('T')[0]}.xlsx`)
+        } catch (error) {
+            console.error("Error exporting report:", error)
+            alert("Hubo un error al generar el reporte.")
+        }
+    }
+
     return (
         <div className="space-y-10 animate-in">
             {/* Header Section - Clean & Minimal */}
@@ -102,7 +132,7 @@ export default function CRMPage() {
                     <Button 
                         variant="ghost" 
                         className="btn-ghost-luxury gap-2"
-                        onClick={() => alert("Generando reporte de leads...")}
+                        onClick={handleExport}
                     >
                         <Download className="h-4 w-4" />
                         <span>Reporte</span>
