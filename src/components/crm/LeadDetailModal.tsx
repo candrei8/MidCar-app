@@ -104,10 +104,6 @@ export function LeadDetailModal({ lead, open, onClose }: LeadDetailModalProps) {
                                 <User className="h-4 w-4" />
                                 Información
                             </TabsTrigger>
-                            <TabsTrigger value="transcript" className="gap-2">
-                                <MessageSquare className="h-4 w-4" />
-                                Conversación
-                            </TabsTrigger>
                             <TabsTrigger value="activity" className="gap-2">
                                 <Clock className="h-4 w-4" />
                                 Actividad
@@ -265,67 +261,6 @@ export function LeadDetailModal({ lead, open, onClose }: LeadDetailModalProps) {
                                         </CardContent>
                                     </Card>
                                 )}
-                            </TabsContent>
-
-                            {/* Transcript Tab */}
-                                                <TabsContent value="transcript" className="mt-0">
-                                                    <Card className="card-premium">
-                                                        <CardHeader>
-                                                            <CardTitle className="text-sm font-medium text-muted-foreground">Historial de Conversación</CardTitle>
-                                                        </CardHeader>
-                                                        <CardContent>
-                                        {lead.transcript_chatbot && lead.transcript_chatbot.length > 0 ? (
-                                            <div className="space-y-4">
-                                                {lead.transcript_chatbot.map((message, index) => (
-                                                    <div
-                                                        key={index}
-                                                        className={cn(
-                                                            "flex gap-3",
-                                                            message.role === 'user' ? "justify-end" : "justify-start"
-                                                        )}
-                                                    >
-                                                        {message.role === 'assistant' && (
-                                                            <Avatar className="h-8 w-8">
-                                                                <AvatarFallback className="bg-primary text-white text-xs">
-                                                                    MC
-                                                                </AvatarFallback>
-                                                            </Avatar>
-                                                        )}
-                                                        <div
-                                                            className={cn(
-                                                                "max-w-[70%] rounded-lg p-3",
-                                                                message.role === 'user'
-                                                                    ? "bg-primary text-white"
-                                                                    : "bg-surface-200"
-                                                            )}
-                                                        >
-                                                            <p className="text-sm">{message.content}</p>
-                                                            <p className={cn(
-                                                                "text-xs mt-1",
-                                                                message.role === 'user' ? "text-white/70" : "text-muted-foreground"
-                                                            )}>
-                                                                {formatRelativeTime(message.timestamp)}
-                                                            </p>
-                                                        </div>
-                                                        {message.role === 'user' && (
-                                                            <Avatar className="h-8 w-8">
-                                                                <AvatarFallback className="text-xs">
-                                                                    {lead.cliente?.nombre.charAt(0)}{lead.cliente?.apellidos.charAt(0)}
-                                                                </AvatarFallback>
-                                                            </Avatar>
-                                                        )}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <div className="text-center py-8 text-muted-foreground">
-                                                <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                                                <p>No hay conversación del chatbot</p>
-                                                <p className="text-sm">Este lead fue capturado por otro canal</p>
-                                            </div>
-                                        )}
-                                    </CardContent>
-                                </Card>
                             </TabsContent>
 
                             {/* Activity Tab */}

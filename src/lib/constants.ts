@@ -235,3 +235,90 @@ export const TIPOS_DOCUMENTO_VEHICULO = [
     { value: 'otro', label: 'Otro', required: false },
 ] as const
 
+// Equipamiento del vehículo (categorías y opciones)
+export const EQUIPAMIENTO_VEHICULO = {
+    seguridad: {
+        label: 'Seguridad',
+        items: [
+            { id: 'abs', label: 'ABS' },
+            { id: 'esp', label: 'ESP' },
+            { id: 'control_traccion', label: 'Control de tracción' },
+            { id: 'airbags_frontales', label: 'Airbags frontales' },
+            { id: 'airbags_laterales', label: 'Airbags laterales' },
+            { id: 'airbags_cortina', label: 'Airbags de cortina' },
+            { id: 'isofix', label: 'ISOFIX' },
+            { id: 'asistente_frenado', label: 'Asistente de frenado' },
+            { id: 'detector_angulo_muerto', label: 'Detector de ángulo muerto' },
+            { id: 'alerta_cambio_carril', label: 'Alerta de cambio de carril' },
+        ]
+    },
+    confort: {
+        label: 'Confort',
+        items: [
+            { id: 'climatizador', label: 'Climatizador' },
+            { id: 'aire_acondicionado', label: 'Aire acondicionado' },
+            { id: 'asientos_calefactados', label: 'Asientos calefactados' },
+            { id: 'asientos_ventilados', label: 'Asientos ventilados' },
+            { id: 'asientos_electricos', label: 'Asientos eléctricos' },
+            { id: 'asientos_memoria', label: 'Asientos con memoria' },
+            { id: 'volante_multifuncion', label: 'Volante multifunción' },
+            { id: 'volante_calefactado', label: 'Volante calefactado' },
+            { id: 'sensores_parking', label: 'Sensores de parking' },
+            { id: 'camara_trasera', label: 'Cámara trasera' },
+            { id: 'camara_360', label: 'Cámara 360°' },
+            { id: 'techo_panoramico', label: 'Techo panorámico' },
+            { id: 'portón_electrico', label: 'Portón eléctrico' },
+            { id: 'llave_keyless', label: 'Llave Keyless' },
+            { id: 'arranque_boton', label: 'Arranque por botón' },
+        ]
+    },
+    tecnologia: {
+        label: 'Tecnología',
+        items: [
+            { id: 'navegador_gps', label: 'Navegador GPS' },
+            { id: 'pantalla_tactil', label: 'Pantalla táctil' },
+            { id: 'bluetooth', label: 'Bluetooth' },
+            { id: 'apple_carplay', label: 'Apple CarPlay' },
+            { id: 'android_auto', label: 'Android Auto' },
+            { id: 'cargador_inalambrico', label: 'Cargador inalámbrico' },
+            { id: 'usb', label: 'Puertos USB' },
+            { id: 'head_up_display', label: 'Head-up Display' },
+            { id: 'cuadro_digital', label: 'Cuadro digital' },
+            { id: 'control_voz', label: 'Control por voz' },
+            { id: 'sonido_premium', label: 'Sistema de sonido premium' },
+        ]
+    },
+    iluminacion: {
+        label: 'Iluminación',
+        items: [
+            { id: 'faros_led', label: 'Faros LED' },
+            { id: 'luces_diurnas_led', label: 'Luces diurnas LED' },
+            { id: 'faros_xenon', label: 'Faros xenón' },
+            { id: 'faros_adaptativos', label: 'Faros adaptativos' },
+            { id: 'luz_ambiental', label: 'Luz ambiental interior' },
+            { id: 'luces_automaticas', label: 'Luces automáticas' },
+            { id: 'luz_larga_automatica', label: 'Luz larga automática' },
+        ]
+    },
+    ayudas_conduccion: {
+        label: 'Ayudas a la conducción',
+        items: [
+            { id: 'cruise_control', label: 'Control de crucero' },
+            { id: 'cruise_control_adaptativo', label: 'Control de crucero adaptativo' },
+            { id: 'limitador_velocidad', label: 'Limitador de velocidad' },
+            { id: 'asistente_aparcamiento', label: 'Asistente de aparcamiento' },
+            { id: 'detector_fatiga', label: 'Detector de fatiga' },
+            { id: 'reconocimiento_señales', label: 'Reconocimiento de señales' },
+            { id: 'frenado_emergencia', label: 'Frenado de emergencia' },
+        ]
+    },
+} as const
+
+// Helper para obtener todos los IDs de equipamiento
+export const getAllEquipmentIds = (): string[] => {
+    const ids: string[] = []
+    Object.values(EQUIPAMIENTO_VEHICULO).forEach(category => {
+        category.items.forEach(item => ids.push(item.id))
+    })
+    return ids
+}

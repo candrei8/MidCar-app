@@ -66,6 +66,9 @@ export interface Vehicle {
     datos_sincronizados?: boolean
     ultima_sincronizacion?: string
 
+    // Equipment (array of equipment IDs)
+    equipamiento?: string[]
+
     // Timestamps
     created_at: string
     updated_at: string

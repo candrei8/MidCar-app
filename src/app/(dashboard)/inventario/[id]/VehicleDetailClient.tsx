@@ -24,6 +24,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { VehicleActions } from "@/components/inventory/VehicleActions"
 import { mockVehicles } from "@/lib/mock-data"
+import { EQUIPAMIENTO_VEHICULO } from "@/lib/constants"
 
 interface VehicleDetailClientProps {
     id: string
@@ -375,47 +376,7 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
                 <TabsContent value="equipamiento">
                     <Card className="card-premium">
                         <CardContent className="p-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                <div className="space-y-3">
-                                    <h4 className="font-semibold text-foreground">Seguridad</h4>
-                                    <div className="space-y-2 text-sm">
-                                        <EquipmentItem label="ABS" available />
-                                        <EquipmentItem label="ESP" available />
-                                        <EquipmentItem label="Control de tracción" available />
-                                        <EquipmentItem label="Airbags frontales" available />
-                                        <EquipmentItem label="ISOFIX" available />
-                                    </div>
-                                </div>
-                                <div className="space-y-3">
-                                    <h4 className="font-semibold text-foreground">Confort</h4>
-                                    <div className="space-y-2 text-sm">
-                                        <EquipmentItem label="Climatizador" available />
-                                        <EquipmentItem label="Asientos calefactados" available />
-                                        <EquipmentItem label="Volante multifunción" available />
-                                        <EquipmentItem label="Sensores parking" available />
-                                        <EquipmentItem label="Cámara trasera" available />
-                                    </div>
-                                </div>
-                                <div className="space-y-3">
-                                    <h4 className="font-semibold text-foreground">Tecnología</h4>
-                                    <div className="space-y-2 text-sm">
-                                        <EquipmentItem label="Navegador GPS" available />
-                                        <EquipmentItem label="Pantalla táctil" available />
-                                        <EquipmentItem label="Bluetooth" available />
-                                        <EquipmentItem label="Apple CarPlay" available />
-                                        <EquipmentItem label="Android Auto" available />
-                                    </div>
-                                </div>
-                                <div className="space-y-3">
-                                    <h4 className="font-semibold text-foreground">Iluminación</h4>
-                                    <div className="space-y-2 text-sm">
-                                        <EquipmentItem label="Faros LED" available />
-                                        <EquipmentItem label="Luces diurnas LED" available />
-                                        <EquipmentItem label="Faros xenón" available={false} />
-                                        <EquipmentItem label="Faros adaptativos" available={false} />
-                                    </div>
-                                </div>
-                            </div>
+                            <EquipmentDisplay equipamiento={vehicle.equipamiento || []} />
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -479,6 +440,32 @@ function EquipmentItem({ label, available }: { label: string; available: boolean
                 <X className="h-4 w-4 text-muted" />
             )}
             <span className={available ? "text-foreground" : "text-muted"}>{label}</span>
+        </div>
+    )
+}
+
+function EquipmentDisplay({ equipamiento }: { equipamiento: string[] }) {
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+            {Object.entries(EQUIPAMIENTO_VEHICULO).map(([categoryKey, category]) => {
+                const categoryItems = category.items.filter(item => equipamiento.includes(item.id))
+                const hasItems = categoryItems.length > 0
+
+                return (
+                    <div key={categoryKey} className="space-y-3">
+                        <h4 className="font-semibold text-foreground">{category.label}</h4>
+                        <div className="space-y-2 text-sm">
+                            {category.items.map((item) => (
+                                <EquipmentItem
+                                    key={item.id}
+                                    label={item.label}
+                                    available={equipamiento.includes(item.id)}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                )
+            })}
         </div>
     )
 }

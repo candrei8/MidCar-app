@@ -26,7 +26,7 @@ import {
     FileText,
     Save,
 } from "lucide-react"
-import { MARCAS, COMBUSTIBLES, TRANSMISIONES, CARROCERIAS, ETIQUETAS_DGT, TIPOS_DOCUMENTO_VEHICULO } from "@/lib/constants"
+import { MARCAS, COMBUSTIBLES, TRANSMISIONES, CARROCERIAS, ETIQUETAS_DGT, TIPOS_DOCUMENTO_VEHICULO, EQUIPAMIENTO_VEHICULO } from "@/lib/constants"
 import { formatCurrency } from "@/lib/utils"
 
 export interface VehicleFormData {
@@ -73,6 +73,9 @@ export interface VehicleFormData {
 
     // Step 5: Documents
     documentos: UploadedDocument[]
+
+    // Equipment (array of equipment IDs)
+    equipamiento: string[]
 }
 
 export const initialFormData: VehicleFormData = {
@@ -114,6 +117,8 @@ export const initialFormData: VehicleFormData = {
     foto_principal: null,
 
     documentos: [],
+
+    equipamiento: [],
 }
 
 interface VehicleFormProps {
@@ -136,12 +141,24 @@ export function VehicleForm({ initialData, onSubmit, isSubmitting = false, onCan
         }
     }, [initialData])
 
-    const updateField = (field: keyof VehicleFormData, value: string | boolean | UploadedFile[] | UploadedDocument[] | null) => {
+    const updateField = (field: keyof VehicleFormData, value: string | boolean | UploadedFile[] | UploadedDocument[] | string[] | null) => {
         setFormData(prev => ({ ...prev, [field]: value }))
         // Clear error when field is updated
         if (errors[field]) {
             setErrors(prev => ({ ...prev, [field]: undefined }))
         }
+    }
+
+    // Toggle equipment item
+    const toggleEquipment = (equipmentId: string) => {
+        setFormData(prev => {
+            const current = prev.equipamiento || []
+            if (current.includes(equipmentId)) {
+                return { ...prev, equipamiento: current.filter(id => id !== equipmentId) }
+            } else {
+                return { ...prev, equipamiento: [...current, equipmentId] }
+            }
+        })
     }
 
     // Calculate margins
@@ -231,10 +248,10 @@ export function VehicleForm({ initialData, onSubmit, isSubmitting = false, onCan
                             <button
                                 onClick={() => setStep(s.num)}
                                 className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${status === 'current'
-                                        ? 'bg-primary text-white'
-                                        : status === 'completed'
-                                            ? 'bg-success/20 text-success'
-                                            : 'bg-surface-300 text-muted-foreground'
+                                    ? 'bg-primary text-white'
+                                    : status === 'completed'
+                                        ? 'bg-success/20 text-success'
+                                        : 'bg-surface-300 text-muted-foreground'
                                     }`}
                             >
                                 {status === 'completed' ? (
@@ -518,6 +535,33 @@ export function VehicleForm({ initialData, onSubmit, isSubmitting = false, onCan
                             </div>
                         </div>
 
+                        {/* Equipment Section */}
+                        <div className="space-y-4 pt-4 border-t border-card-border">
+                            <h4 className="font-medium text-foreground">Equipamiento del Vehículo</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                                {Object.entries(EQUIPAMIENTO_VEHICULO).map(([categoryKey, category]) => (
+                                    <div key={categoryKey} className="space-y-3">
+                                        <h5 className="text-sm font-medium text-primary">{category.label}</h5>
+                                        <div className="space-y-2">
+                                            {category.items.map((item) => (
+                                                <div key={item.id} className="flex items-center space-x-2">
+                                                    <Checkbox
+                                                        id={item.id}
+                                                        checked={(formData.equipamiento || []).includes(item.id)}
+                                                        onCheckedChange={() => toggleEquipment(item.id)}
+                                                    />
+                                                    <Label htmlFor={item.id} className="text-xs cursor-pointer">{item.label}</Label>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                {(formData.equipamiento || []).length} elementos seleccionados
+                            </p>
+                        </div>
+
                         <div className="flex justify-between">
                             <Button variant="outline" onClick={handleBack}>
                                 Anterior
@@ -656,8 +700,8 @@ export function VehicleForm({ initialData, onSubmit, isSubmitting = false, onCan
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                        <PhotoUploader 
-                            onFilesChange={(files) => updateField('fotos', files)} 
+                        <PhotoUploader
+                            onFilesChange={(files) => updateField('fotos', files)}
                             onPrincipalChange={(id) => updateField('foto_principal', id)}
                         />
 
@@ -703,8 +747,8 @@ export function VehicleForm({ initialData, onSubmit, isSubmitting = false, onCan
                 </Card>
             )}
 
-             {/* Step 5: Documents */}
-             {step === 5 && (
+            {/* Step 5: Documents */}
+            {step === 5 && (
                 <Card className="card-premium">
                     <CardHeader>
                         <CardTitle className="text-base font-medium flex items-center gap-2">
@@ -713,8 +757,8 @@ export function VehicleForm({ initialData, onSubmit, isSubmitting = false, onCan
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                        <DocumentUploader 
-                            onDocumentsChange={(docs) => updateField('documentos', docs)} 
+                        <DocumentUploader
+                            onDocumentsChange={(docs) => updateField('documentos', docs)}
                         />
 
                         <div className="flex justify-between">

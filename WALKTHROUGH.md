@@ -24,7 +24,6 @@
 - 🚗 **Inventario de Vehículos**: Fichas técnicas detalladas, equipamiento y documentación
 - 💰 **Panel Financiero**: Control de márgenes, precios y reservas
 - 📊 **Dashboard**: KPIs y métricas de rendimiento
-- 🤖 **Chatbot**: Integración con sistema de chat para captación de leads
 
 ### Stack Tecnológico
 | Tecnología | Versión | Uso |
@@ -78,9 +77,8 @@ MidCar/
 │   │   │   ├── inventario/           # Inventario de vehículos
 │   │   │   │   ├── page.tsx          # Lista de vehículos
 │   │   │   │   ├── [id]/page.tsx     # Detalle de vehículo
-│   │   │   │   └── nuevo/page.tsx    # Nuevo vehículo
+│   │   │   └── nuevo/page.tsx    # Nuevo vehículo
 │   │   │   ├── dashboard/page.tsx    # Dashboard principal
-│   │   │   ├── chatbot/page.tsx      # Chatbot
 │   │   │   ├── reportes/page.tsx     # Reportes
 │   │   │   ├── seguro/page.tsx       # Control de seguros
 │   │   │   └── configuracion/page.tsx# Configuración

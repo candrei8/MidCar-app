@@ -8,11 +8,10 @@
 ## ✨ Características
 
 - **Dashboard Premium**: KPIs en tiempo real, gauges estilo velocímetro, gráficos de leads y ventas
-- **CRM Completo**: Gestión de leads con integración de chatbot, timeline de interacciones
+- **CRM Completo**: Gestión de leads con timeline de interacciones
 - **Inventario**: Vista grid/tabla, ficha completa de vehículos con 50+ campos
-- **Analytics Chatbot**: Embudo de conversión, análisis de sentimiento, transcripciones
 - **Reportes**: Ventas por marca, rotación de inventario, rendimiento de vendedores
-- **Configuración**: Ajustes de negocio, chatbot IA, notificaciones, integraciones
+- **Configuración**: Ajustes de negocio, notificaciones, integraciones
 
 ## 🎨 Diseño
 
@@ -28,7 +27,6 @@
 - **UI Components**: shadcn/ui personalizado
 - **Gráficos**: Recharts
 - **Backend**: Supabase (PostgreSQL, Auth, Storage)
-- **Chatbot IA**: Claude API (Anthropic)
 - **Iconos**: Lucide React
 
 ## 🚀 Instalación
@@ -69,7 +67,6 @@ src/
 │   │   ├── dashboard/     # Dashboard principal
 │   │   ├── crm/          # Gestión de leads
 │   │   ├── inventario/   # Inventario de vehículos
-│   │   ├── chatbot/      # Analytics del chatbot
 │   │   ├── reportes/     # Reportes y análisis
 │   │   └── configuracion/ # Ajustes
 │   ├── layout.tsx
@@ -97,7 +94,6 @@ src/
 
 - [ ] Conectar con Supabase real
 - [ ] Implementar autenticación
-- [ ] Agregar chatbot IA funcional
 - [ ] Configurar envío de emails
 - [ ] Añadir más datos de prueba
 
