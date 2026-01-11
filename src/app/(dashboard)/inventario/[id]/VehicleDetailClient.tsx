@@ -128,7 +128,7 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
                         className="w-full h-full bg-center bg-cover bg-no-repeat transition-all duration-300"
                         style={{ backgroundImage: `url("${galleryImages[currentImageIndex].url}")` }}
                     />
-                    <div className="absolute bottom-6 right-4 bg-black/90 px-3 py-1.5 rounded-full text-xs font-bold text-white shadow-lg">
+                    <div className="absolute bottom-6 right-4 bg-black/90 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg" style={{ color: '#FFFFFF' }}>
                         {currentImageIndex + 1} / {galleryImages.length}
                     </div>
                     <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5">
@@ -202,7 +202,7 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
                                 className="w-full h-full bg-center bg-cover bg-no-repeat transition-all duration-300"
                                 style={{ backgroundImage: `url("${galleryImages[currentImageIndex].url}")` }}
                             />
-                            <div className="absolute bottom-4 right-4 bg-black/90 px-3 py-1.5 rounded-full text-xs font-bold text-white shadow-lg">
+                            <div className="absolute bottom-4 right-4 bg-black/90 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg" style={{ color: '#FFFFFF' }}>
                                 {currentImageIndex + 1} / {galleryImages.length}
                             </div>
                             {/* DGT Badge */}

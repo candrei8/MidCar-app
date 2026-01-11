@@ -5,7 +5,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 type CookieToSet = { name: string; value: string; options: CookieOptions }
 
 // Routes that require authentication
-const protectedRoutes = ['/dashboard', '/inventario', '/contactos', '/crm', '/reportes', '/seguro', '/informes']
+const protectedRoutes = ['/dashboard', '/inventario', '/contactos', '/crm', '/seguro']
 
 // Routes that should redirect to dashboard if already authenticated
 const authRoutes = ['/login', '/registro']

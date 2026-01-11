@@ -229,8 +229,8 @@ export default function ContactosPage() {
             </div>
 
             {/* Search & Filters */}
-            <div className="bg-white rounded-xl p-4 border border-slate-100 shadow-sm">
-                <div className="flex flex-col lg:flex-row gap-4">
+            <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+                <div className="flex flex-col lg:flex-row gap-4 p-4">
                     {/* Search */}
                     <div className="flex-1 relative">
                         <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
@@ -241,54 +241,56 @@ export default function ContactosPage() {
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
+                </div>
 
-                    {/* Filter Chips */}
-                    <div className="flex gap-2 overflow-x-auto no-scrollbar">
-                        <button
-                            onClick={() => setEstadoFilter("todos")}
-                            className={cn(
-                                "shrink-0 flex h-10 items-center justify-center gap-2 rounded-lg px-4 font-medium transition-colors",
-                                estadoFilter === "todos"
-                                    ? "bg-[#135bec] text-white"
-                                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                            )}
-                        >
-                            Todos
-                        </button>
-                        <button
-                            onClick={() => setEstadoFilter("nuevos")}
-                            className={cn(
-                                "shrink-0 flex h-10 items-center justify-center gap-2 rounded-lg px-4 font-medium transition-colors",
-                                estadoFilter === "nuevos"
-                                    ? "bg-green-600 text-white"
-                                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                            )}
-                        >
-                            Nuevos
-                        </button>
-                        <button
-                            onClick={() => setEstadoFilter("enProceso")}
-                            className={cn(
-                                "shrink-0 flex h-10 items-center justify-center gap-2 rounded-lg px-4 font-medium transition-colors",
-                                estadoFilter === "enProceso"
-                                    ? "bg-blue-600 text-white"
-                                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                            )}
-                        >
-                            En Proceso
-                        </button>
-                        <button
-                            onClick={() => setEstadoFilter("cerrados")}
-                            className={cn(
-                                "shrink-0 flex h-10 items-center justify-center gap-2 rounded-lg px-4 font-medium transition-colors",
-                                estadoFilter === "cerrados"
-                                    ? "bg-slate-600 text-white"
-                                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                            )}
-                        >
-                            Cerrados
-                        </button>
-                    </div>
+                {/* Filter Chips - Scrollable */}
+                <div className="flex gap-2 overflow-x-auto no-scrollbar px-4 pb-4 -mt-2">
+                    <button
+                        onClick={() => setEstadoFilter("todos")}
+                        className={cn(
+                            "shrink-0 flex h-9 items-center justify-center gap-2 rounded-full px-4 text-sm font-medium transition-colors",
+                            estadoFilter === "todos"
+                                ? "bg-[#135bec] text-white"
+                                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        )}
+                    >
+                        Todos ({stats.total})
+                    </button>
+                    <button
+                        onClick={() => setEstadoFilter("nuevos")}
+                        className={cn(
+                            "shrink-0 flex h-9 items-center justify-center gap-2 rounded-full px-4 text-sm font-medium transition-colors",
+                            estadoFilter === "nuevos"
+                                ? "bg-green-600 text-white"
+                                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        )}
+                    >
+                        Nuevos ({stats.nuevos})
+                    </button>
+                    <button
+                        onClick={() => setEstadoFilter("enProceso")}
+                        className={cn(
+                            "shrink-0 flex h-9 items-center justify-center gap-2 rounded-full px-4 text-sm font-medium transition-colors",
+                            estadoFilter === "enProceso"
+                                ? "bg-blue-600 text-white"
+                                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        )}
+                    >
+                        En Proceso ({stats.enProceso})
+                    </button>
+                    <button
+                        onClick={() => setEstadoFilter("cerrados")}
+                        className={cn(
+                            "shrink-0 flex h-9 items-center justify-center gap-2 rounded-full px-4 text-sm font-medium transition-colors",
+                            estadoFilter === "cerrados"
+                                ? "bg-slate-600 text-white"
+                                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        )}
+                    >
+                        Cerrados ({stats.cerrados})
+                    </button>
+                    {/* Spacer para que el último botón no quede pegado al borde */}
+                    <div className="shrink-0 w-2"></div>
                 </div>
             </div>
 

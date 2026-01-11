@@ -175,7 +175,7 @@ export default function DashboardPage() {
                             icon="attach_money"
                             iconBg="bg-green-100"
                             iconColor="text-green-700"
-                            onClick={() => router.push('/informes')}
+                            onClick={() => router.push('/crm')}
                         />
 
                         {/* Margin KPI */}
@@ -187,7 +187,7 @@ export default function DashboardPage() {
                             icon="trending_up"
                             iconBg="bg-emerald-100"
                             iconColor="text-emerald-700"
-                            onClick={() => router.push('/reportes')}
+                            onClick={() => router.push('/inventario')}
                         />
 
                         {/* Stock Value KPI */}
@@ -378,11 +378,11 @@ export default function DashboardPage() {
                             href="/crm"
                         />
                         <QuickActionCard
-                            icon="analytics"
-                            label="Ver Reportes"
-                            sublabel="Análisis completo"
+                            icon="shield"
+                            label="Seguros"
+                            sublabel="Gestionar pólizas"
                             color="purple"
-                            href="/reportes"
+                            href="/seguro"
                         />
                         <button
                             onClick={() => setVinScannerOpen(true)}

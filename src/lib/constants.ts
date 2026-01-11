@@ -200,12 +200,11 @@ export const NAV_ITEMS = [
     { href: '/contactos', label: 'Contactos', icon: 'Mail' },
     { href: '/crm', label: 'CRM', icon: 'Users' },
     { href: '/inventario', label: 'Inventario', icon: 'Car' },
-    { href: '/reportes', label: 'Reportes', icon: 'BarChart3' },
+    { href: '/seguro', label: 'Seguros', icon: 'Shield' },
 ] as const
 
 // Menú Utilidades
 export const UTILIDADES_MENU = [
-    { href: '/informes', label: 'Informes trimestrales', icon: 'FileSpreadsheet' },
     { href: '/seguro', label: 'Control de seguros', icon: 'Shield' },
     { href: '/inventario/anuncios', label: 'Generador de anuncios', icon: 'Megaphone' },
 ] as const

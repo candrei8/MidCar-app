@@ -15,8 +15,6 @@ const desktopNavItems = [
     { href: '/crm', label: 'CRM', icon: 'group' },
     { href: '/contactos', label: 'Contactos', icon: 'contacts' },
     { href: '/seguro', label: 'Seguros', icon: 'shield' },
-    { href: '/informes', label: 'Informes', icon: 'bar_chart' },
-    { href: '/reportes', label: 'Reportes', icon: 'summarize' },
 ]
 
 

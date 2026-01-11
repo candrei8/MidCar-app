@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils"
 const navItems = [
     {
         href: '/dashboard',
-        label: 'Inicio',
+        label: 'Dashboard',
         icon: 'dashboard'
     },
     {
@@ -17,14 +17,18 @@ const navItems = [
     },
     {
         href: '/crm',
-        label: 'Ventas',
-        icon: 'euro_symbol',
-        badge: true
+        label: 'CRM',
+        icon: 'group'
     },
     {
         href: '/contactos',
-        label: 'Clientes',
-        icon: 'group'
+        label: 'Contactos',
+        icon: 'contacts'
+    },
+    {
+        href: '/seguro',
+        label: 'Seguros',
+        icon: 'shield'
     },
 ]
 
@@ -49,20 +53,15 @@ export function BottomNav() {
                                     : "text-slate-400 hover:text-[#135bec]"
                             )}
                         >
-                            <div className="relative">
-                                <span
-                                    className={cn(
-                                        "material-symbols-outlined",
-                                        isActive && "fill-current"
-                                    )}
-                                    style={{ fontSize: '24px' }}
-                                >
-                                    {item.icon}
-                                </span>
-                                {item.badge && (
-                                    <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-red-500 ring-2 ring-white" />
+                            <span
+                                className={cn(
+                                    "material-symbols-outlined",
+                                    isActive && "fill-current"
                                 )}
-                            </div>
+                                style={{ fontSize: '24px' }}
+                            >
+                                {item.icon}
+                            </span>
                             <span className={cn(
                                 "text-[10px]",
                                 isActive ? "font-bold" : "font-medium"
