@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { UserPlus, Search, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { mockUsers } from "@/lib/mock-data"
+import { useToast } from "@/components/ui/toast"
 
 interface AssignCommercialModalProps {
     open: boolean
@@ -28,6 +29,7 @@ export function AssignCommercialModal({
     currentCommercialId,
     onSave
 }: AssignCommercialModalProps) {
+    const { addToast } = useToast()
     const [selectedId, setSelectedId] = useState(currentCommercialId || '')
     const [searchQuery, setSearchQuery] = useState('')
     const [motivo, setMotivo] = useState('')
@@ -41,7 +43,7 @@ export function AssignCommercialModal({
 
     const handleSave = () => {
         if (!selectedId) {
-            alert('Selecciona un comercial')
+            addToast('Selecciona un comercial', 'warning')
             return
         }
 

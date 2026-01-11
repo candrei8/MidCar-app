@@ -1,12 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { useRouter, notFound } from "next/navigation"
-import { VehicleForm, VehicleFormData } from "@/components/inventory/VehicleForm"
+import { QuickEditForm } from "@/components/inventory/QuickEditForm"
 import { mockVehicles } from "@/lib/mock-data"
+import type { Vehicle } from "@/types"
 
 interface EditVehicleClientProps {
     id: string
@@ -14,106 +14,20 @@ interface EditVehicleClientProps {
 
 export function EditVehicleClient({ id }: EditVehicleClientProps) {
     const router = useRouter()
-    const [isSaving, setIsSaving] = useState(false)
-    const [initialData, setInitialData] = useState<Partial<VehicleFormData> | null>(null)
 
-    useEffect(() => {
-        const vehicle = mockVehicles.find(v => v.id === id)
-        if (!vehicle) {
-            notFound()
-        }
+    const vehicle = mockVehicles.find(v => v.id === id)
 
-        // Map existing images to UploadedFile format
-        // Handle both string[] and VehicleImage[] formats
-        const imageUrls = vehicle.imagenes.map((img: any) =>
-            typeof img === 'string' ? img : img.url || img.preview || ''
-        )
-
-        const fotos = imageUrls.map((url: string, index: number) => ({
-            id: `existing-${index}`,
-            name: `Foto ${index + 1}`,
-            preview: url,
-            size: 0,
-            type: 'image/jpeg',
-            lastModified: Date.now(),
-            slice: () => new Blob(),
-            stream: () => new ReadableStream(),
-            arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
-            text: () => Promise.resolve(""),
-        } as any));
-
-        // Add principal image if not in list
-        if (vehicle.imagen_principal && !imageUrls.includes(vehicle.imagen_principal)) {
-            fotos.unshift({
-                id: 'principal-existing',
-                name: 'Foto Principal',
-                preview: vehicle.imagen_principal,
-                size: 0,
-                type: 'image/jpeg',
-                lastModified: Date.now(),
-                slice: () => new Blob(),
-                stream: () => new ReadableStream(),
-                arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
-                text: () => Promise.resolve(""),
-            } as any)
-        }
-
-        const formData: Partial<VehicleFormData> = {
-            marca: vehicle.marca,
-            modelo: vehicle.modelo,
-            version: vehicle.version,
-            matricula: vehicle.matricula,
-            vin: vehicle.vin,
-            año_matriculacion: vehicle.año_matriculacion.toString(),
-            año_fabricacion: vehicle.año_fabricacion.toString(),
-            kilometraje: vehicle.kilometraje.toString(),
-            combustible: vehicle.combustible,
-            transmision: vehicle.transmision,
-            estado: vehicle.estado,
-            tipo_carroceria: vehicle.tipo_carroceria,
-            num_puertas: vehicle.num_puertas.toString(),
-            num_plazas: vehicle.num_plazas.toString(),
-            potencia_cv: vehicle.potencia_cv.toString(),
-            cilindrada: vehicle.cilindrada.toString(),
-            etiqueta_dgt: vehicle.etiqueta_dgt,
-            color_exterior: vehicle.color_exterior,
-            color_interior: vehicle.color_interior,
-            num_propietarios: vehicle.num_propietarios.toString(),
-            primera_mano: vehicle.primera_mano,
-            es_nacional: vehicle.es_nacional,
-            precio_compra: vehicle.precio_compra.toString(),
-            gastos_compra: vehicle.gastos_compra.toString(),
-            coste_reparaciones: vehicle.coste_reparaciones.toString(),
-            precio_venta: vehicle.precio_venta.toString(),
-            descuento: vehicle.descuento.toString(),
-            garantia_meses: vehicle.garantia_meses.toString(),
-            descripcion: '', // Not in mock data
-            destacado: vehicle.destacado,
-            en_oferta: vehicle.en_oferta,
-            fotos: fotos,
-            foto_principal: fotos.length > 0 ? fotos[0].id : null,
-            documentos: [] // No documents in mock data
-        }
-
-        setInitialData(formData)
-    }, [id])
-
-    const handleSave = async (formData: VehicleFormData) => {
-        setIsSaving(true)
-
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000))
-
-        // Show success and redirect
-        alert('✓ Vehículo actualizado correctamente')
-        setIsSaving(false)
-
-        // Redirect to detail
-        router.push(`/inventario/${id}`)
+    if (!vehicle) {
+        notFound()
     }
 
-    if (!initialData) {
-        return <div className="p-8 text-center">Cargando...</div>
+    const handleSave = (updatedVehicle: Vehicle) => {
+        // Vehicle is already saved in QuickEditForm
+        // Optionally refresh or show notification
+    }
+
+    const handleCancel = () => {
+        router.push(`/inventario/${id}`)
     }
 
     return (
@@ -128,15 +42,15 @@ export function EditVehicleClient({ id }: EditVehicleClientProps) {
                 <div>
                     <h1 className="text-2xl font-bold text-foreground">Editar Vehículo</h1>
                     <p className="text-muted-foreground">
-                        {initialData.marca} {initialData.modelo} - {initialData.matricula}
+                        {vehicle.marca} {vehicle.modelo} - {vehicle.matricula}
                     </p>
                 </div>
             </div>
 
-            <VehicleForm
-                initialData={initialData}
-                onSubmit={handleSave}
-                isSubmitting={isSaving}
+            <QuickEditForm
+                vehicleId={id}
+                onSave={handleSave}
+                onCancel={handleCancel}
             />
         </div>
     )

@@ -32,6 +32,7 @@ import {
 import { cn, formatCurrency } from "@/lib/utils"
 import type { Contact, Vehicle } from "@/types"
 import { mockVehicles } from "@/lib/mock-data"
+import { useToast } from "@/components/ui/toast"
 
 type DocumentType = 'proforma' | 'senal' | 'contrato' | 'factura'
 
@@ -86,6 +87,7 @@ export function DocumentModal({
     vehicle: initialVehicle,
     onGenerate
 }: DocumentModalProps) {
+    const { addToast } = useToast()
     const config = DOCUMENT_CONFIG[type]
     const Icon = config.icon
 
@@ -151,7 +153,7 @@ export function DocumentModal({
         }
 
         onGenerate(data)
-        alert(`✅ ${config.title} generado: ${documentNumber}`)
+        addToast(`${config.title.replace('Generar ', '')} generado: ${documentNumber}`, 'success')
         onClose()
     }
 

@@ -31,6 +31,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { mockUsers } from "@/lib/mock-data"
+import { useToast } from "@/components/ui/toast"
 
 const TASK_TYPES = [
     { value: 'llamar', label: 'Llamar', icon: Phone },
@@ -76,6 +77,7 @@ export function AddTaskModal({
     contactName,
     onSave
 }: AddTaskModalProps) {
+    const { addToast } = useToast()
     const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]
 
     const [titulo, setTitulo] = useState('')
@@ -89,7 +91,7 @@ export function AddTaskModal({
 
     const handleSave = () => {
         if (!titulo.trim()) {
-            alert('El título es obligatorio')
+            addToast('El título es obligatorio', 'warning')
             return
         }
 

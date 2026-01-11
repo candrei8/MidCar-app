@@ -7,6 +7,8 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { VehicleForm, VehicleFormData } from "@/components/inventory/VehicleForm"
 import { mockVehicles } from "@/lib/mock-data"
+import { useToast } from "@/components/ui/toast"
+import { updateAnyVehicle, getUserVehicles, getVehicleOverrides } from "@/lib/data-store"
 
 interface EditVehicleFormProps {
     vehicleId: string
@@ -14,12 +16,26 @@ interface EditVehicleFormProps {
 
 export function EditVehicleForm({ vehicleId }: EditVehicleFormProps) {
     const router = useRouter()
+    const { addToast } = useToast()
     const [isSaving, setIsSaving] = useState(false)
     const [initialData, setInitialData] = useState<Partial<VehicleFormData> | null>(null)
     const [notFoundState, setNotFoundState] = useState(false)
 
     useEffect(() => {
-        const vehicle = mockVehicles.find(v => v.id === vehicleId)
+        // Buscar en mock vehicles y user vehicles
+        const userVehicles = getUserVehicles()
+        const overrides = getVehicleOverrides()
+
+        let vehicle = mockVehicles.find(v => v.id === vehicleId)
+        if (vehicle && overrides[vehicleId]) {
+            // Aplicar overrides si existen
+            vehicle = { ...vehicle, ...overrides[vehicleId] }
+        }
+
+        if (!vehicle) {
+            vehicle = userVehicles.find(v => v.id === vehicleId)
+        }
+
         if (!vehicle) {
             setNotFoundState(true)
             return
@@ -103,15 +119,54 @@ export function EditVehicleForm({ vehicleId }: EditVehicleFormProps) {
     const handleSave = async (formData: VehicleFormData) => {
         setIsSaving(true)
 
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        try {
+            // Convertir formData a formato Vehicle
+            const updates = {
+                marca: formData.marca,
+                modelo: formData.modelo,
+                version: formData.version,
+                matricula: formData.matricula,
+                vin: formData.vin,
+                año_matriculacion: parseInt(formData.año_matriculacion) || 0,
+                año_fabricacion: parseInt(formData.año_fabricacion) || 0,
+                kilometraje: parseInt(formData.kilometraje) || 0,
+                combustible: formData.combustible as any,
+                transmision: formData.transmision as any,
+                estado: formData.estado as any,
+                tipo_carroceria: formData.tipo_carroceria,
+                num_puertas: parseInt(formData.num_puertas) || 0,
+                num_plazas: parseInt(formData.num_plazas) || 0,
+                potencia_cv: parseInt(formData.potencia_cv) || 0,
+                cilindrada: parseInt(formData.cilindrada) || 0,
+                etiqueta_dgt: formData.etiqueta_dgt as any,
+                color_exterior: formData.color_exterior,
+                color_interior: formData.color_interior,
+                num_propietarios: parseInt(formData.num_propietarios) || 1,
+                primera_mano: formData.primera_mano,
+                es_nacional: formData.es_nacional,
+                precio_compra: parseInt(formData.precio_compra) || 0,
+                gastos_compra: parseInt(formData.gastos_compra) || 0,
+                coste_reparaciones: parseInt(formData.coste_reparaciones) || 0,
+                precio_venta: parseInt(formData.precio_venta) || 0,
+                descuento: parseInt(formData.descuento) || 0,
+                garantia_meses: parseInt(formData.garantia_meses) || 12,
+                destacado: formData.destacado,
+                en_oferta: formData.en_oferta,
+                equipamiento: formData.equipamiento || [],
+            }
 
-        // Show success and redirect
-        alert('✓ Vehículo actualizado correctamente')
-        setIsSaving(false)
+            // Guardar cambios (funciona tanto para mock como para user vehicles)
+            updateAnyVehicle(vehicleId, updates)
 
-        // Redirect to detail
-        router.push(`/inventario/${vehicleId}`)
+            // Show success and redirect
+            addToast('Vehículo actualizado correctamente', 'success')
+            router.push(`/inventario/${vehicleId}`)
+        } catch (error) {
+            console.error('Error saving vehicle:', error)
+            addToast('Error al guardar el vehículo', 'error')
+        } finally {
+            setIsSaving(false)
+        }
     }
 
     if (notFoundState) {

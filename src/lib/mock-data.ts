@@ -1,4 +1,4 @@
-import type { Vehicle, Lead, Client, User, Sale, ChatbotConversation, KPI } from '@/types'
+import type { Vehicle, Lead, Client, User, KPI } from '@/types'
 
 // Mock Users
 export const mockUsers: User[] = [

@@ -35,12 +35,14 @@ import type { Vehicle } from "@/types"
 import Link from "next/link"
 import { VehicleAdGenerator } from "./VehicleAdGenerator"
 import { WebLinkModal } from "./WebLinkModal"
+import { useToast } from "@/components/ui/toast"
 
 interface VehicleTableProps {
     vehicles: Vehicle[]
 }
 
 export function VehicleTable({ vehicles }: VehicleTableProps) {
+    const { addToast } = useToast()
     const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null)
     const [showAdGenerator, setShowAdGenerator] = useState(false)
     const [showWebLink, setShowWebLink] = useState(false)
@@ -56,7 +58,7 @@ export function VehicleTable({ vehicles }: VehicleTableProps) {
     }
 
     const handleSaveWebLink = (url: string) => {
-        alert(`✓ Enlace web guardado: ${url}`)
+        addToast('Enlace web guardado correctamente', 'success')
     }
 
     const getEstadoBadge = (estado: string) => {

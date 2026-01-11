@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Clock, Calendar, Save } from "lucide-react"
+import { useToast } from "@/components/ui/toast"
 
 interface PostponeContactModalProps {
     open: boolean
@@ -26,6 +27,7 @@ export function PostponeContactModal({
     contactName,
     onSave
 }: PostponeContactModalProps) {
+    const { addToast } = useToast()
     const [fecha, setFecha] = useState('')
     const [hora, setHora] = useState('10:00')
     const [motivo, setMotivo] = useState('')
@@ -45,7 +47,7 @@ export function PostponeContactModal({
 
     const handleSave = () => {
         if (!fecha) {
-            alert('Selecciona una fecha')
+            addToast('Selecciona una fecha', 'warning')
             return
         }
 

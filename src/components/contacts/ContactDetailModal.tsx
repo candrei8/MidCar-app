@@ -4,56 +4,16 @@ import { useState } from "react"
 import {
     Dialog,
     DialogContent,
-    DialogHeader,
     DialogTitle,
+    DialogClose,
 } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Progress } from "@/components/ui/progress"
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
-import {
-    Phone,
-    Mail,
-    MessageCircle,
-    Car,
-    User,
-    FileText,
-    Clock,
-    MapPin,
-    Building2,
-    Save,
-    Globe,
-    ExternalLink,
-    UserCheck,
-    Users,
-    X,
-    Plus,
-    Star,
-    UserPlus,
-    CheckSquare,
-    Bookmark,
-    FileSignature,
-    Receipt,
-    Calendar,
-} from "lucide-react"
-import type { Contact, Vehicle } from "@/types"
-import { formatDate, formatCurrency, cn } from "@/lib/utils"
-import { ORIGENES_CONTACTO, ESTADOS_BACKOFFICE, TIPOS_PAGO, CATEGORIAS_CONTACTO } from "@/lib/constants"
-import { mockVehicles, mockUsers } from "@/lib/mock-data"
-import { VehicleSelector } from "./VehicleSelector"
+import { cn, formatDate, formatCurrency } from "@/lib/utils"
+import { Contact, Vehicle } from "@/types"
+import { mockVehicles } from "@/lib/mock-data"
+import { ESTADOS_BACKOFFICE, ORIGENES_CONTACTO } from "@/lib/constants" // Removed unused constants
+
+// Modales de acción (se mantienen logicamente, visualmente se activan desde los botones nuevos)
 import { NewInteractionModal, InteractionData } from "./NewInteractionModal"
 import { AddTaskModal, TaskData } from "./AddTaskModal"
 import { SetPriorityModal } from "./SetPriorityModal"
@@ -65,534 +25,370 @@ interface ContactDetailModalProps {
     contact: Contact
     open: boolean
     onClose: () => void
+    onStatusChange?: (contactId: string, newStatus: string) => void
 }
 
-export function ContactDetailModal({ contact, open, onClose }: ContactDetailModalProps) {
-    const [editedContact, setEditedContact] = useState<Contact>(contact)
-    const [isVehicleSelectorOpen, setIsVehicleSelectorOpen] = useState(false)
-    const [hasChanges, setHasChanges] = useState(false)
-    const [notification, setNotification] = useState<{ message: string; type: 'success' | 'info' } | null>(null)
-    const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(
-        contact.vehiculos_interes[0] || null
-    )
+export function ContactDetailModal({ contact, open, onClose, onStatusChange }: ContactDetailModalProps) {
+    const [activeTab, setActiveTab] = useState<'cronologia' | 'vehiculos' | 'notas'>('cronologia')
 
-    // CRM Action Modals state
+    // Estados mantenidos para funcionalidad
     const [showInteractionModal, setShowInteractionModal] = useState(false)
     const [showTaskModal, setShowTaskModal] = useState(false)
-    const [showPriorityModal, setShowPriorityModal] = useState(false)
-    const [showPostponeModal, setShowPostponeModal] = useState(false)
-    const [showAssignModal, setShowAssignModal] = useState(false)
     const [showDocumentModal, setShowDocumentModal] = useState(false)
     const [documentType, setDocumentType] = useState<'proforma' | 'senal' | 'contrato' | 'factura'>('proforma')
-    const [interactions, setInteractions] = useState<InteractionData[]>([])
+    const [interactions, setInteractions] = useState<InteractionData[]>([]) // Mocked timeline for now
     const [tasks, setTasks] = useState<TaskData[]>([])
+    const [estadoLead, setEstadoLead] = useState(contact.estado)
 
-    // Get vehicles data
-    const contactVehicles = editedContact.vehiculos_interes
+    // Obtener vehículos
+    const contactVehicles = contact.vehiculos_interes
         .map(id => mockVehicles.find(v => v.id === id))
         .filter(Boolean) as Vehicle[]
 
-    const selectedVehicle = selectedVehicleId
-        ? mockVehicles.find(v => v.id === selectedVehicleId)
-        : contactVehicles[0]
-
-    const assignedCommercial = mockUsers.find(u => u.id === editedContact.comercial_asignado)
-
-    const updateField = <K extends keyof Contact>(field: K, value: Contact[K]) => {
-        setEditedContact(prev => ({ ...prev, [field]: value }))
-        setHasChanges(true)
-    }
-
-    const handleAddVehicles = (vehicleIds: string[]) => {
-        const combined = [...editedContact.vehiculos_interes, ...vehicleIds]
-        const newVehicles = Array.from(new Set(combined))
-        updateField('vehiculos_interes', newVehicles)
-        setIsVehicleSelectorOpen(false)
-    }
-
-    const handleRemoveVehicle = (vehicleId: string) => {
-        updateField('vehiculos_interes', editedContact.vehiculos_interes.filter(id => id !== vehicleId))
-    }
-
-    const handleSave = () => {
-        // Simular guardado (en producción guardaría en base de datos)
-        setNotification({ message: '✓ Contacto guardado correctamente', type: 'success' })
-        setHasChanges(false)
-        setTimeout(() => setNotification(null), 3000)
-    }
-
-    // CRM Action Handlers
+    // Handlers (simplificados para la demo visual, manteniendo lógica básica)
     const handleSaveInteraction = (data: InteractionData) => {
         setInteractions(prev => [data, ...prev])
-        setNotification({ message: '✓ Interacción registrada', type: 'success' })
-        setTimeout(() => setNotification(null), 2000)
+        setShowInteractionModal(false)
     }
-
     const handleSaveTask = (data: TaskData) => {
         setTasks(prev => [data, ...prev])
-        setNotification({ message: '✓ Tarea creada', type: 'success' })
-        setTimeout(() => setNotification(null), 2000)
+        setShowTaskModal(false)
     }
 
-    const handleSetPriority = (priority: string | null) => {
-        updateField('prioridad' as any, priority)
-        setNotification({ message: `✓ Prioridad actualizada: ${priority || 'Sin prioridad'}`, type: 'success' })
-        setTimeout(() => setNotification(null), 2000)
-    }
-
-    const handlePostpone = (data: { fecha: string; hora: string; motivo: string }) => {
-        updateField('aplazado_hasta' as any, data.fecha)
-        setNotification({ message: `✓ Contacto aplazado hasta ${data.fecha}`, type: 'success' })
-        setTimeout(() => setNotification(null), 2000)
-    }
-
-    const handleAssignCommercial = (commercialId: string) => {
-        updateField('comercial_asignado', commercialId)
-        const commercial = mockUsers.find(u => u.id === commercialId)
-        setNotification({ message: `✓ Asignado a ${commercial?.nombre || 'comercial'}`, type: 'success' })
-        setTimeout(() => setNotification(null), 2000)
-    }
-
-    const handleGenerateDocument = (data: any) => {
-        setNotification({ message: `✓ Documento generado: ${data.numero}`, type: 'success' })
-        setTimeout(() => setNotification(null), 2000)
-    }
-
-    const openDocumentModal = (type: 'proforma' | 'senal' | 'contrato' | 'factura') => {
+    const openDocument = (type: 'proforma' | 'senal' | 'contrato' | 'factura') => {
         setDocumentType(type)
         setShowDocumentModal(true)
     }
 
-    const getOrigenIcon = (origen: string) => {
-        switch (origen) {
-            case 'web': return <Globe className="h-4 w-4" />
-            case 'telefono': return <Phone className="h-4 w-4" />
-            case 'whatsapp': return <MessageCircle className="h-4 w-4" />
-            case 'presencial': return <UserCheck className="h-4 w-4" />
-            case 'coches_net':
-            case 'wallapop':
-            case 'autocasion':
-                return <ExternalLink className="h-4 w-4" />
-            default: return <Users className="h-4 w-4" />
-        }
-    }
-
-    const getEstadoColor = (estado: string) => {
-        const estadoInfo = ESTADOS_BACKOFFICE.find(e => e.value === estado)
-        return estadoInfo?.color || '#6b7280'
-    }
-
-    const getContactName = () => {
-        if (editedContact.nombre && editedContact.apellidos) {
-            return `${editedContact.nombre} ${editedContact.apellidos}`
-        }
-        if (editedContact.nombre) {
-            return editedContact.nombre
-        }
-        return editedContact.email.split('@')[0]
-    }
-
-    // Calculate total
-    const totalPago = (editedContact.precio || 0) - (editedContact.reserva || 0)
-
     return (
         <>
             <Dialog open={open} onOpenChange={onClose}>
-                <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden p-0">
-                    <DialogHeader className="p-6 pb-0">
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <DialogTitle className="text-xl">
-                                    {getContactName()}
-                                </DialogTitle>
-                                <div className="flex items-center gap-2 mt-2">
-                                    <Badge
-                                        style={{
-                                            backgroundColor: `${getEstadoColor(editedContact.estado)}20`,
-                                            color: getEstadoColor(editedContact.estado),
-                                        }}
-                                    >
-                                        {ESTADOS_BACKOFFICE.find(e => e.value === editedContact.estado)?.label || editedContact.estado}
-                                    </Badge>
-                                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                        {getOrigenIcon(editedContact.origen)}
-                                        <span>
-                                            {ORIGENES_CONTACTO.find(o => o.value === editedContact.origen)?.label}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center gap-2 ml-4">
-                                        <Progress value={editedContact.progreso || 0} className="w-20 h-2" />
-                                        <span className="text-xs text-muted-foreground">
-                                            {editedContact.progreso || 0}%
-                                        </span>
-                                    </div>
+                <DialogContent className="max-w-md p-0 overflow-hidden h-[90vh] flex flex-col gap-0 border-0 bg-[#f2f2f7] dark:bg-[#000000]">
+                    <DialogTitle className="sr-only">Ficha de Contacto</DialogTitle>
+
+                    {/* TopAppBar */}
+                    <div className="sticky top-0 z-50 flex items-center bg-white/80 dark:bg-[#1c1c1e]/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 p-4 pb-2 justify-between h-14 transition-colors shrink-0">
+                        <button
+                            onClick={onClose}
+                            className="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                        >
+                            <span className="material-symbols-outlined text-[#135bec] text-2xl">arrow_back</span>
+                        </button>
+                        <h2 className="text-black dark:text-white text-lg font-bold leading-tight tracking-tight flex-1 text-center">Ficha de Contacto</h2>
+                        <div className="flex w-10 items-center justify-end">
+                            <button className="flex size-10 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-[#135bec]">
+                                <span className="material-symbols-outlined text-xl">edit</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto pb-24 no-scrollbar">
+                        {/* ProfileHeader */}
+                        <div className="flex p-6 flex-col items-center bg-white dark:bg-[#1c1c1e] mb-4 shadow-sm transition-colors">
+                            <div className="relative mb-4">
+                                <div
+                                    className="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-28 w-28 ring-4 ring-[#135bec]/10"
+                                    style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuCrWZBbKoZYFn-3a-QTTJ4ZrJ4W7OeyRssQuFXu8MIq_jyOBUOiEYr87GXgf4VeP24jyGRitNlK-YcBZo0ixvIbV3rH4tZMnMzfLrqvsUqCuqEOsN_NcX5H6CQxiunfvA8worjFBJ5jz1QICUiNRrpI6QcD0I_XCybfH4zynfKFbBdpzJaLPoxAli0AkEPS6rDoojoWieJOP-D4BdD7VBiDzOJRTDc38iy-p9UTmMHJWsyCqi83U_mNtzOGYcP3nDzo5eyWd0DY40h1")' }}
+                                ></div>
+                                <div className="absolute bottom-1 right-1 bg-white dark:bg-black rounded-full p-1 border border-gray-100 dark:border-gray-800 shadow-sm">
+                                    <span className="material-symbols-outlined text-[#135bec] text-sm">public</span>
                                 </div>
                             </div>
-                            <div className="flex gap-2">
-                                <Button variant="outline" size="sm">
-                                    <Phone className="h-4 w-4 mr-1" />
-                                    Llamar
-                                </Button>
-                                <Button variant="outline" size="sm">
-                                    <Mail className="h-4 w-4 mr-1" />
-                                    Email
-                                </Button>
-                                <Button variant="outline" size="sm">
-                                    <MessageCircle className="h-4 w-4 mr-1" />
-                                    WhatsApp
-                                </Button>
-                            </div>
-                        </div>
-                    </DialogHeader>
-
-                    <div className="grid grid-cols-12 gap-0 h-[calc(95vh-280px)]">
-                        {/* Left panel - Vehicle list */}
-                        <div className="col-span-2 border-r border-card-border">
-                            <div className="p-3 border-b border-card-border">
-                                <h3 className="font-medium text-sm">Coches asociados</h3>
-                            </div>
-                            <ScrollArea className="h-full">
-                                {contactVehicles.map((vehicle) => (
-                                    <div
-                                        key={vehicle.id}
-                                        className={cn(
-                                            "p-3 cursor-pointer border-b border-card-border hover:bg-muted/50 transition-colors",
-                                            selectedVehicleId === vehicle.id && "bg-primary/10 border-l-2 border-l-primary"
-                                        )}
-                                        onClick={() => setSelectedVehicleId(vehicle.id)}
-                                    >
-                                        <p className="font-medium text-sm">{vehicle.marca} {vehicle.modelo}</p>
-                                        <p className="text-xs text-muted-foreground">{vehicle.matricula}</p>
-                                    </div>
-                                ))}
-                                <div className="p-3">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="w-full gap-1"
-                                        onClick={() => setIsVehicleSelectorOpen(true)}
-                                    >
-                                        <Plus className="h-3 w-3" />
-                                        Añadir
-                                    </Button>
+                            <div className="flex flex-col items-center justify-center gap-1">
+                                <h1 className="text-2xl font-bold leading-tight tracking-tight text-center text-black dark:text-white">
+                                    {contact.nombre} {contact.apellidos}
+                                </h1>
+                                <div className="flex items-center gap-2">
+                                    <span className="px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 text-xs font-medium text-[#3c3c4399] dark:text-[#ebebf599]">
+                                        ID: #{contact.id.substring(0, 4)}
+                                    </span>
+                                    <span className="px-2 py-0.5 rounded-md bg-green-100 dark:bg-green-900/30 text-xs font-medium text-green-700 dark:text-green-400">
+                                        Online hace 2h
+                                    </span>
                                 </div>
-                            </ScrollArea>
+                                <p className="text-[#3c3c4399] dark:text-[#ebebf599] text-sm mt-2 font-medium text-center">
+                                    Interesado en {contact.vehiculos_interes.length > 0 ? 'Vehículo seleccionado' : 'Varios'} • Madrid
+                                </p>
+                            </div>
                         </div>
 
-                        {/* Center panel - Contact info */}
-                        <div className="col-span-6 overflow-auto">
-                            <div className="p-4 space-y-4">
-                                {/* Vehicle avatar section */}
-                                {selectedVehicle && (
-                                    <div className="flex gap-4 p-4 bg-muted/30 rounded-lg">
-                                        <div
-                                            className="w-24 h-24 rounded-lg bg-cover bg-center flex-shrink-0"
-                                            style={{ backgroundImage: `url(${selectedVehicle.imagen_principal})` }}
-                                        />
-                                        <div>
-                                            <h4 className="font-semibold">{selectedVehicle.marca} {selectedVehicle.modelo}</h4>
-                                            <p className="text-sm text-muted-foreground">{selectedVehicle.version}</p>
-                                            <p className="text-lg font-bold text-primary mt-1">{formatCurrency(selectedVehicle.precio_venta)}</p>
-                                        </div>
-                                    </div>
-                                )}
+                        {/* ActionsBar */}
+                        <div className="grid grid-cols-4 gap-2 px-4 mb-6">
+                            <button className="flex flex-col items-center gap-2 group" onClick={() => window.open(`tel:${contact.telefono}`)}>
+                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#135bec] text-white shadow-lg shadow-[#135bec]/30 active:scale-95 transition-all">
+                                    <span className="material-symbols-outlined text-2xl">call</span>
+                                </div>
+                                <span className="text-xs font-medium text-[#3c3c4399] dark:text-[#ebebf599] group-hover:text-[#135bec] transition-colors">Llamar</span>
+                            </button>
+                            <button className="flex flex-col items-center gap-2 group">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#135bec] text-white shadow-lg shadow-[#135bec]/30 active:scale-95 transition-all">
+                                    <span className="material-symbols-outlined text-2xl">chat</span>
+                                </div>
+                                <span className="text-xs font-medium text-[#3c3c4399] dark:text-[#ebebf599] group-hover:text-[#135bec] transition-colors">WhatsApp</span>
+                            </button>
+                            <button className="flex flex-col items-center gap-2 group" onClick={() => window.open(`mailto:${contact.email}`)}>
+                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#135bec] text-white shadow-lg shadow-[#135bec]/30 active:scale-95 transition-all">
+                                    <span className="material-symbols-outlined text-2xl">mail</span>
+                                </div>
+                                <span className="text-xs font-medium text-[#3c3c4399] dark:text-[#ebebf599] group-hover:text-[#135bec] transition-colors">Email</span>
+                            </button>
+                            <button className="flex flex-col items-center gap-2 group" onClick={() => setShowTaskModal(true)}>
+                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 active:scale-95 transition-all">
+                                    <span className="material-symbols-outlined text-2xl">add_task</span>
+                                </div>
+                                <span className="text-xs font-medium text-[#3c3c4399] dark:text-[#ebebf599] group-hover:text-[#135bec] transition-colors">Tarea</span>
+                            </button>
+                        </div>
 
-                                {/* Contact info grid */}
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="nombre">Nombre</Label>
-                                        <Input
-                                            id="nombre"
-                                            value={editedContact.nombre || ''}
-                                            onChange={(e) => updateField('nombre', e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="apellidos">Apellidos</Label>
-                                        <Input
-                                            id="apellidos"
-                                            value={editedContact.apellidos || ''}
-                                            onChange={(e) => updateField('apellidos', e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="telefono">Teléfono</Label>
-                                        <Input
-                                            id="telefono"
-                                            value={editedContact.telefono}
-                                            onChange={(e) => updateField('telefono', e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label>Tipo pago</Label>
-                                        <Select
-                                            value={editedContact.tipo_pago || ''}
-                                            onValueChange={(value) => updateField('tipo_pago', value as Contact['tipo_pago'])}
+                        {/* Status Selector */}
+                        <div className="px-4 mb-6">
+                            <h3 className="text-sm uppercase tracking-wider text-[#3c3c4399] dark:text-[#ebebf599] font-bold mb-3 pl-1">Estado</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {ESTADOS_BACKOFFICE.map(estado => {
+                                    const isActive = estadoLead === estado.value
+                                    return (
+                                        <button
+                                            key={estado.value}
+                                            onClick={() => {
+                                                setEstadoLead(estado.value)
+                                                // Notificar al padre del cambio
+                                                onStatusChange?.(contact.id, estado.value)
+                                            }}
+                                            className={cn(
+                                                "flex h-9 items-center justify-center gap-x-2 rounded-lg px-3 shadow-sm active:scale-95 transition-all duration-200",
+                                                isActive
+                                                    ? "bg-[#135bec] shadow-md shadow-[#135bec]/20"
+                                                    : "border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1c1c1e] hover:border-[#135bec]/50 hover:bg-[#135bec]/5"
+                                            )}
                                         >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Seleccionar..." />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {TIPOS_PAGO.map(tipo => (
-                                                    <SelectItem key={tipo.value} value={tipo.value}>
-                                                        {tipo.label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="transporte">Transporte (€)</Label>
-                                        <Input
-                                            id="transporte"
-                                            type="number"
-                                            value={editedContact.transporte || ''}
-                                            onChange={(e) => updateField('transporte', parseFloat(e.target.value) || 0)}
-                                        />
-                                    </div>
-                                    <div className="flex items-center space-x-2 pt-6">
-                                        <Checkbox
-                                            id="nuevo_cliente"
-                                            checked={editedContact.es_nuevo_cliente || false}
-                                            onCheckedChange={(checked) => updateField('es_nuevo_cliente', checked as boolean)}
-                                        />
-                                        <Label htmlFor="nuevo_cliente">Nuevo cliente</Label>
-                                    </div>
-                                </div>
-
-                                {/* Summary section */}
-                                <Card className="card-premium">
-                                    <CardHeader className="pb-2">
-                                        <CardTitle className="text-sm font-medium text-muted-foreground">Resumen</CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="grid grid-cols-3 gap-4">
-                                        <div>
-                                            <p className="text-xs text-muted-foreground">Fecha contacto</p>
-                                            <p className="font-medium text-sm">{formatDate(editedContact.fecha_registro)}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-muted-foreground">Comercial</p>
-                                            <p className="font-medium text-sm">
-                                                {assignedCommercial ? `${assignedCommercial.nombre} ${assignedCommercial.apellidos}` : 'Sin asignar'}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-muted-foreground">Canal</p>
-                                            <p className="font-medium text-sm">
-                                                {ORIGENES_CONTACTO.find(o => o.value === editedContact.origen)?.label}
-                                            </p>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-
-                                {/* Notes */}
-                                <div className="space-y-2">
-                                    <Label>Notas / Mensajes</Label>
-                                    <Textarea
-                                        value={editedContact.notas || ''}
-                                        onChange={(e) => updateField('notas', e.target.value)}
-                                        placeholder="Añade notas sobre este contacto..."
-                                        className="min-h-[80px]"
-                                    />
-                                </div>
+                                            <span className={cn(
+                                                "material-symbols-outlined text-[16px] transition-colors",
+                                                isActive ? "text-white filled" : "text-gray-400"
+                                            )}>
+                                                {isActive ? 'check_circle' : 'radio_button_unchecked'}
+                                            </span>
+                                            <p className={cn(
+                                                "text-xs font-medium transition-colors whitespace-nowrap",
+                                                isActive ? "text-white" : "text-black dark:text-white"
+                                            )}>{estado.label}</p>
+                                        </button>
+                                    )
+                                })}
                             </div>
                         </div>
 
-                        {/* Right panel - Financial info */}
-                        <div className="col-span-4 border-l border-card-border bg-muted/20">
-                            <div className="p-4 space-y-4">
-                                <h3 className="font-medium">Información Financiera</h3>
+                        {/* Segmented Content Tabs */}
+                        <div className="sticky top-0 z-40 bg-[#f2f2f7]/95 dark:bg-[#000000]/95 backdrop-blur-sm px-4 pt-2 pb-4 border-b border-gray-200 dark:border-gray-800 mb-6">
+                            <div className="flex p-1 bg-gray-200/50 dark:bg-gray-800/50 rounded-lg">
+                                {[
+                                    { id: 'cronologia', label: 'Cronología' },
+                                    { id: 'vehiculos', label: 'Vehículos' },
+                                    { id: 'notas', label: 'Notas' }
+                                ].map(tab => (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => setActiveTab(tab.id as any)}
+                                        className={cn(
+                                            "flex-1 py-1.5 rounded-[6px] text-sm font-medium text-center transition-all",
+                                            activeTab === tab.id
+                                                ? "bg-white dark:bg-gray-700 text-[#135bec] dark:text-white shadow-sm font-bold"
+                                                : "text-[#3c3c4399] dark:text-gray-400 hover:text-[#135bec]"
+                                        )}
+                                    >
+                                        {tab.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
 
-                                <div className="space-y-3">
-                                    <div className="space-y-2">
-                                        <Label>Coche</Label>
-                                        <Input
-                                            value={selectedVehicle ? selectedVehicle.matricula : 'No seleccionado'}
-                                            disabled
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="precio">Precio (€)</Label>
-                                        <Input
-                                            id="precio"
-                                            type="number"
-                                            value={editedContact.precio || selectedVehicle?.precio_venta || ''}
-                                            onChange={(e) => updateField('precio', parseFloat(e.target.value) || 0)}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="reserva">Reserva (€)</Label>
-                                        <Input
-                                            id="reserva"
-                                            type="number"
-                                            value={editedContact.reserva || 0}
-                                            onChange={(e) => updateField('reserva', parseFloat(e.target.value) || 0)}
-                                        />
-                                    </div>
-                                    <div className="pt-2 border-t border-card-border">
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-sm text-muted-foreground">Total pago:</span>
-                                            <span className="text-xl font-bold text-primary">
-                                                {formatCurrency(editedContact.precio || selectedVehicle?.precio_venta || 0)}
-                                            </span>
+                        {/* Content Sections */}
+                        <div className="px-4 mb-8">
+                            {activeTab === 'cronologia' && (
+                                <div className="relative pl-4 border-l-2 border-gray-200 dark:border-gray-800 ml-3 space-y-8">
+                                    {/* Nuevas interacciones guardadas */}
+                                    {interactions.map((interaction) => {
+                                        const tipoConfig: Record<string, { icon: string, bg: string, color: string, label: string }> = {
+                                            'llamada_saliente': { icon: 'call', bg: 'bg-green-100', color: 'text-green-600', label: 'Llamada saliente' },
+                                            'llamada_entrante': { icon: 'phone_callback', bg: 'bg-blue-100', color: 'text-blue-600', label: 'Llamada entrante' },
+                                            'email_enviado': { icon: 'mail', bg: 'bg-purple-100', color: 'text-purple-600', label: 'Email enviado' },
+                                            'email_recibido': { icon: 'mark_email_read', bg: 'bg-indigo-100', color: 'text-indigo-600', label: 'Email recibido' },
+                                            'whatsapp': { icon: 'chat', bg: 'bg-emerald-100', color: 'text-emerald-600', label: 'WhatsApp' },
+                                            'visita': { icon: 'storefront', bg: 'bg-orange-100', color: 'text-orange-600', label: 'Visita presencial' },
+                                            'nota': { icon: 'sticky_note_2', bg: 'bg-yellow-100', color: 'text-yellow-600', label: 'Nota interna' },
+                                        }
+                                        const config = tipoConfig[interaction.tipo] || { icon: 'event', bg: 'bg-gray-100', color: 'text-gray-600', label: interaction.tipo }
+
+                                        return (
+                                            <div key={interaction.id} className="relative">
+                                                <div className={`absolute -left-[25px] mt-1.5 flex h-8 w-8 items-center justify-center rounded-full ${config.bg} border-2 border-white dark:border-[#000000]`}>
+                                                    <span className={`material-symbols-outlined ${config.color} text-sm`}>{config.icon}</span>
+                                                </div>
+                                                <div className="bg-white dark:bg-[#1c1c1e] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 ring-2 ring-green-500/20">
+                                                    <div className="flex justify-between items-start mb-1">
+                                                        <div className="flex items-center gap-2">
+                                                            <h4 className="text-base font-bold text-black dark:text-white">{config.label}</h4>
+                                                            <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-medium">Nuevo</span>
+                                                        </div>
+                                                        <span className="text-xs text-[#3c3c4399] dark:text-[#ebebf599] font-medium">{interaction.fecha} {interaction.hora}</span>
+                                                    </div>
+                                                    <p className="text-sm text-[#3c3c4399] dark:text-[#ebebf599]">
+                                                        {interaction.descripcion || 'Sin descripción'}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+
+                                    {/* Mock Timeline Item 1 */}
+                                    <div className="relative">
+                                        <div className="absolute -left-[25px] mt-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30 border-2 border-white dark:border-[#000000]">
+                                            <span className="material-symbols-outlined text-red-600 dark:text-red-400 text-sm">phone_missed</span>
                                         </div>
-                                        {(editedContact.reserva || 0) > 0 && (
-                                            <div className="flex justify-between items-center mt-1">
-                                                <span className="text-xs text-muted-foreground">Pendiente:</span>
-                                                <span className="text-sm font-medium">
-                                                    {formatCurrency(totalPago)}
-                                                </span>
+                                        <div className="bg-white dark:bg-[#1c1c1e] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+                                            <div className="flex justify-between items-start mb-1">
+                                                <h4 className="text-base font-bold text-black dark:text-white">Llamada perdida</h4>
+                                                <span className="text-xs text-[#3c3c4399] dark:text-[#ebebf599] font-medium">Hace 2 horas</span>
+                                            </div>
+                                            <p className="text-sm text-[#3c3c4399] dark:text-[#ebebf599]">Llamada saliente sin respuesta. Dejar mensaje de voz.</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Mock Timeline Item 2 */}
+                                    <div className="relative">
+                                        <div className="absolute -left-[25px] mt-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30 border-2 border-white dark:border-[#000000]">
+                                            <span className="material-symbols-outlined text-[#135bec] text-sm">directions_car</span>
+                                        </div>
+                                        <div className="bg-white dark:bg-[#1c1c1e] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+                                            <div className="flex justify-between items-start mb-1">
+                                                <h4 className="text-base font-bold text-black dark:text-white">Prueba de Vehículo</h4>
+                                                <span className="text-xs text-[#3c3c4399] dark:text-[#ebebf599] font-medium">Ayer, 16:30</span>
+                                            </div>
+                                            <p className="text-sm text-[#3c3c4399] dark:text-[#ebebf599] mb-3">Realizó prueba del Audi Q3. Comentó que le gusta el espacio del maletero pero duda del color.</p>
+
+                                            {selectedVehicleFromContact(contactVehicles) && (
+                                                <div className="flex gap-3 items-center bg-gray-50 dark:bg-gray-800/50 p-2 rounded-lg border border-gray-100 dark:border-gray-700">
+                                                    <div className="w-12 h-12 rounded-md bg-cover bg-center" style={{ backgroundImage: `url(${selectedVehicleFromContact(contactVehicles)?.imagen_principal})` }}></div>
+                                                    <div>
+                                                        <p className="text-sm font-bold dark:text-white">{selectedVehicleFromContact(contactVehicles)?.marca} {selectedVehicleFromContact(contactVehicles)?.modelo}</p>
+                                                        <p className="text-xs text-gray-500 dark:text-gray-400">Ref: {selectedVehicleFromContact(contactVehicles)?.id.substring(0, 5)} • {formatCurrency(selectedVehicleFromContact(contactVehicles)?.precio_venta || 0)}</p>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Start Item */}
+                                    <div className="relative">
+                                        <div className="absolute -left-[25px] mt-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 border-2 border-white dark:border-[#000000]">
+                                            <span className="material-symbols-outlined text-gray-500 dark:text-gray-400 text-sm">person_add</span>
+                                        </div>
+                                        <div className="py-2">
+                                            <p className="text-xs font-bold text-gray-400 dark:text-gray-600 uppercase tracking-widest">Lead Creado • {formatDate(contact.fecha_registro)}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'vehiculos' && (
+                                <div className="space-y-4">
+                                    <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+                                        {contactVehicles.length > 0 ? contactVehicles.map(vehicle => (
+                                            <div key={vehicle.id} className="w-64 flex-shrink-0 bg-white dark:bg-[#1c1c1e] rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden group">
+                                                <div className="h-32 bg-cover bg-center relative" style={{ backgroundImage: `url(${vehicle.imagen_principal})` }}>
+                                                    <div className="absolute top-2 right-2 bg-black/50 text-white text-[10px] font-bold px-2 py-0.5 rounded backdrop-blur-sm uppercase">{vehicle.estado}</div>
+                                                </div>
+                                                <div className="p-3">
+                                                    <h4 className="font-bold text-black dark:text-white">{vehicle.marca} {vehicle.modelo}</h4>
+                                                    <p className="text-xs text-[#3c3c4399] dark:text-[#ebebf599] mb-2">{vehicle.tipo_motor || vehicle.combustible} • {vehicle.año_matriculacion} • {vehicle.kilometraje.toLocaleString()}km</p>
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="text-[#135bec] font-bold text-lg">{formatCurrency(vehicle.precio_venta)}</span>
+                                                        <button className="bg-gray-100 dark:bg-gray-700 p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600">
+                                                            <span className="material-symbols-outlined text-gray-600 dark:text-gray-300 text-sm">visibility</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )) : (
+                                            <div className="col-span-full p-8 text-center text-muted-foreground bg-white dark:bg-[#1c1c1e] rounded-xl border border-dashed border-gray-200">
+                                                <span className="material-symbols-outlined text-4xl mb-2 opacity-50">no_crash</span>
+                                                <p>No hay vehículos asociados</p>
                                             </div>
                                         )}
                                     </div>
-                                </div>
 
-                                {/* Estado selector */}
-                                <div className="space-y-2 pt-4">
-                                    <Label>Estado</Label>
-                                    <Select
-                                        value={editedContact.estado}
-                                        onValueChange={(value) => updateField('estado', value as Contact['estado'])}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {ESTADOS_BACKOFFICE.map(estado => (
-                                                <SelectItem key={estado.value} value={estado.value}>
-                                                    <div className="flex items-center gap-2">
-                                                        <div
-                                                            className="w-2 h-2 rounded-full"
-                                                            style={{ backgroundColor: estado.color }}
-                                                        />
-                                                        {estado.label}
+                                    <h3 className="text-lg font-bold text-black dark:text-white mt-6 mb-3">Sugerencias (Mock)</h3>
+                                    <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar opacity-60 grayscale hover:grayscale-0 transition-all">
+                                        {mockVehicles.slice(0, 2).map(vehicle => (
+                                            <div key={vehicle.id} className="w-64 flex-shrink-0 bg-white dark:bg-[#1c1c1e] rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden group">
+                                                <div className="h-32 bg-cover bg-center relative" style={{ backgroundImage: `url(${vehicle.imagen_principal})` }}>
+                                                </div>
+                                                <div className="p-3">
+                                                    <h4 className="font-bold text-black dark:text-white">{vehicle.marca} {vehicle.modelo}</h4>
+                                                    <div className="flex justify-between items-center mt-2">
+                                                        <span className="text-gray-500 font-bold">{formatCurrency(vehicle.precio_venta)}</span>
                                                     </div>
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
+                            )}
+
+                            {activeTab === 'notas' && (
+                                <div className="space-y-4">
+                                    <div className="bg-white dark:bg-[#1c1c1e] p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                                        <textarea className="w-full bg-transparent border-0 p-0 text-sm text-black dark:text-white placeholder-gray-400 focus:ring-0 resize-none focus:outline-none" placeholder="Escribe una nota rápida..." rows={3}></textarea>
+                                        <div className="flex justify-between items-center mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
+                                            <div className="flex gap-2">
+                                                <button className="text-gray-400 hover:text-[#135bec] transition-colors"><span className="material-symbols-outlined text-xl">attach_file</span></button>
+                                                <button className="text-gray-400 hover:text-[#135bec] transition-colors"><span className="material-symbols-outlined text-xl">image</span></button>
+                                            </div>
+                                            <button className="bg-[#135bec] hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-sm font-bold transition-colors">Guardar</button>
+                                        </div>
+                                    </div>
+
+                                    {/* Saved Notes List */}
+                                    <div className="space-y-3">
+                                        <div className="flex gap-3 items-start">
+                                            <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center shrink-0">
+                                                <span className="text-xs font-bold text-gray-600 dark:text-gray-300">YO</span>
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="bg-white dark:bg-gray-800 p-3 rounded-tr-xl rounded-br-xl rounded-bl-xl shadow-sm text-sm text-black dark:text-white">
+                                                    Cliente prefiere contacto por las tardes a partir de las 18:00h. Está mirando financiación con su banco también.
+                                                </div>
+                                                <span className="text-[10px] text-gray-400 ml-1 mt-1 block">Ayer, 10:15 AM</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 
-                    {/* Action bar */}
-                    <div className="px-4 py-3 border-t border-card-border bg-muted/30 flex flex-wrap gap-2">
-                        <Button variant="outline" size="sm" className="gap-1" onClick={() => setShowInteractionModal(true)}>
-                            <MessageCircle className="h-4 w-4" />
-                            Nueva interacción
-                        </Button>
-                        <Button variant="outline" size="sm" className="gap-1" onClick={() => setShowPriorityModal(true)}>
-                            <Star className="h-4 w-4" />
-                            Prioridad
-                        </Button>
-                        <Button variant="outline" size="sm" className="gap-1" onClick={() => setShowPostponeModal(true)}>
-                            <Clock className="h-4 w-4" />
-                            Aplazar
-                        </Button>
-                        <Button variant="outline" size="sm" className="gap-1" onClick={() => setShowAssignModal(true)}>
-                            <UserPlus className="h-4 w-4" />
-                            Asignar comercial
-                        </Button>
-                        <Button variant="outline" size="sm" className="gap-1" onClick={() => setShowTaskModal(true)}>
-                            <CheckSquare className="h-4 w-4" />
-                            Añadir tarea
-                        </Button>
-                        <Button variant="outline" size="sm" className="gap-1" onClick={() => openDocumentModal('proforma')}>
-                            <FileText className="h-4 w-4" />
-                            Proforma
-                        </Button>
-                        <Button variant="outline" size="sm" className="gap-1" onClick={() => openDocumentModal('senal')}>
-                            <Bookmark className="h-4 w-4" />
-                            Señal
-                        </Button>
-                        <Button variant="outline" size="sm" className="gap-1" onClick={() => openDocumentModal('contrato')}>
-                            <FileSignature className="h-4 w-4" />
-                            Contrato
-                        </Button>
-                        <Button variant="outline" size="sm" className="gap-1" onClick={() => openDocumentModal('factura')}>
-                            <Receipt className="h-4 w-4" />
-                            Factura
-                        </Button>
+                    {/* Floating Action Button */}
+                    <div className="absolute bottom-6 right-6 z-50">
+                        <button
+                            onClick={() => setShowInteractionModal(true)}
+                            className="flex h-14 w-14 items-center justify-center rounded-full bg-[#135bec] text-white shadow-xl shadow-[#135bec]/40 hover:bg-blue-700 hover:scale-105 active:scale-95 transition-all"
+                        >
+                            <span className="material-symbols-outlined text-3xl">add</span>
+                        </button>
                     </div>
 
-                    {/* Notification Toast */}
-                    {notification && (
-                        <div className={cn(
-                            "fixed bottom-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 animate-in",
-                            notification.type === 'success' ? "bg-green-500/90 text-white" : "bg-blue-500/90 text-white"
-                        )}>
-                            {notification.message}
-                        </div>
-                    )}
-
-                    {/* Footer with save button */}
-                    <div className="p-4 border-t flex justify-end gap-3">
-                        <Button variant="outline" onClick={onClose}>
-                            Cerrar
-                        </Button>
-                        <Button onClick={handleSave} disabled={!hasChanges} className="gap-2">
-                            <Save className="h-4 w-4" />
-                            Guardar cambios
-                        </Button>
-                    </div>
                 </DialogContent>
             </Dialog>
 
-            {/* Vehicle Selector Modal */}
-            <VehicleSelector
-                open={isVehicleSelectorOpen}
-                onClose={() => setIsVehicleSelectorOpen(false)}
-                onSelect={handleAddVehicles}
-                excludeIds={editedContact.vehiculos_interes}
-            />
+            {/* Hidden Modals reused logic */}
+            <NewInteractionModal open={showInteractionModal} onClose={() => setShowInteractionModal(false)} contactId={contact.id} contactName={`${contact.nombre}`} onSave={handleSaveInteraction} />
+            <AddTaskModal open={showTaskModal} onClose={() => setShowTaskModal(false)} contactId={contact.id} contactName={`${contact.nombre}`} onSave={handleSaveTask} />
+            <DocumentModal open={showDocumentModal} onClose={() => setShowDocumentModal(false)} type={documentType} contact={contact} vehicle={contactVehicles[0]} onGenerate={() => { }} />
 
-            {/* CRM Action Modals */}
-            <NewInteractionModal
-                open={showInteractionModal}
-                onClose={() => setShowInteractionModal(false)}
-                contactId={contact.id}
-                contactName={`${contact.nombre} ${contact.apellidos}`}
-                onSave={handleSaveInteraction}
-            />
-
-            <AddTaskModal
-                open={showTaskModal}
-                onClose={() => setShowTaskModal(false)}
-                contactId={contact.id}
-                contactName={`${contact.nombre} ${contact.apellidos}`}
-                onSave={handleSaveTask}
-            />
-
-            <SetPriorityModal
-                open={showPriorityModal}
-                onClose={() => setShowPriorityModal(false)}
-                currentPriority={(editedContact as any).prioridad || null}
-                onSave={handleSetPriority}
-            />
-
-            <PostponeContactModal
-                open={showPostponeModal}
-                onClose={() => setShowPostponeModal(false)}
-                contactName={`${contact.nombre} ${contact.apellidos}`}
-                onSave={handlePostpone}
-            />
-
-            <AssignCommercialModal
-                open={showAssignModal}
-                onClose={() => setShowAssignModal(false)}
-                currentCommercialId={editedContact.comercial_asignado || null}
-                onSave={(id) => handleAssignCommercial(id)}
-            />
-
-            <DocumentModal
-                open={showDocumentModal}
-                onClose={() => setShowDocumentModal(false)}
-                type={documentType}
-                contact={editedContact}
-                vehicle={selectedVehicle}
-                onGenerate={handleGenerateDocument}
-            />
         </>
     )
+}
+
+// Helper
+function selectedVehicleFromContact(vehicles: Vehicle[]) {
+    return vehicles.length > 0 ? vehicles[0] : null
 }

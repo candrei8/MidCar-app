@@ -1,5 +1,6 @@
 "use client"
 
+import { useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -22,8 +23,10 @@ import {
     ArrowUp,
     ArrowDown
 } from "lucide-react"
-import { mockVehicles, mockLeads, mockUsers, mockSalesChartData } from "@/lib/mock-data"
+import { mockUsers, mockSalesChartData } from "@/lib/mock-data"
 import { formatCurrency, cn } from "@/lib/utils"
+import { useFilteredData } from "@/hooks/useFilteredData"
+import { exportReportToPDF, exportVehiclesToExcel } from "@/lib/export-utils"
 import {
     BarChart,
     Bar,
@@ -38,37 +41,102 @@ import {
 } from "recharts"
 
 export default function ReportesPage() {
-    // Calculate report data
-    const totalVentas = 11
-    const ingresosMes = 385000
-    const margenPromedio = 15.2
-    const ticketMedio = 35000
+    // Obtener datos filtrados por vista (Mi Vista / Visión Completa)
+    const { vehicles, leads, isFullView } = useFilteredData()
 
-    // Ventas por marca
-    const ventasPorMarca = [
-        { marca: 'BMW', ventas: 3, ingresos: 125000 },
-        { marca: 'Audi', ventas: 2, ingresos: 58000 },
-        { marca: 'Volkswagen', ventas: 3, ingresos: 72000 },
-        { marca: 'Mercedes', ventas: 2, ingresos: 78000 },
-        { marca: 'Toyota', ventas: 1, ingresos: 27000 },
-    ]
+    // Calculate report data dinámicamente basado en datos filtrados
+    const reportData = useMemo(() => {
+        const vehiculosVendidos = vehicles.filter(v => v.estado === 'vendido')
+        const totalVentas = vehiculosVendidos.length
+        const ingresosMes = vehiculosVendidos.reduce((sum, v) => sum + (v.precio_venta || 0), 0)
+        const margenTotal = vehiculosVendidos.reduce((sum, v) => sum + (v.margen_bruto || 0), 0)
+        const margenPromedio = totalVentas > 0 ? (margenTotal / ingresosMes) * 100 : 0
+        const ticketMedio = totalVentas > 0 ? ingresosMes / totalVentas : 0
 
-    // Rendimiento vendedores
-    const rendimientoVendedores = [
+        // Ventas por marca
+        const ventasPorMarcaMap = new Map<string, { ventas: number, ingresos: number }>()
+        vehiculosVendidos.forEach(v => {
+            const current = ventasPorMarcaMap.get(v.marca) || { ventas: 0, ingresos: 0 }
+            ventasPorMarcaMap.set(v.marca, {
+                ventas: current.ventas + 1,
+                ingresos: current.ingresos + (v.precio_venta || 0)
+            })
+        })
+        const ventasPorMarca = Array.from(ventasPorMarcaMap.entries())
+            .map(([marca, data]) => ({ marca, ...data }))
+            .sort((a, b) => b.ventas - a.ventas)
+            .slice(0, 5)
+
+        // Leads por estado
+        const leadsVendidos = leads.filter(l => l.estado === 'vendido').length
+        const totalLeads = leads.length
+        const conversionRate = totalLeads > 0 ? (leadsVendidos / totalLeads) * 100 : 0
+
+        return {
+            totalVentas,
+            ingresosMes,
+            margenPromedio: Math.round(margenPromedio * 10) / 10,
+            ticketMedio: Math.round(ticketMedio),
+            ventasPorMarca,
+            conversionRate: Math.round(conversionRate * 10) / 10,
+            totalLeads
+        }
+    }, [vehicles, leads])
+
+    const { totalVentas, ingresosMes, margenPromedio, ticketMedio, ventasPorMarca } = reportData
+
+    // Rendimiento vendedores (solo en visión completa)
+    const rendimientoVendedores = isFullView ? [
         { id: '2', nombre: 'María López', ventas: 6, leads: 18, conversion: 33.3 },
         { id: '3', nombre: 'Juan Martínez', ventas: 5, leads: 22, conversion: 22.7 },
-    ]
+    ] : []
 
     // Lead sources
-    const salesByOrigin = [
+    const salesByOrigin = isFullView ? [
         { name: 'Web', value: 47, color: '#dc2626' },
         { name: 'Directo', value: 25, color: '#f59e0b' },
         { name: 'Visita', value: 18, color: '#10b981' },
         { name: 'Teléfono', value: 10, color: '#3b82f6' },
-    ]
+    ] : []
+
+    // Handler para exportar PDF
+    const handleExportPDF = () => {
+        const summaryData = [
+            { label: 'Vehículos Vendidos', value: totalVentas },
+            { label: 'Ingresos del Mes', value: formatCurrency(ingresosMes) },
+            { label: 'Margen Promedio', value: `${margenPromedio}%` },
+            { label: 'Ticket Medio', value: formatCurrency(ticketMedio) },
+            { label: 'Tasa Conversión', value: `${reportData.conversionRate}%` },
+            { label: 'Total Leads', value: reportData.totalLeads },
+        ]
+
+        const tableData = ventasPorMarca.map(v => [
+            v.marca,
+            v.ventas.toString(),
+            formatCurrency(v.ingresos)
+        ])
+
+        exportReportToPDF(
+            summaryData,
+            tableData,
+            ['Marca', 'Ventas', 'Ingresos'],
+            {
+                title: 'Reporte de Ventas',
+                subtitle: `Período: ${new Date().toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}`,
+                filename: `reporte-ventas-${new Date().toISOString().split('T')[0]}`
+            }
+        )
+    }
+
+    // Handler para exportar Excel
+    const handleExportExcel = () => {
+        exportVehiclesToExcel(vehicles, {
+            filename: `inventario-${new Date().toISOString().split('T')[0]}`
+        })
+    }
 
     return (
-        <div className="space-y-6 animate-in">
+        <div className="space-y-6 animate-in px-4 md:px-6 py-6">
             {/* Page header */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
@@ -90,9 +158,13 @@ export default function ReportesPage() {
                             <SelectItem value="año">Este año</SelectItem>
                         </SelectContent>
                     </Select>
-                    <Button variant="outline" className="gap-2">
+                    <Button variant="outline" className="gap-2" onClick={handleExportPDF}>
                         <Download className="h-4 w-4" />
                         Exportar PDF
+                    </Button>
+                    <Button variant="outline" className="gap-2" onClick={handleExportExcel}>
+                        <FileText className="h-4 w-4" />
+                        Exportar Excel
                     </Button>
                 </div>
             </div>
@@ -262,15 +334,21 @@ export default function ReportesPage() {
                 <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="text-center p-6 bg-surface-100 rounded-lg">
-                            <p className="text-4xl font-bold text-foreground">38</p>
+                            <p className="text-4xl font-bold text-foreground">
+                                {vehicles.length > 0
+                                    ? Math.round(vehicles.reduce((acc, v) => acc + v.dias_en_stock, 0) / vehicles.length)
+                                    : 0}
+                            </p>
                             <p className="text-sm text-muted-foreground mt-1">Días promedio en stock</p>
                         </div>
                         <div className="text-center p-6 bg-surface-100 rounded-lg">
-                            <p className="text-4xl font-bold text-warning">2</p>
+                            <p className="text-4xl font-bold text-warning">
+                                {vehicles.filter(v => v.dias_en_stock > 60).length}
+                            </p>
                             <p className="text-sm text-muted-foreground mt-1">Vehículos +60 días</p>
                         </div>
                         <div className="text-center p-6 bg-surface-100 rounded-lg">
-                            <p className="text-4xl font-bold text-foreground">{formatCurrency(mockVehicles.reduce((acc, v) => acc + v.precio_venta, 0))}</p>
+                            <p className="text-4xl font-bold text-foreground">{formatCurrency(vehicles.reduce((acc, v) => acc + v.precio_venta, 0))}</p>
                             <p className="text-sm text-muted-foreground mt-1">Valor inmovilizado</p>
                         </div>
                     </div>
@@ -279,7 +357,7 @@ export default function ReportesPage() {
                     <div className="mt-6">
                         <h4 className="text-sm font-medium text-muted-foreground mb-3">Vehículos con más tiempo en stock</h4>
                         <div className="space-y-2">
-                            {mockVehicles
+                            {vehicles
                                 .sort((a, b) => b.dias_en_stock - a.dias_en_stock)
                                 .slice(0, 3)
                                 .map(vehicle => (

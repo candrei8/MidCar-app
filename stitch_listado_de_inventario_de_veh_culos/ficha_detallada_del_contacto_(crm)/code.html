@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ficha Detallada del Contacto - MidCar</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Manrope -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "primary-dark": "#0f4bc4",
+                        "background-light": "#f2f2f7", /* iOS grouped background style */
+                        "background-dark": "#000000",
+                        "card-light": "#ffffff",
+                        "card-dark": "#1c1c1e",
+                        "text-primary-light": "#000000",
+                        "text-primary-dark": "#ffffff",
+                        "text-secondary-light": "#3c3c4399", /* iOS secondary label color */
+                        "text-secondary-dark": "#ebebf599",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-filled {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom scrollbar hiding for clean UI */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-text-primary-light dark:text-text-primary-dark transition-colors duration-200">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden max-w-md mx-auto shadow-2xl bg-background-light dark:bg-background-dark">
+<!-- TopAppBar -->
+<div class="sticky top-0 z-50 flex items-center bg-card-light/80 dark:bg-card-dark/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 p-4 pb-2 justify-between h-14 transition-colors">
+<button class="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+<span class="material-symbols-outlined text-primary text-2xl">arrow_back</span>
+</button>
+<h2 class="text-text-primary-light dark:text-text-primary-dark text-lg font-bold leading-tight tracking-tight flex-1 text-center">Ficha de Contacto</h2>
+<div class="flex w-10 items-center justify-end">
+<button class="flex size-10 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-primary">
+<span class="material-symbols-outlined text-xl">edit</span>
+</button>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto pb-24">
+<!-- ProfileHeader -->
+<div class="flex p-6 flex-col items-center bg-card-light dark:bg-card-dark mb-4 shadow-sm transition-colors">
+<div class="relative mb-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-28 w-28 ring-4 ring-primary/10" data-alt="Portrait of a smiling man with a beard" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCrWZBbKoZYFn-3a-QTTJ4ZrJ4W7OeyRssQuFXu8MIq_jyOBUOiEYr87GXgf4VeP24jyGRitNlK-YcBZo0ixvIbV3rH4tZMnMzfLrqvsUqCuqEOsN_NcX5H6CQxiunfvA8worjFBJ5jz1QICUiNRrpI6QcD0I_XCybfH4zynfKFbBdpzJaLPoxAli0AkEPS6rDoojoWieJOP-D4BdD7VBiDzOJRTDc38iy-p9UTmMHJWsyCqi83U_mNtzOGYcP3nDzo5eyWd0DY40h1");'></div>
+<div class="absolute bottom-1 right-1 bg-white dark:bg-black rounded-full p-1 border border-gray-100 dark:border-gray-800 shadow-sm">
+<img alt="Coches.net" class="w-5 h-5 rounded-full" onerror="this.src='https://via.placeholder.com/20?text=C'" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBudYa61Zaagob9jkC0Bv5XLiY0x1uxsj6OP2C-iakjpEoe_WhUhEIVSoNo0fJyhCKdy85_FFvTPlWkNre-83MBwYBMhUjHcQ-SuDhyeUuoyUkji1qF1A4Ts3bWeLMTqhDSw148YUnJ4svDn5GmO-dibSpBHxkdxnassSZNyVVXw5n7oA_Lq6khmY_yTLr6PdW67Ov8iO2TPsqrbVqeACeOE-SuiCx3l_sTOiF3h9EYwvRFEdKFbiuHgYlToFYAohvBqFI6-q7jXnKR"/>
+</div>
+</div>
+<div class="flex flex-col items-center justify-center gap-1">
+<h1 class="text-2xl font-bold leading-tight tracking-tight text-center">Juan Pérez</h1>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark">ID: #4829</span>
+<span class="px-2 py-0.5 rounded-md bg-green-100 dark:bg-green-900/30 text-xs font-medium text-green-700 dark:text-green-400">Online hace 2h</span>
+</div>
+<p class="text-text-secondary-light dark:text-text-secondary-dark text-sm mt-2 font-medium text-center">Interesado en SUVs • Madrid</p>
+</div>
+</div>
+<!-- ActionsBar -->
+<div class="grid grid-cols-4 gap-2 px-4 mb-6">
+<button class="flex flex-col items-center gap-2 group">
+<div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white shadow-lg shadow-primary/30 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-2xl">call</span>
+</div>
+<span class="text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark group-hover:text-primary transition-colors">Llamar</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white shadow-lg shadow-primary/30 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-2xl">chat</span>
+</div>
+<span class="text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark group-hover:text-primary transition-colors">WhatsApp</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white shadow-lg shadow-primary/30 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-2xl">mail</span>
+</div>
+<span class="text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark group-hover:text-primary transition-colors">Email</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="flex h-12 w-12 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-2xl">add_task</span>
+</div>
+<span class="text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark group-hover:text-primary transition-colors">Tarea</span>
+</button>
+</div>
+<!-- Status Selector -->
+<div class="px-4 mb-6">
+<h3 class="text-sm uppercase tracking-wider text-text-secondary-light dark:text-text-secondary-dark font-bold mb-3 pl-1">Estado del Lead</h3>
+<div class="flex gap-3 overflow-x-auto no-scrollbar pb-2">
+<div class="flex h-9 shrink-0 cursor-pointer items-center justify-center gap-x-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-card-light dark:bg-card-dark pl-3 pr-4 shadow-sm active:opacity-70 transition-colors">
+<span class="material-symbols-outlined text-gray-400 text-[18px]">radio_button_unchecked</span>
+<p class="text-sm font-medium">Nuevo</p>
+</div>
+<!-- Active State -->
+<div class="flex h-9 shrink-0 cursor-pointer items-center justify-center gap-x-2 rounded-lg bg-primary pl-3 pr-4 shadow-md shadow-primary/20 active:opacity-70 transition-colors">
+<span class="material-symbols-outlined text-white text-[18px] filled">check_circle</span>
+<p class="text-white text-sm font-medium">Contactado</p>
+</div>
+<div class="flex h-9 shrink-0 cursor-pointer items-center justify-center gap-x-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-card-light dark:bg-card-dark pl-3 pr-4 shadow-sm active:opacity-70 transition-colors">
+<span class="material-symbols-outlined text-gray-400 text-[18px]">radio_button_unchecked</span>
+<p class="text-sm font-medium">Prueba</p>
+</div>
+<div class="flex h-9 shrink-0 cursor-pointer items-center justify-center gap-x-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-card-light dark:bg-card-dark pl-3 pr-4 shadow-sm active:opacity-70 transition-colors">
+<span class="material-symbols-outlined text-gray-400 text-[18px]">radio_button_unchecked</span>
+<p class="text-sm font-medium">Negociación</p>
+</div>
+<div class="flex h-9 shrink-0 cursor-pointer items-center justify-center gap-x-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-card-light dark:bg-card-dark pl-3 pr-4 shadow-sm active:opacity-70 transition-colors">
+<span class="material-symbols-outlined text-gray-400 text-[18px]">radio_button_unchecked</span>
+<p class="text-sm font-medium">Vendido</p>
+</div>
+</div>
+</div>
+<!-- Segmented Content Tabs -->
+<div class="sticky top-14 z-40 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm px-4 pt-2 pb-4 border-b border-gray-200 dark:border-gray-800 mb-6">
+<div class="flex p-1 bg-gray-200/50 dark:bg-gray-800/50 rounded-lg">
+<button class="flex-1 py-1.5 rounded-[6px] bg-white dark:bg-gray-700 text-primary dark:text-white shadow-sm text-sm font-bold text-center transition-all">
+                        Cronología
+                    </button>
+<button class="flex-1 py-1.5 rounded-[6px] text-text-secondary-light dark:text-gray-400 text-sm font-medium text-center hover:text-primary transition-all">
+                        Vehículos
+                    </button>
+<button class="flex-1 py-1.5 rounded-[6px] text-text-secondary-light dark:text-gray-400 text-sm font-medium text-center hover:text-primary transition-all">
+                        Notas
+                    </button>
+</div>
+</div>
+<!-- Timeline Section -->
+<div class="px-4 mb-8">
+<div class="relative pl-4 border-l-2 border-gray-200 dark:border-gray-800 ml-3 space-y-8">
+<!-- Timeline Item 1 -->
+<div class="relative">
+<div class="absolute -left-[25px] mt-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30 border-2 border-white dark:border-background-dark">
+<span class="material-symbols-outlined text-red-600 dark:text-red-400 text-sm">phone_missed</span>
+</div>
+<div class="bg-card-light dark:bg-card-dark p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+<div class="flex justify-between items-start mb-1">
+<h4 class="text-base font-bold text-text-primary-light dark:text-text-primary-dark">Llamada perdida</h4>
+<span class="text-xs text-text-secondary-light dark:text-text-secondary-dark font-medium">Hace 2 horas</span>
+</div>
+<p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Llamada saliente sin respuesta. Dejar mensaje de voz.</p>
+</div>
+</div>
+<!-- Timeline Item 2 -->
+<div class="relative">
+<div class="absolute -left-[25px] mt-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30 border-2 border-white dark:border-background-dark">
+<span class="material-symbols-outlined text-primary text-sm">directions_car</span>
+</div>
+<div class="bg-card-light dark:bg-card-dark p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+<div class="flex justify-between items-start mb-1">
+<h4 class="text-base font-bold text-text-primary-light dark:text-text-primary-dark">Prueba de Vehículo</h4>
+<span class="text-xs text-text-secondary-light dark:text-text-secondary-dark font-medium">Ayer, 16:30</span>
+</div>
+<p class="text-sm text-text-secondary-light dark:text-text-secondary-dark mb-3">Realizó prueba del Audi Q3. Comentó que le gusta el espacio del maletero pero duda del color.</p>
+<!-- Mini Card for Context -->
+<div class="flex gap-3 items-center bg-gray-50 dark:bg-gray-800/50 p-2 rounded-lg border border-gray-100 dark:border-gray-700">
+<div class="w-12 h-12 rounded-md bg-cover bg-center" data-alt="Dark grey Audi SUV side view" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBWG9WQfhFUBhfR6Zr9m1XtmEXYVRJM8NquLMx6LvkchrUCgbFnCdeJ832aCeNqm8_P2LiFOkPRKT_3vphq3cXhCmDzpFS6JHHir2eSTuj81inOgwY665-jWXxwxp_tx5L5cRTXqwNuJnUcPrUACAx46jBMjD8muaqmT4XnfsqbA8srePUQTtrdEt-n-OiLjNs1fEyIzx5XZt2cGFeMr_Auyocn_nHGGV3AvyYl2Yjfu7PYxrVi6hkYEpb9sPqFbXbeRrGSbW24m69j');"></div>
+<div>
+<p class="text-sm font-bold dark:text-white">Audi Q3 Sportback</p>
+<p class="text-xs text-gray-500 dark:text-gray-400">Ref: 98221 • 32.500€</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Timeline Item 3 -->
+<div class="relative">
+<div class="absolute -left-[25px] mt-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30 border-2 border-white dark:border-background-dark">
+<span class="material-symbols-outlined text-green-600 dark:text-green-400 text-sm">description</span>
+</div>
+<div class="bg-card-light dark:bg-card-dark p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+<div class="flex justify-between items-start mb-1">
+<h4 class="text-base font-bold text-text-primary-light dark:text-text-primary-dark">Presupuesto Enviado</h4>
+<span class="text-xs text-text-secondary-light dark:text-text-secondary-dark font-medium">21 Nov</span>
+</div>
+<p class="text-sm text-text-secondary-light dark:text-text-secondary-dark mb-3">Enviado por email. Incluye seguro a todo riesgo.</p>
+<button class="flex items-center gap-2 text-primary text-sm font-bold hover:underline">
+<span class="material-symbols-outlined text-lg">picture_as_pdf</span>
+                                Presupuesto_Q3_V2.pdf
+                            </button>
+</div>
+</div>
+<!-- Timeline Start -->
+<div class="relative">
+<div class="absolute -left-[25px] mt-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 border-2 border-white dark:border-background-dark">
+<span class="material-symbols-outlined text-gray-500 dark:text-gray-400 text-sm">person_add</span>
+</div>
+<div class="py-2">
+<p class="text-xs font-bold text-gray-400 dark:text-gray-600 uppercase tracking-widest">Lead Creado • 20 Nov 2023</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Vehicles Section Header -->
+<div class="px-4 mb-4 mt-8 flex justify-between items-end">
+<h3 class="text-lg font-bold text-text-primary-light dark:text-text-primary-dark">Vehículos de Interés</h3>
+<button class="text-primary text-sm font-bold">Ver inventario</button>
+</div>
+<!-- Vehicles Horizontal Scroll -->
+<div class="flex gap-4 overflow-x-auto px-4 pb-4 no-scrollbar">
+<!-- Vehicle Card 1 -->
+<div class="w-64 flex-shrink-0 bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden group">
+<div class="h-32 bg-cover bg-center relative" data-alt="Silver Audi Q3 front view" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCosMr9GLsdEcVMWc5cJrClj-LIqV3m7BPqfzqpfVkwcoGX9LbJS2LfDxFCWzEZL513iYzhHDvHcE1Gyk2Yx4qtlJ7qQWGhJqJms2GD07v89x6daa9YU5WTXjAI1j9SsRdSUAmzeQBqoH5UEtjYBIyf7v-ufQbXHy6mm-Xrv4Pz-y7T_TKr1ZYFp0oNzEoPy6WqFqj53r5VxfUVdbDLKDSdNoeGo4SSs6kBI9tRnQnKU8TBI35CFRyiFH5efuMGgFN6Eao7vPccDLOG');">
+<div class="absolute top-2 right-2 bg-black/50 text-white text-[10px] font-bold px-2 py-0.5 rounded backdrop-blur-sm">RESERVADO</div>
+</div>
+<div class="p-3">
+<h4 class="font-bold text-text-primary-light dark:text-text-primary-dark">Audi Q3 Sportback</h4>
+<p class="text-xs text-text-secondary-light dark:text-text-secondary-dark mb-2">2.0 TDI 150cv • 2021 • 45.000km</p>
+<div class="flex justify-between items-center">
+<span class="text-primary font-bold text-lg">32.500€</span>
+<button class="bg-gray-100 dark:bg-gray-700 p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600">
+<span class="material-symbols-outlined text-gray-600 dark:text-gray-300 text-sm">visibility</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Vehicle Card 2 -->
+<div class="w-64 flex-shrink-0 bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden group">
+<div class="h-32 bg-cover bg-center relative" data-alt="White BMW X1 side view parked" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDiuiX6yu971ZfXwoHUtfezWSHvmFV8hBfpWR67AdBkOE02CpM18Q3Gmp9uFvbaQ3fwk1vvgkRFfKOBQRsM6J8s2KS9iZlQMdgTSXjIXJAd8hudP2UxQLD4EhJikqsETacAS8QKRmsJ2eC3AQDJlD_M-Na9gmAtvLJuAxgZ06dM1XFgtzjCBi9TEwi307joxoMrX_BXWNgG2cHT_SqVztEgdwb9WymfRSzI2mNE520Z9dHGzVyUHg3uHwLU7u6w8f_1-sebyhhFiUud');">
+<div class="absolute top-2 right-2 bg-green-500/80 text-white text-[10px] font-bold px-2 py-0.5 rounded backdrop-blur-sm">DISPONIBLE</div>
+</div>
+<div class="p-3">
+<h4 class="font-bold text-text-primary-light dark:text-text-primary-dark">BMW X1 sDrive</h4>
+<p class="text-xs text-text-secondary-light dark:text-text-secondary-dark mb-2">1.8d • 2022 • 28.000km</p>
+<div class="flex justify-between items-center">
+<span class="text-primary font-bold text-lg">34.900€</span>
+<button class="bg-gray-100 dark:bg-gray-700 p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600">
+<span class="material-symbols-outlined text-gray-600 dark:text-gray-300 text-sm">visibility</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Notes Section -->
+<div class="px-4 mt-4">
+<h3 class="text-lg font-bold text-text-primary-light dark:text-text-primary-dark mb-3">Notas Internas</h3>
+<div class="bg-card-light dark:bg-card-dark p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+<textarea class="w-full bg-transparent border-0 p-0 text-sm text-text-primary-light dark:text-text-primary-dark placeholder-gray-400 focus:ring-0 resize-none" placeholder="Escribe una nota rápida..." rows="3"></textarea>
+<div class="flex justify-between items-center mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
+<div class="flex gap-2">
+<button class="text-gray-400 hover:text-primary transition-colors"><span class="material-symbols-outlined text-xl">attach_file</span></button>
+<button class="text-gray-400 hover:text-primary transition-colors"><span class="material-symbols-outlined text-xl">image</span></button>
+</div>
+<button class="bg-primary hover:bg-primary-dark text-white px-4 py-1.5 rounded-lg text-sm font-bold transition-colors">Guardar</button>
+</div>
+</div>
+<!-- Saved Notes List -->
+<div class="mt-4 space-y-3">
+<div class="flex gap-3 items-start">
+<div class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center shrink-0">
+<span class="text-xs font-bold text-gray-600 dark:text-gray-300">YO</span>
+</div>
+<div class="flex-1">
+<div class="bg-white dark:bg-gray-800 p-3 rounded-tr-xl rounded-br-xl rounded-bl-xl shadow-sm text-sm text-text-primary-light dark:text-text-primary-dark">
+                                Cliente prefiere contacto por las tardes a partir de las 18:00h. Está mirando financiación con su banco también.
+                            </div>
+<span class="text-[10px] text-gray-400 ml-1 mt-1 block">Ayer, 10:15 AM</span>
+</div>
+</div>
+</div>
+</div>
+<div class="h-8"></div>
+</div>
+<!-- Floating Action Button -->
+<div class="absolute bottom-6 right-6 z-50">
+<button class="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-xl shadow-primary/40 hover:bg-primary-dark hover:scale-105 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+</div>
+</div>
+</body></html>

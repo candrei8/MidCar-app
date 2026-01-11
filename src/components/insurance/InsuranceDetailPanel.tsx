@@ -1,7 +1,7 @@
 "use client"
 
 import { PolizaSeguro, Vehicle, INSURANCE_STATE_CONFIG, POLICY_TYPES } from "@/types"
-import { COVERAGE_LABELS, getDaysRemaining } from "@/lib/mock-insurance"
+import { COVERAGE_LABELS, getDaysRemaining, calculateInsuranceState } from "@/lib/mock-insurance"
 import {
     Shield,
     Calendar,
@@ -34,7 +34,8 @@ export function InsuranceDetailPanel({
     onDelete,
 }: InsuranceDetailPanelProps) {
     const daysRemaining = getDaysRemaining(policy.fechaVencimiento)
-    const stateConfig = INSURANCE_STATE_CONFIG[policy.estado]
+    const insuranceState = calculateInsuranceState(policy.fechaVencimiento)
+    const stateConfig = INSURANCE_STATE_CONFIG[insuranceState]
     const policyTypeLabel = POLICY_TYPES.find(t => t.value === policy.tipoPoliza)?.label || policy.tipoPoliza
 
     // Progress percentage (max 365 days = 100%)
@@ -75,8 +76,8 @@ export function InsuranceDetailPanel({
                         color: stateConfig.color,
                     }}
                 >
-                    {policy.estado === 'asegurado' && <Check className="h-3.5 w-3.5" />}
-                    {policy.estado === 'por_vencer' && <Clock className="h-3.5 w-3.5" />}
+                    {insuranceState === 'asegurado' && <Check className="h-3.5 w-3.5" />}
+                    {insuranceState === 'por_vencer' && <Clock className="h-3.5 w-3.5" />}
                     {stateConfig.label}
                 </div>
 

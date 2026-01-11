@@ -10,103 +10,130 @@ const config: Config = {
     theme: {
         extend: {
             colors: {
-                // Premium Dark Theme - Refined Neutrals
-                background: "#080808",
-                foreground: "#f0f0f0",
-
-                // Primary - Refined Red
+                // Stitch Design System Colors
                 primary: {
-                    DEFAULT: "#dc2626",
-                    hover: "#c41e1e",
-                    light: "#ef4444",
-                    dark: "#a91d1d",
-                    50: "#fef2f2",
-                    100: "#fee2e2",
-                    500: "#dc2626",
-                    600: "#c41e1e",
-                    700: "#a91d1d",
-                    900: "#7f1d1d",
+                    DEFAULT: "#135bec",
+                    hover: "#0d4ed3",
+                    light: "#3d7af0",
+                    dark: "#0a3da3",
                 },
 
-                // Cards and surfaces - More refined
-                card: {
-                    DEFAULT: "#121212",
-                    hover: "#181818",
-                    border: "rgba(255, 255, 255, 0.06)",
-                    foreground: "#f0f0f0",
+                // Background colors
+                background: {
+                    light: "#f6f6f8",
+                    dark: "#101622",
                 },
 
-                // Muted - Refined grays
-                muted: {
-                    DEFAULT: "#505050",
-                    foreground: "#808080",
-                },
-
-                // Status colors - Slightly softer
-                success: "#10b981",
-                warning: "#f59e0b",
-                danger: "#ef4444",
-                info: "#3b82f6",
-
-                // Surface variants - More nuanced
+                // Surface colors
                 surface: {
-                    50: "#080808",
-                    100: "#0f0f0f",
-                    200: "#141414",
-                    300: "#1a1a1a",
-                    400: "#202020",
-                    500: "#2a2a2a",
-                    600: "#363636",
+                    light: "#ffffff",
+                    dark: "#1a2230",
+                    "dark-hover": "#232d3f",
+                },
+
+                // Text colors
+                text: {
+                    primary: {
+                        light: "#111318",
+                        dark: "#ffffff",
+                    },
+                    secondary: {
+                        light: "#616f89",
+                        dark: "#9ca3af",
+                    },
+                    muted: {
+                        light: "#9ca3af",
+                        dark: "#6b7280",
+                    },
                 },
 
                 // Border colors
                 border: {
-                    DEFAULT: "rgba(255, 255, 255, 0.06)",
-                    subtle: "rgba(255, 255, 255, 0.04)",
-                    medium: "rgba(255, 255, 255, 0.1)",
-                    strong: "rgba(255, 255, 255, 0.15)",
+                    light: "#dbdfe6",
+                    dark: "#2a3447",
+                    "dark-subtle": "rgba(255, 255, 255, 0.1)",
+                },
+
+                // Status colors
+                success: {
+                    DEFAULT: "#10b981",
+                    light: "#d1fae5",
+                    dark: "rgba(16, 185, 129, 0.3)",
+                },
+                warning: {
+                    DEFAULT: "#f59e0b",
+                    light: "#fef3c7",
+                    dark: "rgba(245, 158, 11, 0.3)",
+                },
+                danger: {
+                    DEFAULT: "#ef4444",
+                    light: "#fee2e2",
+                    dark: "rgba(239, 68, 68, 0.3)",
+                },
+                info: {
+                    DEFAULT: "#3b82f6",
+                    light: "#dbeafe",
+                    dark: "rgba(59, 130, 246, 0.3)",
+                },
+
+                // Slate variants for Stitch compatibility
+                slate: {
+                    100: "#f1f5f9",
+                    200: "#e2e8f0",
+                    300: "#cbd5e1",
+                    400: "#94a3b8",
+                    500: "#64748b",
+                    600: "#475569",
+                    700: "#334155",
+                    800: "#1e293b",
+                    900: "#0f172a",
+                },
+
+                // Gray variants
+                gray: {
+                    50: "#f9fafb",
+                    100: "#f3f4f6",
+                    200: "#e5e7eb",
+                    300: "#d1d5db",
+                    400: "#9ca3af",
+                    500: "#6b7280",
+                    600: "#4b5563",
+                    700: "#374151",
+                    800: "#1f2937",
                 },
             },
             fontFamily: {
-                sans: ["Inter", "system-ui", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
+                display: ["Manrope", "sans-serif"],
+                body: ["Noto Sans", "sans-serif"],
             },
             fontSize: {
-                'xs': ['0.75rem', { lineHeight: '1.4', letterSpacing: '0.01em' }],
-                'sm': ['0.8125rem', { lineHeight: '1.5', letterSpacing: '0' }],
-                'base': ['0.875rem', { lineHeight: '1.6', letterSpacing: '-0.01em' }],
-                'lg': ['1rem', { lineHeight: '1.5', letterSpacing: '-0.01em' }],
-                'xl': ['1.125rem', { lineHeight: '1.4', letterSpacing: '-0.02em' }],
-                '2xl': ['1.5rem', { lineHeight: '1.3', letterSpacing: '-0.02em' }],
-                '3xl': ['2rem', { lineHeight: '1.2', letterSpacing: '-0.025em' }],
-                '4xl': ['2.5rem', { lineHeight: '1.1', letterSpacing: '-0.03em' }],
+                'xs': ['0.75rem', { lineHeight: '1.4' }],
+                'sm': ['0.875rem', { lineHeight: '1.5' }],
+                'base': ['1rem', { lineHeight: '1.6' }],
+                'lg': ['1.125rem', { lineHeight: '1.5' }],
+                'xl': ['1.25rem', { lineHeight: '1.4' }],
+                '2xl': ['1.5rem', { lineHeight: '1.3' }],
+                '3xl': ['2rem', { lineHeight: '1.2' }],
             },
             boxShadow: {
-                'xs': '0 1px 2px 0 rgba(0, 0, 0, 0.4)',
-                'sm': '0 2px 4px 0 rgba(0, 0, 0, 0.3)',
-                'card': '0 4px 8px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3)',
-                'card-hover': '0 8px 16px -2px rgba(0, 0, 0, 0.5), 0 4px 8px -4px rgba(0, 0, 0, 0.4)',
-                'elevated': '0 16px 32px -4px rgba(0, 0, 0, 0.6), 0 8px 16px -8px rgba(0, 0, 0, 0.5)',
-                'glow': '0 0 30px rgba(220, 38, 38, 0.25)',
-                'glow-sm': '0 0 15px rgba(220, 38, 38, 0.2)',
-                'inner': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.4)',
-                'inner-lg': 'inset 0 4px 8px 0 rgba(0, 0, 0, 0.5)',
+                'sm': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                'DEFAULT': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)',
+                'md': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',
+                'lg': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)',
+                'primary': '0 4px 14px 0 rgba(19, 91, 236, 0.3)',
             },
-            backdropBlur: {
-                xs: '2px',
-                sm: '4px',
-                DEFAULT: '12px',
-                lg: '20px',
-                xl: '32px',
+            borderRadius: {
+                'DEFAULT': '0.25rem',
+                'lg': '0.5rem',
+                'xl': '0.75rem',
+                '2xl': '1rem',
+                'full': '9999px',
             },
             animation: {
-                'fade-in': 'fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                'slide-up': 'slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                'slide-down': 'slideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                'scale-in': 'scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                'gauge-fill': 'gaugeFill 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards',
-                'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                'spin-slow': 'spin 4s linear infinite',
-                'shimmer': 'shimmer 2s ease-in-out infinite',
+                'fade-in': 'fadeIn 0.3s ease-out',
+                'slide-up': 'slideUp 0.3s ease-out',
+                'slide-down': 'slideDown 0.3s ease-out',
+                'scale-in': 'scaleIn 0.2s ease-out',
             },
             keyframes: {
                 fadeIn: {
@@ -114,39 +141,20 @@ const config: Config = {
                     '100%': { opacity: '1' },
                 },
                 slideUp: {
-                    '0%': { opacity: '0', transform: 'translateY(8px)' },
+                    '0%': { opacity: '0', transform: 'translateY(10px)' },
                     '100%': { opacity: '1', transform: 'translateY(0)' },
                 },
                 slideDown: {
-                    '0%': { opacity: '0', transform: 'translateY(-8px)' },
+                    '0%': { opacity: '0', transform: 'translateY(-10px)' },
                     '100%': { opacity: '1', transform: 'translateY(0)' },
                 },
                 scaleIn: {
-                    '0%': { opacity: '0', transform: 'scale(0.96)' },
+                    '0%': { opacity: '0', transform: 'scale(0.95)' },
                     '100%': { opacity: '1', transform: 'scale(1)' },
                 },
-                gaugeFill: {
-                    '0%': { strokeDashoffset: '100' },
-                    '100%': { strokeDashoffset: 'var(--gauge-value)' },
-                },
-                shimmer: {
-                    '0%': { backgroundPosition: '-200% 0' },
-                    '100%': { backgroundPosition: '200% 0' },
-                },
-            },
-            borderRadius: {
-                'xl': '0.875rem',
-                'lg': '0.625rem',
-                'md': '0.5rem',
-                'sm': '0.375rem',
-            },
-            transitionTimingFunction: {
-                'premium': 'cubic-bezier(0.4, 0, 0.2, 1)',
-                'bounce-in': 'cubic-bezier(0.68, -0.55, 0.265, 1.55)',
             },
             spacing: {
-                '18': '4.5rem',
-                '22': '5.5rem',
+                'safe': 'env(safe-area-inset-bottom)',
             },
         },
     },

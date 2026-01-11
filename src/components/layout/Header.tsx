@@ -2,49 +2,23 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import {
-    LayoutDashboard,
-    Users,
-    Car,
-    MessageSquare,
-    BarChart3,
-    Settings,
-    Search,
-    Bell,
-    ChevronDown,
-    LogOut,
-    User,
-    Menu,
-    X,
-    Loader2
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 import { useState, useEffect, useRef } from "react"
-import { mockVehicles, mockClients, mockLeads } from "@/lib/mock-data"
+import { mockVehicles, mockClients } from "@/lib/mock-data"
+import { useAuth } from "@/lib/auth-context"
+import { ViewToggle } from "@/components/auth/ViewToggle"
+import { LogOut } from "lucide-react"
 
-const navItems = [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/crm', label: 'CRM', icon: Users },
-    { href: '/inventario', label: 'Inventario', icon: Car },
-    { href: '/reportes', label: 'Reportes', icon: BarChart3 },
+const desktopNavItems = [
+    { href: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
+    { href: '/inventario', label: 'Inventario', icon: 'directions_car' },
+    { href: '/crm', label: 'CRM', icon: 'group' },
+    { href: '/contactos', label: 'Contactos', icon: 'contacts' },
+    { href: '/seguro', label: 'Seguros', icon: 'shield' },
+    { href: '/informes', label: 'Informes', icon: 'bar_chart' },
+    { href: '/reportes', label: 'Reportes', icon: 'summarize' },
 ]
 
-// Mock notifications
-const mockNotifications = [
-    { id: '1', tipo: 'lead', titulo: 'Nuevo lead web', mensaje: 'Carlos García interesado en BMW Serie 3', leida: false },
-    { id: '2', tipo: 'venta', titulo: 'Venta completada', mensaje: 'Volkswagen Golf vendido por María López', leida: false },
-    { id: '3', tipo: 'alerta', titulo: 'Vehículo 60+ días', mensaje: 'Audi A4 lleva 65 días en stock', leida: true },
-]
 
 type SearchResult = {
     id: string
@@ -52,31 +26,40 @@ type SearchResult = {
     title: string
     subtitle: string
     url: string
+    icon: string
 }
 
 export function Header() {
     const pathname = usePathname()
     const router = useRouter()
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-    const unreadCount = mockNotifications.filter(n => !n.leida).length
-    
-    // Search state
+    const { profile, signOut, isFullView } = useAuth()
     const [searchQuery, setSearchQuery] = useState("")
     const [searchResults, setSearchResults] = useState<SearchResult[]>([])
-    const [isSearching, setIsSearching] = useState(false)
     const [showResults, setShowResults] = useState(false)
+    const [showUserMenu, setShowUserMenu] = useState(false)
     const searchRef = useRef<HTMLDivElement>(null)
+    const userMenuRef = useRef<HTMLDivElement>(null)
 
-    // Close search results when clicking outside
+    const userName = profile ? `${profile.nombre} ${profile.apellidos}` : 'Usuario'
+
+    // Close dropdowns when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
                 setShowResults(false)
             }
+            if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+                setShowUserMenu(false)
+            }
         }
         document.addEventListener("mousedown", handleClickOutside)
         return () => document.removeEventListener("mousedown", handleClickOutside)
     }, [])
+
+    const handleSignOut = async () => {
+        await signOut()
+        router.push("/login")
+    }
 
     // Search logic
     useEffect(() => {
@@ -86,48 +69,43 @@ export function Header() {
                 return
             }
 
-            setIsSearching(true)
-            
-            // Simulate search delay
             const results: SearchResult[] = []
             const query = searchQuery.toLowerCase()
 
-            // Search vehicles
-            mockVehicles.forEach(v => {
+            mockVehicles.slice(0, 3).forEach(v => {
                 if (
-                    v.marca.toLowerCase().includes(query) || 
-                    v.modelo.toLowerCase().includes(query) || 
+                    v.marca.toLowerCase().includes(query) ||
+                    v.modelo.toLowerCase().includes(query) ||
                     v.matricula.toLowerCase().includes(query)
                 ) {
                     results.push({
                         id: v.id,
                         type: 'vehiculo',
-                        title: `${v.marca} ${v.modelo} ${v.version}`,
+                        title: `${v.marca} ${v.modelo}`,
                         subtitle: `${v.matricula} • ${v.estado}`,
-                        url: `/inventario/${v.id}`
+                        url: `/inventario/${v.id}`,
+                        icon: 'directions_car'
                     })
                 }
             })
 
-            // Search clients
-            mockClients.forEach(c => {
+            mockClients.slice(0, 2).forEach(c => {
                 if (
-                    c.nombre.toLowerCase().includes(query) || 
-                    c.apellidos.toLowerCase().includes(query) || 
-                    c.email.toLowerCase().includes(query)
+                    c.nombre.toLowerCase().includes(query) ||
+                    c.apellidos.toLowerCase().includes(query)
                 ) {
                     results.push({
                         id: c.id,
                         type: 'cliente',
                         title: `${c.nombre} ${c.apellidos}`,
                         subtitle: c.email,
-                        url: `/contactos` // Idealmente a detalle de contacto
+                        url: `/contactos`,
+                        icon: 'person'
                     })
                 }
             })
 
-            setSearchResults(results.slice(0, 5)) // Limit to 5 results
-            setIsSearching(false)
+            setSearchResults(results.slice(0, 5))
             setShowResults(true)
         }, 300)
 
@@ -142,277 +120,156 @@ export function Header() {
 
     return (
         <>
-            {/* Ultra Premium Header */}
-            <header className="sticky top-0 z-50 w-full">
-                {/* Top highlight line */}
-                <div className="h-[1px] bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+            {/* Mobile Header */}
+            <header className="lg:hidden sticky top-0 z-20 flex items-center bg-white p-4 shadow-sm justify-between border-b border-slate-100">
+                {/* User Avatar */}
+                <div className="flex items-center gap-3">
+                    <div
+                        className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 ring-2 ring-[#135bec]/20"
+                        style={{ backgroundImage: profile?.avatar_url ? `url("${profile.avatar_url}")` : 'url("https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face")' }}
+                    />
+                    <div>
+                        <h2 className="text-slate-900 text-lg font-bold leading-tight">
+                            Hola, {profile?.nombre || 'Usuario'}
+                        </h2>
+                        <p className="text-sm text-slate-500 font-medium">
+                            {isFullView ? 'Visión Completa' : 'Mi Vista'}
+                        </p>
+                    </div>
+                </div>
+                <ViewToggle />
+            </header>
 
-                {/* Main header */}
-                <div className="bg-black/80 backdrop-blur-xl border-b border-white/[0.03]">
-                    <div className="flex h-12 items-center px-4 lg:px-6">
-                        {/* Mobile menu button */}
-                        <button
-                            className="lg:hidden mr-3 p-1.5 rounded-md hover:bg-white/[0.04] transition-colors"
-                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                        >
-                            {mobileMenuOpen ? <X className="h-4 w-4 text-white/60" /> : <Menu className="h-4 w-4 text-white/60" />}
-                        </button>
+            {/* Desktop Header */}
+            <header className="hidden lg:flex sticky top-0 z-20 items-center bg-white px-6 py-3 shadow-sm border-b border-slate-100">
+                {/* Logo */}
+                <Link href="/dashboard" className="flex items-center gap-2 mr-8">
+                    <div className="w-8 h-8 bg-[#135bec] rounded-lg flex items-center justify-center">
+                        <span className="text-white font-bold text-sm">M</span>
+                    </div>
+                    <span className="font-bold text-lg text-slate-900">
+                        MidCar
+                    </span>
+                </Link>
 
-                        {/* Logo */}
-                        <Link href="/dashboard" className="flex items-center gap-2.5 mr-8 group">
-                            <div className="relative">
-                                <div className="w-6 h-6 bg-gradient-to-br from-red-500 via-red-600 to-red-800 rounded-md flex items-center justify-center shadow-lg shadow-red-900/30 group-hover:shadow-red-500/40 transition-shadow">
-                                    <span className="text-white font-bold text-[10px]">M</span>
-                                </div>
-                                {/* Glow effect */}
-                                <div className="absolute inset-0 bg-red-500/20 rounded-md blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
-                            </div>
-                            <span className="font-semibold text-xs text-white/80 hidden sm:inline tracking-wide uppercase">MidCar</span>
-                        </Link>
-
-                        {/* Desktop Navigation */}
-                        <nav className="hidden lg:flex items-center gap-0.5">
-                            {navItems.map((item) => {
-                                const isActive = pathname === item.href ||
-                                    (item.href !== '/dashboard' && pathname?.startsWith(item.href))
-                                return (
-                                    <Link
-                                        key={item.href}
-                                        href={item.href}
-                                        className={cn(
-                                            "relative px-3 py-1.5 rounded-md flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider transition-all duration-300",
-                                            isActive
-                                                ? "text-white bg-white/[0.06]"
-                                                : "text-white/40 hover:text-white/70 hover:bg-white/[0.03]"
-                                        )}
-                                    >
-                                        <item.icon className="h-3.5 w-3.5" />
-                                        <span>{item.label}</span>
-                                        {isActive && (
-                                            <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-[2px] bg-gradient-to-r from-transparent via-red-500 to-transparent rounded-full" />
-                                        )}
-                                    </Link>
-                                )
-                            })}
-                        </nav>
-
-                        {/* Right side */}
-                        <div className="ml-auto flex items-center gap-1.5">
-                            {/* Search */}
-                            <div ref={searchRef} className="hidden md:flex relative group">
-                                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-white/20 group-focus-within:text-white/40 transition-colors" />
-                                <input
-                                    type="text"
-                                    placeholder="Buscar..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    onFocus={() => {
-                                        if (searchResults.length > 0) setShowResults(true)
-                                    }}
-                                    className="w-[140px] h-7 pl-7 pr-3 text-[11px] bg-white/[0.02] border border-white/[0.04] rounded-md text-white/80 placeholder:text-white/20 focus:outline-none focus:border-white/[0.08] focus:bg-white/[0.03] focus:w-[240px] transition-all duration-300"
-                                />
-                                {isSearching && (
-                                    <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-white/20 animate-spin" />
+                {/* Desktop Navigation */}
+                <nav className="flex items-center gap-1">
+                    {desktopNavItems.map((item) => {
+                        const isActive = pathname === item.href ||
+                            (item.href !== '/dashboard' && pathname?.startsWith(item.href))
+                        return (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                className={cn(
+                                    "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+                                    isActive
+                                        ? "bg-[#135bec]/10 text-[#135bec]"
+                                        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                                 )}
-                                
-                                {/* Search Results Dropdown */}
-                                {showResults && searchQuery.length >= 2 && (
-                                    <div className="absolute top-full mt-2 left-0 w-[240px] bg-[#0a0a0a] border border-white/[0.08] rounded-md shadow-xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
-                                        <div className="py-1">
-                                            {searchResults.length > 0 ? (
-                                                searchResults.map((result) => (
-                                                    <button
-                                                        key={`${result.type}-${result.id}`}
-                                                        onClick={() => handleResultClick(result.url)}
-                                                        className="w-full text-left px-3 py-2 hover:bg-white/[0.04] transition-colors group/item"
-                                                    >
-                                                        <div className="flex items-start gap-3">
-                                                            <div className="mt-0.5">
-                                                                {result.type === 'vehiculo' && <Car className="h-3.5 w-3.5 text-white/40 group-hover/item:text-white/60" />}
-                                                                {result.type === 'cliente' && <User className="h-3.5 w-3.5 text-white/40 group-hover/item:text-white/60" />}
-                                                                {result.type === 'lead' && <Users className="h-3.5 w-3.5 text-white/40 group-hover/item:text-white/60" />}
-                                                            </div>
-                                                            <div className="flex-1 min-w-0">
-                                                                <p className="text-[11px] font-medium text-white/80 truncate group-hover/item:text-white">{result.title}</p>
-                                                                <p className="text-[10px] text-white/40 truncate">{result.subtitle}</p>
-                                                            </div>
-                                                        </div>
-                                                    </button>
-                                                ))
-                                            ) : (
-                                                <div className="px-3 py-4 text-center text-[10px] text-white/30">
-                                                    No se encontraron resultados
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
+                            >
+                                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>{item.icon}</span>
+                                <span>{item.label}</span>
+                            </Link>
+                        )
+                    })}
+                </nav>
 
-                            {/* Notifications */}
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <button className="relative p-1.5 rounded-md hover:bg-white/[0.04] transition-colors group">
-                                        <Bell className="h-3.5 w-3.5 text-white/40 group-hover:text-white/60 transition-colors" />
-                                        {unreadCount > 0 && (
-                                            <span className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-red-500 text-white text-[8px] font-bold flex items-center justify-center shadow-lg shadow-red-500/50">
-                                                {unreadCount}
-                                            </span>
-                                        )}
-                                    </button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-72 glass border-white/[0.04] p-0">
-                                    <div className="px-3 py-2 flex justify-between items-center border-b border-white/[0.04]">
-                                        <span className="text-[10px] font-semibold uppercase tracking-wider text-white/40">Notificaciones</span>
-                                        <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-400">{unreadCount} nuevas</span>
-                                    </div>
-                                    <div className="max-h-[280px] overflow-y-auto">
-                                        {mockNotifications.map((notification) => (
-                                            <div key={notification.id} className="px-3 py-2.5 hover:bg-white/[0.02] cursor-pointer border-b border-white/[0.02] last:border-0 transition-colors">
-                                                <div className="flex items-start gap-2">
-                                                    <span className={cn(
-                                                        "w-1.5 h-1.5 rounded-full mt-1 shrink-0",
-                                                        notification.leida ? "bg-white/10" : "bg-red-500 shadow-sm shadow-red-500/50"
-                                                    )} />
+                {/* Right side */}
+                <div className="ml-auto flex items-center gap-4">
+                    {/* Search */}
+                    <div ref={searchRef} className="relative">
+                        <div className="flex items-center h-10 rounded-xl bg-[#f6f6f8] shadow-sm border border-transparent focus-within:border-[#135bec] focus-within:ring-1 focus-within:ring-[#135bec]/20">
+                            <div className="flex items-center justify-center pl-4 text-slate-500">
+                                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>search</span>
+                            </div>
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onFocus={() => searchResults.length > 0 && setShowResults(true)}
+                                placeholder="Buscar..."
+                                className="w-48 bg-transparent border-none text-slate-900 placeholder:text-slate-400 focus:ring-0 px-3 text-sm"
+                            />
+                        </div>
+
+                        {/* Search Results */}
+                        {showResults && searchQuery.length >= 2 && (
+                            <div className="absolute top-full mt-2 left-0 w-72 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden z-50 animate-in fade-in">
+                                <div className="py-1">
+                                    {searchResults.length > 0 ? (
+                                        searchResults.map((result) => (
+                                            <button
+                                                key={`${result.type}-${result.id}`}
+                                                onClick={() => handleResultClick(result.url)}
+                                                className="w-full text-left px-4 py-3 hover:bg-slate-50 transition-colors"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <span className="material-symbols-outlined text-slate-500" style={{ fontSize: '20px' }}>
+                                                        {result.icon}
+                                                    </span>
                                                     <div>
-                                                        <p className="text-[11px] font-medium text-white/70">{notification.titulo}</p>
-                                                        <p className="text-[10px] text-white/30 mt-0.5">{notification.mensaje}</p>
+                                                        <p className="text-sm font-medium text-slate-900">
+                                                            {result.title}
+                                                        </p>
+                                                        <p className="text-xs text-slate-500">
+                                                            {result.subtitle}
+                                                        </p>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <div className="px-3 py-2 border-t border-white/[0.04]">
-                                        <button className="w-full text-center text-[10px] font-medium text-red-400 hover:text-red-300 transition-colors">
-                                            Ver todas las notificaciones
-                                        </button>
-                                    </div>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-
-                            {/* Divider */}
-                            <div className="hidden md:block w-[1px] h-4 bg-white/[0.06] mx-1" />
-
-                            {/* User menu */}
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <button className="flex items-center gap-2 px-2 py-1 rounded-md hover:bg-white/[0.04] transition-colors group">
-                                        <div className="relative">
-                                            <Avatar className="h-5 w-5">
-                                                <AvatarFallback className="text-[8px] font-semibold bg-gradient-to-br from-gray-700 to-gray-900 text-white/60">AD</AvatarFallback>
-                                            </Avatar>
-                                            {/* Online indicator */}
-                                            <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-green-500 rounded-full border border-black" />
+                                            </button>
+                                        ))
+                                    ) : (
+                                        <div className="px-4 py-6 text-center text-sm text-slate-500">
+                                            No se encontraron resultados
                                         </div>
-                                        <span className="hidden md:block text-[10px] font-medium text-white/60 group-hover:text-white/80 transition-colors">Admin</span>
-                                        <ChevronDown className="hidden md:block h-2.5 w-2.5 text-white/20" />
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* View Toggle */}
+                    <ViewToggle />
+
+                    {/* User */}
+                    <div ref={userMenuRef} className="relative flex items-center gap-3 pl-4 border-l border-slate-200">
+                        <button
+                            onClick={() => setShowUserMenu(!showUserMenu)}
+                            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+                        >
+                            <div
+                                className="bg-center bg-no-repeat bg-cover rounded-full size-9"
+                                style={{ backgroundImage: profile?.avatar_url ? `url("${profile.avatar_url}")` : 'url("https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face")' }}
+                            />
+                            <div className="hidden xl:block text-left">
+                                <p className="text-sm font-medium text-slate-900">
+                                    {userName}
+                                </p>
+                            </div>
+                        </button>
+
+                        {/* User Menu Dropdown */}
+                        {showUserMenu && (
+                            <div className="absolute top-full mt-2 right-0 w-56 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden z-50 animate-in fade-in">
+                                <div className="p-3 border-b border-slate-100">
+                                    <p className="text-sm font-medium text-slate-900">{userName}</p>
+                                    <p className="text-xs text-slate-500">{profile?.email}</p>
+                                </div>
+                                <div className="p-2">
+                                    <button
+                                        onClick={handleSignOut}
+                                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                    >
+                                        <LogOut className="w-4 h-4" />
+                                        Cerrar sesión
                                     </button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-48 glass border-white/[0.04] p-0">
-                                    <div className="px-3 py-2.5 border-b border-white/[0.04]">
-                                        <p className="text-[11px] font-medium text-white/80">Admin Demo</p>
-                                        <p className="text-[10px] text-white/30">admin@midcar.es</p>
-                                    </div>
-                                    <div className="py-1">
-                                        <DropdownMenuItem className="px-3 py-2 text-[11px] text-white/60 hover:text-white/80 hover:bg-white/[0.03] cursor-pointer">
-                                            <User className="mr-2 h-3.5 w-3.5" />
-                                            Mi perfil
-                                        </DropdownMenuItem>
-                                    </div>
-                                    <div className="border-t border-white/[0.04] py-1">
-                                        <DropdownMenuItem className="px-3 py-2 text-[11px] text-red-400/80 hover:text-red-400 hover:bg-red-500/5 cursor-pointer">
-                                            <LogOut className="mr-2 h-3.5 w-3.5" />
-                                            Cerrar sesión
-                                        </DropdownMenuItem>
-                                    </div>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </header>
-
-            {/* Mobile Navigation - Premium Slide */}
-            {mobileMenuOpen && (
-                <div className="lg:hidden fixed inset-0 top-[49px] z-40">
-                    {/* Backdrop */}
-                    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
-
-                    {/* Menu */}
-                    <nav className="absolute top-0 left-0 w-64 h-full glass border-r border-white/[0.04] p-4 animate-in">
-                        <div className="space-y-1">
-                            {navItems.map((item) => {
-                                const isActive = pathname === item.href ||
-                                    (item.href !== '/dashboard' && pathname?.startsWith(item.href))
-                                return (
-                                    <Link
-                                        key={item.href}
-                                        href={item.href}
-                                        onClick={() => setMobileMenuOpen(false)}
-                                        className={cn(
-                                            "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
-                                            isActive
-                                                ? "bg-red-500/10 text-red-400"
-                                                : "text-white/40 hover:bg-white/[0.03] hover:text-white/70"
-                                        )}
-                                    >
-                                        <item.icon className="h-4 w-4" />
-                                        <span className="text-xs font-medium uppercase tracking-wide">{item.label}</span>
-                                    </Link>
-                                )
-                            })}
-                        </div>
-
-                        {/* Mobile Search */}
-                        <div className="mt-6 pt-6 border-t border-white/[0.04]">
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/20" />
-                                <input
-                                    type="text"
-                                    placeholder="Buscar..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full h-9 pl-9 pr-3 text-xs bg-white/[0.02] border border-white/[0.04] rounded-lg text-white/80 placeholder:text-white/20 focus:outline-none focus:border-white/[0.08]"
-                                />
-                                {showResults && searchQuery.length >= 2 && (
-                                    <div className="absolute top-full mt-2 left-0 w-full bg-[#0a0a0a] border border-white/[0.08] rounded-md shadow-xl overflow-hidden z-50">
-                                        <div className="py-1">
-                                            {searchResults.length > 0 ? (
-                                                searchResults.map((result) => (
-                                                    <button
-                                                        key={`${result.type}-${result.id}`}
-                                                        onClick={() => {
-                                                            handleResultClick(result.url)
-                                                            setMobileMenuOpen(false)
-                                                        }}
-                                                        className="w-full text-left px-3 py-2 hover:bg-white/[0.04] transition-colors"
-                                                    >
-                                                        <div className="flex items-start gap-3">
-                                                            <div className="mt-0.5">
-                                                                {result.type === 'vehiculo' && <Car className="h-3.5 w-3.5 text-white/40" />}
-                                                                {result.type === 'cliente' && <User className="h-3.5 w-3.5 text-white/40" />}
-                                                                {result.type === 'lead' && <Users className="h-3.5 w-3.5 text-white/40" />}
-                                                            </div>
-                                                            <div className="flex-1 min-w-0">
-                                                                <p className="text-[11px] font-medium text-white/80 truncate">{result.title}</p>
-                                                                <p className="text-[10px] text-white/40 truncate">{result.subtitle}</p>
-                                                            </div>
-                                                        </div>
-                                                    </button>
-                                                ))
-                                            ) : (
-                                                <div className="px-3 py-4 text-center text-[10px] text-white/30">
-                                                    No se encontraron resultados
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </nav>
-                </div>
-            )}
         </>
     )
 }

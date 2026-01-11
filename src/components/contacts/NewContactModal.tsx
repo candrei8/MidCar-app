@@ -31,6 +31,8 @@ import {
     ArrowRight,
 } from "lucide-react"
 import { ORIGENES_CONTACTO } from "@/lib/constants"
+import { addUserContact, generateId } from "@/lib/data-store"
+import { useAuth } from "@/lib/auth-context"
 import type { Contact } from "@/types"
 
 interface NewContactModalProps {
@@ -40,6 +42,7 @@ interface NewContactModalProps {
 }
 
 export function NewContactModal({ open, onClose, onContactCreated }: NewContactModalProps) {
+    const { user } = useAuth()
     const [formData, setFormData] = useState({
         telefono: "",
         email: "",
@@ -93,7 +96,7 @@ export function NewContactModal({ open, onClose, onContactCreated }: NewContactM
         if (!validateForm()) return
 
         const newContact: Contact = {
-            id: `c${Date.now()}`,
+            id: generateId(),
             telefono: formData.telefono,
             email: formData.email,
             origen: formData.origen as Contact['origen'],
@@ -105,7 +108,11 @@ export function NewContactModal({ open, onClose, onContactCreated }: NewContactM
             fecha_registro: new Date().toISOString(),
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
+            created_by: user?.id || undefined, // ID del usuario que crea el contacto
         }
+
+        // Guardar en el data store (localStorage por ahora, Supabase en producción)
+        addUserContact(newContact)
 
         // Reset form
         setFormData({

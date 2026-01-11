@@ -1,5 +1,7 @@
 import { Header } from "@/components/layout/Header"
+import { BottomNav } from "@/components/layout/BottomNav"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { AuthGuard } from "@/components/auth/AuthGuard"
 
 export default function DashboardLayout({
     children,
@@ -7,13 +9,16 @@ export default function DashboardLayout({
     children: React.ReactNode
 }) {
     return (
-        <TooltipProvider>
-            <div className="min-h-screen bg-background">
-                <Header />
-                <main className="container mx-auto px-4 lg:px-6 py-6">
-                    {children}
-                </main>
-            </div>
-        </TooltipProvider>
+        <AuthGuard>
+            <TooltipProvider>
+                <div className="min-h-screen bg-[#f6f6f8]">
+                    <Header />
+                    <main className="pb-24 lg:pb-6">
+                        {children}
+                    </main>
+                    <BottomNav />
+                </div>
+            </TooltipProvider>
+        </AuthGuard>
     )
 }

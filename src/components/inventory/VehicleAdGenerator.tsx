@@ -1,42 +1,43 @@
 "use client"
 
 import { useState, useRef } from "react"
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogDescription,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-    Printer,
-    Download,
-    Eye,
-    Settings,
-} from "lucide-react"
 import type { Vehicle } from "@/types"
-import { PrintableAd } from "./PrintableAd"
+import { formatCurrency, cn } from "@/lib/utils"
 
-interface VehicleAdGeneratorProps {
+interface FlyerGeneratorProps {
     vehicle: Vehicle
     open: boolean
     onClose: () => void
 }
 
-export function VehicleAdGenerator({ vehicle, open, onClose }: VehicleAdGeneratorProps) {
+export function VehicleAdGenerator({ vehicle, open, onClose }: FlyerGeneratorProps) {
     const printRef = useRef<HTMLDivElement>(null)
-    const [showFinancing, setShowFinancing] = useState(true)
-    const [customUrl, setCustomUrl] = useState("")
-    const [companyInfo, setCompanyInfo] = useState({
-        name: "MidCar",
-        phone: "91 123 45 67",
-        address: "C/ Principal 123, Madrid"
-    })
+    const [paperSize, setPaperSize] = useState<'A4' | 'A5'>('A4')
+    const [showPrice, setShowPrice] = useState(true)
+    const [showEquipment, setShowEquipment] = useState(true)
+    const [includeQR, setIncludeQR] = useState(true)
+
+    if (!open) return null
+
+    const imageUrl = vehicle.imagen_principal || vehicle.imagenes?.[0]?.url ||
+        'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&h=600&fit=crop'
+
+    // Fuel type display
+    const fuelDisplay: Record<string, string> = {
+        'gasolina': 'Gasolina',
+        'diesel': 'Diésel',
+        'hibrido': 'Híbrido',
+        'electrico': 'Eléctrico',
+        'glp': 'GLP',
+        'gnc': 'GNC'
+    }
+
+    // Transmission display
+    const transmissionDisplay: Record<string, string> = {
+        'manual': 'Manual',
+        'automatico': 'Automático',
+        'semiautomatico': 'Semiautomático'
+    }
 
     const handlePrint = () => {
         const printContent = printRef.current
@@ -45,85 +46,25 @@ export function VehicleAdGenerator({ vehicle, open, onClose }: VehicleAdGenerato
         const printWindow = window.open('', '_blank')
         if (!printWindow) return
 
+        const pageSize = paperSize === 'A4' ? 'A4' : 'A5'
+
         printWindow.document.write(`
             <!DOCTYPE html>
             <html>
             <head>
-                <title>Anuncio - ${vehicle.marca} ${vehicle.modelo}</title>
+                <title>Flyer - ${vehicle.marca} ${vehicle.modelo}</title>
+                <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+                <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
                 <style>
-                    * {
-                        margin: 0;
-                        padding: 0;
-                        box-sizing: border-box;
-                    }
-                    body {
-                        font-family: Arial, sans-serif;
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                    body { 
+                        font-family: 'Manrope', sans-serif;
                         -webkit-print-color-adjust: exact !important;
                         print-color-adjust: exact !important;
                     }
-                    @page {
-                        size: A4;
-                        margin: 0;
-                    }
-                    .printable-ad {
-                        width: 210mm;
-                        min-height: 297mm;
-                        padding: 10mm;
-                        background: white;
-                    }
-                    .text-center { text-align: center; }
-                    .font-bold { font-weight: bold; }
-                    .text-gray-800 { color: #1f2937; }
-                    .text-gray-600 { color: #4b5563; }
-                    .text-gray-500 { color: #6b7280; }
-                    .text-gray-400 { color: #9ca3af; }
-                    .text-red-600 { color: #dc2626; }
-                    .bg-gray-50 { background-color: #f9fafb; }
-                    .bg-gray-100 { background-color: #f3f4f6; }
-                    .rounded-lg { border-radius: 0.5rem; }
-                    .rounded-xl { border-radius: 0.75rem; }
-                    .mb-2 { margin-bottom: 0.5rem; }
-                    .mb-4 { margin-bottom: 1rem; }
-                    .mb-6 { margin-bottom: 1.5rem; }
-                    .mt-1 { margin-top: 0.25rem; }
-                    .mt-2 { margin-top: 0.5rem; }
-                    .mt-4 { margin-top: 1rem; }
-                    .p-3 { padding: 0.75rem; }
-                    .p-8 { padding: 2rem; }
-                    .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
-                    .py-6 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
-                    .pt-6 { padding-top: 1.5rem; }
-                    .pb-4 { padding-bottom: 1rem; }
-                    .border-b-2 { border-bottom: 2px solid #e5e7eb; }
-                    .border-t-2 { border-top: 2px solid #e5e7eb; }
-                    .border-y { border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; }
-                    .border-t { border-top: 1px solid #e5e7eb; }
-                    .grid { display: grid; }
-                    .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
-                    .grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
-                    .gap-4 { gap: 1rem; }
-                    .flex { display: flex; }
-                    .items-center { align-items: center; }
-                    .justify-between { justify-content: space-between; }
-                    .flex-col { flex-direction: column; }
-                    .uppercase { text-transform: uppercase; }
-                    .capitalize { text-transform: capitalize; }
-                    .line-through { text-decoration: line-through; }
-                    .text-xs { font-size: 0.75rem; }
-                    .text-sm { font-size: 0.875rem; }
-                    .text-lg { font-size: 1.125rem; }
-                    .text-xl { font-size: 1.25rem; }
-                    .text-2xl { font-size: 1.5rem; }
-                    .text-3xl { font-size: 1.875rem; }
-                    .text-4xl { font-size: 2.25rem; }
-                    .text-6xl { font-size: 3.75rem; }
-                    .vehicle-image {
-                        width: 100%;
-                        height: 200mm;
-                        background-size: cover;
-                        background-position: center;
-                        border-radius: 0.5rem;
-                        margin-bottom: 1.5rem;
+                    @page { size: ${pageSize}; margin: 0; }
+                    .material-symbols-outlined {
+                        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
                     }
                 </style>
             </head>
@@ -135,130 +76,265 @@ export function VehicleAdGenerator({ vehicle, open, onClose }: VehicleAdGenerato
 
         printWindow.document.close()
         printWindow.focus()
-
-        // Wait for images to load
         setTimeout(() => {
             printWindow.print()
             printWindow.close()
         }, 500)
     }
 
-    return (
-        <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className="max-w-5xl max-h-[95vh] overflow-hidden p-0">
-                <DialogHeader className="p-6 pb-0">
-                    <DialogTitle className="flex items-center gap-2">
-                        <Printer className="h-5 w-5 text-primary" />
-                        Generar Anuncio Imprimible
-                    </DialogTitle>
-                    <DialogDescription>
-                        Genera un anuncio A4 para {vehicle.marca} {vehicle.modelo}
-                    </DialogDescription>
-                </DialogHeader>
+    const handleDownloadPDF = () => {
+        // For now, use print dialog with PDF option
+        handlePrint()
+    }
 
-                <Tabs defaultValue="preview" className="flex-1">
-                    <div className="px-6">
-                        <TabsList>
-                            <TabsTrigger value="preview" className="gap-2">
-                                <Eye className="h-4 w-4" />
-                                Vista previa
-                            </TabsTrigger>
-                            <TabsTrigger value="settings" className="gap-2">
-                                <Settings className="h-4 w-4" />
-                                Personalizar
-                            </TabsTrigger>
-                        </TabsList>
+    // QR Code SVG (simplified pattern)
+    const qrCodeSvg = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25' viewBox='0 0 80 80'%3E%3Cpath fill='%23111318' d='M0 0h20v20H0V0zm25 0h10v10H25V0zm15 0h15v15H40V0zm20 0h20v20H60V0zM5 5v10h10V5H5zm25 0v5h5V5h-5zm35 0v10h10V5H65zM0 25h15v15H0V25zm20 0h5v5h-5v-5zm10 0h10v10H30V25zm15 0h10v5h-5v5h-5V25zm20 0h15v15H65V25zM5 30v5h5v-5H5zm30 0v5h5v-5h-5zm45 0v5h10v-5h-10zM0 45h10v10H0V45zm15 0h20v20H15V45zm45 0h20v20H60V45zM5 50v5h5v-5H5zm60 0v10h10V50H65zM0 70h20v10H0V70zm25 0h10v10H25V70zm25 0h10v10H50V70zm15 0h15v10H65V70z'/%3E%3C/svg%3E`
+
+    return (
+        <>
+            {/* Dimmed Backdrop Overlay */}
+            <div
+                className="fixed inset-0 bg-black/60 backdrop-blur-[2px] z-40 transition-opacity"
+                onClick={onClose}
+            />
+
+            {/* Full Page Modal */}
+            <div className="fixed inset-0 z-50 bg-[#f6f6f8] flex flex-col overflow-hidden animate-slide-up">
+                {/* Header */}
+                <div className="sticky top-0 z-10 flex items-center bg-white p-4 pb-2 justify-between border-b border-gray-100">
+                    <button
+                        onClick={onClose}
+                        className="flex size-12 shrink-0 items-center justify-start cursor-pointer text-gray-900"
+                    >
+                        <span className="material-symbols-outlined text-2xl">arrow_back</span>
+                    </button>
+                    <h2 className="text-gray-900 text-lg font-bold leading-tight tracking-tight flex-1 text-center pr-12">
+                        Generar Flyer
+                    </h2>
+                </div>
+
+                {/* Scrollable Content */}
+                <div className="flex-1 overflow-y-auto pb-32">
+                    {/* Vehicle Selected */}
+                    <div className="p-4">
+                        <h3 className="text-gray-900 text-base font-bold leading-tight px-1 mb-3">Vehículo seleccionado</h3>
+                        <div className="flex items-stretch justify-between gap-4 rounded-xl bg-white p-4 shadow-sm border border-gray-100">
+                            <div className="flex flex-[2_2_0px] flex-col gap-3 justify-between">
+                                <div className="flex flex-col gap-1">
+                                    <p className="text-gray-900 text-base font-bold leading-tight">{vehicle.marca} {vehicle.modelo}</p>
+                                    <p className="text-gray-500 text-sm font-normal leading-normal">{vehicle.año_matriculacion} • {vehicle.kilometraje.toLocaleString('es-ES')} km</p>
+                                    <p className="text-[#135bec] text-base font-bold leading-normal mt-1">{formatCurrency(vehicle.precio_venta - vehicle.descuento)}</p>
+                                </div>
+                            </div>
+                            <div
+                                className="w-24 sm:w-32 bg-center bg-no-repeat bg-cover rounded-lg shrink-0"
+                                style={{ backgroundImage: `url('${imageUrl}')` }}
+                            />
+                        </div>
                     </div>
 
-                    <TabsContent value="preview" className="mt-0">
-                        <div className="p-6 overflow-auto max-h-[calc(95vh-200px)] bg-gray-100">
+                    {/* Configuration */}
+                    <div className="px-4 pt-2">
+                        <h2 className="text-gray-900 text-lg font-bold leading-tight tracking-tight pb-3">Configuración</h2>
+
+                        {/* Paper Size Toggle */}
+                        <div className="flex mb-6">
+                            <div className="flex h-12 flex-1 items-center justify-center rounded-xl bg-gray-200 p-1">
+                                <label className={cn(
+                                    "flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 text-sm font-medium leading-normal transition-all",
+                                    paperSize === 'A4'
+                                        ? "bg-white shadow-sm text-gray-900"
+                                        : "text-gray-500"
+                                )}>
+                                    <span className="truncate">A4 (Folio)</span>
+                                    <input
+                                        checked={paperSize === 'A4'}
+                                        className="invisible w-0"
+                                        name="paper-size"
+                                        type="radio"
+                                        value="A4"
+                                        onChange={() => setPaperSize('A4')}
+                                    />
+                                </label>
+                                <label className={cn(
+                                    "flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 text-sm font-medium leading-normal transition-all",
+                                    paperSize === 'A5'
+                                        ? "bg-white shadow-sm text-gray-900"
+                                        : "text-gray-500"
+                                )}>
+                                    <span className="truncate">A5 (Cuartilla)</span>
+                                    <input
+                                        className="invisible w-0"
+                                        name="paper-size"
+                                        type="radio"
+                                        value="A5"
+                                        onChange={() => setPaperSize('A5')}
+                                    />
+                                </label>
+                            </div>
+                        </div>
+
+                        {/* Options */}
+                        <div className="space-y-1 mb-6">
+                            {/* Show Price */}
+                            <label className="flex gap-x-3 py-3 items-center justify-between cursor-pointer group">
+                                <span className="text-gray-900 text-base font-normal leading-normal">Mostrar precio</span>
+                                <div className="relative flex items-center">
+                                    <input
+                                        checked={showPrice}
+                                        onChange={(e) => setShowPrice(e.target.checked)}
+                                        className="peer h-6 w-6 cursor-pointer appearance-none rounded border-2 border-gray-300 bg-transparent transition-all checked:border-[#135bec] checked:bg-[#135bec] hover:border-[#135bec] focus:outline-none"
+                                        type="checkbox"
+                                    />
+                                    <span className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100">
+                                        <span className="material-symbols-outlined text-sm font-bold">check</span>
+                                    </span>
+                                </div>
+                            </label>
+                            <div className="h-px bg-gray-200 w-full" />
+
+                            {/* Show Equipment */}
+                            <label className="flex gap-x-3 py-3 items-center justify-between cursor-pointer group">
+                                <span className="text-gray-900 text-base font-normal leading-normal">Mostrar equipamiento destacado</span>
+                                <div className="relative flex items-center">
+                                    <input
+                                        checked={showEquipment}
+                                        onChange={(e) => setShowEquipment(e.target.checked)}
+                                        className="peer h-6 w-6 cursor-pointer appearance-none rounded border-2 border-gray-300 bg-transparent transition-all checked:border-[#135bec] checked:bg-[#135bec] hover:border-[#135bec] focus:outline-none"
+                                        type="checkbox"
+                                    />
+                                    <span className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100">
+                                        <span className="material-symbols-outlined text-sm font-bold">check</span>
+                                    </span>
+                                </div>
+                            </label>
+                            <div className="h-px bg-gray-200 w-full" />
+
+                            {/* Include QR */}
+                            <label className="flex gap-x-3 py-3 items-center justify-between cursor-pointer group">
+                                <span className="text-gray-900 text-base font-normal leading-normal">Incluir código QR</span>
+                                <div className="relative flex items-center">
+                                    <input
+                                        checked={includeQR}
+                                        onChange={(e) => setIncludeQR(e.target.checked)}
+                                        className="peer h-6 w-6 cursor-pointer appearance-none rounded border-2 border-gray-300 bg-transparent transition-all checked:border-[#135bec] checked:bg-[#135bec] hover:border-[#135bec] focus:outline-none"
+                                        type="checkbox"
+                                    />
+                                    <span className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100">
+                                        <span className="material-symbols-outlined text-sm font-bold">check</span>
+                                    </span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    {/* Preview */}
+                    <div className="px-4 pb-8">
+                        <div className="flex items-center justify-between mb-3">
+                            <h2 className="text-gray-900 text-lg font-bold leading-tight tracking-tight">Vista Previa</h2>
+                            <span className="text-xs font-medium text-[#135bec] bg-[#135bec]/10 px-2 py-1 rounded">Escala 1:4</span>
+                        </div>
+                        <div className="w-full flex justify-center bg-gray-300 p-6 rounded-xl overflow-hidden">
+                            {/* Preview Container */}
                             <div
                                 ref={printRef}
-                                className="shadow-xl mx-auto"
-                                style={{ transform: 'scale(0.5)', transformOrigin: 'top center' }}
+                                className="relative bg-white w-[280px] aspect-[1/1.414] shadow-xl flex flex-col overflow-hidden"
                             >
-                                <PrintableAd
-                                    vehicle={vehicle}
-                                    webUrl={customUrl || undefined}
-                                    showFinancing={showFinancing}
-                                    companyInfo={companyInfo}
-                                />
-                            </div>
-                        </div>
-                    </TabsContent>
-
-                    <TabsContent value="settings" className="mt-0">
-                        <div className="p-6 space-y-6 max-h-[calc(95vh-200px)] overflow-auto">
-                            <div className="grid grid-cols-2 gap-6">
-                                <div className="space-y-4">
-                                    <h3 className="font-medium">Información de la empresa</h3>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="companyName">Nombre</Label>
-                                        <Input
-                                            id="companyName"
-                                            value={companyInfo.name}
-                                            onChange={(e) => setCompanyInfo(prev => ({ ...prev, name: e.target.value }))}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="companyPhone">Teléfono</Label>
-                                        <Input
-                                            id="companyPhone"
-                                            value={companyInfo.phone}
-                                            onChange={(e) => setCompanyInfo(prev => ({ ...prev, phone: e.target.value }))}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="companyAddress">Dirección</Label>
-                                        <Input
-                                            id="companyAddress"
-                                            value={companyInfo.address}
-                                            onChange={(e) => setCompanyInfo(prev => ({ ...prev, address: e.target.value }))}
-                                        />
+                                {/* Hero Image */}
+                                <div
+                                    className="h-[45%] w-full bg-cover bg-center"
+                                    style={{ backgroundImage: `url('${imageUrl}')` }}
+                                >
+                                    <div className="w-full h-full bg-gradient-to-t from-black/50 to-transparent flex items-end p-4">
+                                        <div className="text-white font-bold text-xs uppercase tracking-wider bg-[#135bec] px-2 py-0.5 rounded-sm w-fit mb-1">
+                                            MidCar Certified
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div className="space-y-4">
-                                    <h3 className="font-medium">Opciones del anuncio</h3>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="customUrl">URL personalizada (QR)</Label>
-                                        <Input
-                                            id="customUrl"
-                                            placeholder="https://midcar.es/vehiculos/..."
-                                            value={customUrl}
-                                            onChange={(e) => setCustomUrl(e.target.value)}
-                                        />
-                                        <p className="text-xs text-muted-foreground">
-                                            Deja vacío para usar URL por defecto con matrícula
-                                        </p>
+                                {/* Content */}
+                                <div className="flex-1 p-4 flex flex-col">
+                                    <h1 className="text-gray-900 text-xl font-extrabold leading-tight mb-1">
+                                        {vehicle.marca} {vehicle.modelo}
+                                    </h1>
+                                    <p className="text-gray-500 text-xs font-medium mb-3">
+                                        {vehicle.version}
+                                    </p>
+
+                                    {showPrice && (
+                                        <div className="text-[#135bec] text-3xl font-bold tracking-tight mb-4">
+                                            {formatCurrency(vehicle.precio_venta - vehicle.descuento)}
+                                        </div>
+                                    )}
+
+                                    {/* Specs Grid */}
+                                    <div className="grid grid-cols-2 gap-y-3 gap-x-2 mb-auto">
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="material-symbols-outlined text-gray-400" style={{ fontSize: '16px' }}>calendar_today</span>
+                                            <span className="text-gray-900 text-xs font-semibold">{vehicle.año_matriculacion}</span>
+                                        </div>
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="material-symbols-outlined text-gray-400" style={{ fontSize: '16px' }}>speed</span>
+                                            <span className="text-gray-900 text-xs font-semibold">{vehicle.kilometraje.toLocaleString('es-ES')} km</span>
+                                        </div>
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="material-symbols-outlined text-gray-400" style={{ fontSize: '16px' }}>local_gas_station</span>
+                                            <span className="text-gray-900 text-xs font-semibold">{fuelDisplay[vehicle.combustible] || vehicle.combustible}</span>
+                                        </div>
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="material-symbols-outlined text-gray-400" style={{ fontSize: '16px' }}>settings</span>
+                                            <span className="text-gray-900 text-xs font-semibold">{transmissionDisplay[vehicle.transmision] || vehicle.transmision}</span>
+                                        </div>
                                     </div>
-                                    <div className="flex items-center space-x-2 pt-2">
-                                        <Checkbox
-                                            id="showFinancing"
-                                            checked={showFinancing}
-                                            onCheckedChange={(c) => setShowFinancing(c as boolean)}
-                                        />
-                                        <Label htmlFor="showFinancing">
-                                            Mostrar información de financiación
-                                        </Label>
-                                    </div>
+
+                                    {/* Footer */}
+                                    {includeQR && (
+                                        <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-[10px] text-gray-500 font-bold uppercase">Escanea para ver más</span>
+                                                <div className="flex items-center gap-1">
+                                                    <span className="material-symbols-outlined text-[#135bec]" style={{ fontSize: '14px' }}>verified</span>
+                                                    <span className="text-[10px] font-bold text-gray-900">Garantía {vehicle.garantia_meses} meses</span>
+                                                </div>
+                                            </div>
+                                            <div className="bg-white p-1 rounded border border-gray-100 shadow-sm">
+                                                <div
+                                                    className="size-14 bg-white"
+                                                    style={{
+                                                        backgroundImage: `url('${qrCodeSvg}')`,
+                                                        backgroundSize: 'contain',
+                                                        backgroundRepeat: 'no-repeat'
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
-                    </TabsContent>
-                </Tabs>
-
-                {/* Footer */}
-                <div className="p-4 border-t flex justify-end gap-3">
-                    <Button variant="outline" onClick={onClose}>
-                        Cancelar
-                    </Button>
-                    <Button onClick={handlePrint} className="gap-2">
-                        <Printer className="h-4 w-4" />
-                        Imprimir
-                    </Button>
+                    </div>
                 </div>
-            </DialogContent>
-        </Dialog>
+
+                {/* Fixed Footer */}
+                <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-4 pb-6 sm:pb-4 shadow-[0_-4px_16px_rgba(0,0,0,0.05)] z-20">
+                    <div className="flex gap-3 max-w-2xl mx-auto">
+                        <button
+                            onClick={handleDownloadPDF}
+                            className="flex h-12 flex-1 cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-gray-300 bg-transparent text-gray-900 text-base font-bold leading-normal tracking-tight hover:bg-gray-50 transition active:scale-95"
+                        >
+                            <span className="material-symbols-outlined mr-2">picture_as_pdf</span>
+                            <span className="truncate">PDF</span>
+                        </button>
+                        <button
+                            onClick={handlePrint}
+                            className="flex h-12 flex-[2] cursor-pointer items-center justify-center overflow-hidden rounded-xl bg-[#135bec] text-white shadow-lg shadow-blue-500/30 text-base font-bold leading-normal tracking-tight hover:bg-blue-700 transition active:scale-95"
+                        >
+                            <span className="material-symbols-outlined mr-2">print</span>
+                            <span className="truncate">Imprimir Flyer</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </>
     )
 }

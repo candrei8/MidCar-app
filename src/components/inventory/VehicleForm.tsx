@@ -233,42 +233,52 @@ export function VehicleForm({ initialData, onSubmit, isSubmitting = false, onCan
 
     return (
         <div className="space-y-6 animate-in">
-            {/* Progress Steps */}
-            <div className="flex items-center justify-center gap-2 overflow-x-auto pb-2">
-                {[
-                    { num: 1, label: 'Datos básicos', icon: Car },
-                    { num: 2, label: 'Especificaciones', icon: Settings },
-                    { num: 3, label: 'Precios', icon: DollarSign },
-                    { num: 4, label: 'Imágenes', icon: Upload },
-                    { num: 5, label: 'Documentos', icon: FileText },
-                ].map((s, index) => {
-                    const status = getStepStatus(s.num)
-                    return (
-                        <div key={s.num} className="flex items-center flex-shrink-0">
-                            <button
-                                onClick={() => setStep(s.num)}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${status === 'current'
-                                    ? 'bg-primary text-white'
-                                    : status === 'completed'
-                                        ? 'bg-success/20 text-success'
-                                        : 'bg-surface-300 text-muted-foreground'
-                                    }`}
-                            >
-                                {status === 'completed' ? (
-                                    <Check className="h-4 w-4" />
-                                ) : (
-                                    <s.icon className="h-4 w-4" />
+            {/* Progress Steps - Mobile Optimized */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 shadow-sm border border-gray-100">
+                <div className="flex items-center justify-between overflow-x-auto no-scrollbar gap-1">
+                    {[
+                        { num: 1, label: 'Datos', icon: Car },
+                        { num: 2, label: 'Specs', icon: Settings },
+                        { num: 3, label: 'Precio', icon: DollarSign },
+                        { num: 4, label: 'Fotos', icon: Upload },
+                        { num: 5, label: 'Docs', icon: FileText },
+                    ].map((s, index) => {
+                        const status = getStepStatus(s.num)
+                        return (
+                            <div key={s.num} className="flex items-center flex-1 min-w-0">
+                                <button
+                                    onClick={() => setStep(s.num)}
+                                    className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-all w-full min-w-[50px] ${status === 'current'
+                                        ? 'bg-[#135bec] text-white shadow-lg shadow-blue-500/30'
+                                        : status === 'completed'
+                                            ? 'bg-green-50 text-green-600 border border-green-200'
+                                            : 'bg-slate-50 text-slate-400 hover:bg-slate-100'
+                                        }`}
+                                >
+                                    {status === 'completed' ? (
+                                        <Check className="h-5 w-5" />
+                                    ) : (
+                                        <s.icon className="h-5 w-5" />
+                                    )}
+                                    <span className="text-[10px] font-semibold leading-none truncate w-full text-center">
+                                        {s.label}
+                                    </span>
+                                </button>
+                                {index < 4 && (
+                                    <div className={`w-3 h-0.5 mx-0.5 flex-shrink-0 ${status === 'completed' ? 'bg-green-400' : 'bg-slate-200'}`} />
                                 )}
-                                <span className="hidden md:inline">{s.label}</span>
-                                <span className="md:hidden">{s.num}</span>
-                            </button>
-                            {index < 4 && (
-                                <div className={`w-8 h-0.5 mx-1 ${status === 'completed' ? 'bg-success' : 'bg-surface-400'}`} />
-                            )}
-                        </div>
-                    )
-                })}
+                            </div>
+                        )
+                    })}
+                </div>
+                {/* Step counter for mobile */}
+                <div className="mt-2 text-center">
+                    <span className="text-xs font-medium text-slate-500">
+                        Paso {step} de {totalSteps}
+                    </span>
+                </div>
             </div>
+
 
             {/* Step 1: Basic Data */}
             {step === 1 && (

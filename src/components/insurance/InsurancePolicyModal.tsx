@@ -95,7 +95,7 @@ export function InsurancePolicyModal({
         setCoberturas(prev => ({ ...prev, [key]: checked }))
     }
 
-    const handleSubmit = (estado: 'asegurado' | 'en_tramite') => {
+    const handleSubmit = () => {
         const policy: Partial<PolizaSeguro> = {
             id: existingPolicy?.id || `ins-${Date.now()}`,
             vehiculoId: vehicle.id,
@@ -109,10 +109,7 @@ export function InsurancePolicyModal({
             tomadorNombre,
             tomadorNif,
             coberturas,
-            estado,
             documentos: existingPolicy?.documentos || {},
-            createdAt: existingPolicy?.createdAt || new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
         }
         onSave(policy)
         onClose()
@@ -320,14 +317,14 @@ export function InsurancePolicyModal({
                         Cancelar
                     </Button>
                     <button
-                        onClick={() => handleSubmit('en_tramite')}
+                        onClick={() => handleSubmit()}
                         disabled={!isValid}
                         className="btn-ghost-luxury text-xs disabled:opacity-40"
                     >
                         Guardar Borrador
                     </button>
                     <button
-                        onClick={() => handleSubmit('asegurado')}
+                        onClick={() => handleSubmit()}
                         disabled={!isValid}
                         className="btn-luxury text-xs disabled:opacity-40"
                     >

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Formulario Vehículo - MidCar</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#1e293b",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem", 
+                        "lg": "0.5rem", 
+                        "xl": "0.75rem", 
+                        "2xl": "1rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>/* Hide scrollbar for chrome/safari/opera */
+.no-scrollbar::-webkit-scrollbar {
+    display: none
+    }
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+    }
+/* Custom form styles */
+.form-select {
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuA2Jf3wmQ0sKuFgzldL0XkKl3VSt1EqkVjUDQ5dB5-5eioO5KrFDmj7gj90BYJtWXMUe7oL7Qr4Aour1TDfXIHhSExCs7DuHomwmPv5Zvuyz07ef26UstFfnhUPwU1tW49FxUtDub2y5xHFFtM0WvUXjKlBXxSBiBomWWoxDAbpubjzmbY04jIZmEbdeLKXC8UgAnIUuNCd3uKMyA_ubvXJ435Nvxf-qkteMO7VAPblZOYcX9fXOEKdLqd1yVApTxXWVR2J9LoF1jTD);
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact
+    }</style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased selection:bg-primary/30">
+<!-- Mobile Container Wrapper -->
+<div class="relative mx-auto flex min-h-screen w-full max-w-md flex-col bg-white dark:bg-slate-950 shadow-2xl overflow-hidden">
+<!-- Header -->
+<div class="sticky top-0 z-50 flex items-center justify-between bg-white/90 dark:bg-slate-950/90 backdrop-blur-md px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+<button class="text-primary text-base font-medium leading-normal tracking-[0.015em] shrink-0 active:opacity-70">
+                Cancelar
+            </button>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">
+                Nuevo Vehículo
+            </h2>
+<button class="text-primary text-base font-bold leading-normal tracking-[0.015em] shrink-0 active:opacity-70">
+                Guardar
+            </button>
+</div>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto no-scrollbar pb-10">
+<!-- Section: Datos Básicos -->
+<div class="flex flex-col">
+<h3 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] px-4 pt-6 pb-2">
+                    Datos Básicos
+                </h3>
+<div class="flex flex-wrap items-end gap-4 px-4 py-2">
+<label class="flex flex-col min-w-[45%] flex-1">
+<p class="text-slate-700 dark:text-slate-300 text-sm font-semibold leading-normal pb-2">Marca</p>
+<div class="relative">
+<select class="form-select flex w-full min-w-0 flex-1 appearance-none rounded-xl text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 h-12 px-4 text-base font-normal leading-normal shadow-sm">
+<option disabled="" selected="" value="">Seleccionar</option>
+<option value="Audi">Audi</option>
+<option value="BMW">BMW</option>
+<option value="Mercedes">Mercedes</option>
+</select>
+</div>
+</label>
+<label class="flex flex-col min-w-[45%] flex-1">
+<p class="text-slate-700 dark:text-slate-300 text-sm font-semibold leading-normal pb-2">Modelo</p>
+<div class="relative">
+<select class="form-select flex w-full min-w-0 flex-1 appearance-none rounded-xl text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 h-12 px-4 text-base font-normal leading-normal shadow-sm">
+<option disabled="" selected="" value="">Seleccionar</option>
+<option value="A3">A3</option>
+<option value="A4">A4</option>
+<option value="Q3">Q3</option>
+</select>
+</div>
+</label>
+</div>
+<div class="flex flex-wrap items-end gap-4 px-4 py-2">
+<label class="flex flex-col min-w-[45%] flex-1">
+<p class="text-slate-700 dark:text-slate-300 text-sm font-semibold leading-normal pb-2">Versión</p>
+<input class="flex w-full min-w-0 flex-1 rounded-xl text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 h-12 placeholder:text-slate-400 px-4 text-base font-normal leading-normal shadow-sm" placeholder="S-Line" type="text"/>
+</label>
+<label class="flex flex-col min-w-[45%] flex-1">
+<p class="text-slate-700 dark:text-slate-300 text-sm font-semibold leading-normal pb-2">Año</p>
+<input class="flex w-full min-w-0 flex-1 rounded-xl text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 h-12 placeholder:text-slate-400 px-4 text-base font-normal leading-normal shadow-sm" placeholder="2023" type="number"/>
+</label>
+</div>
+<div class="flex flex-wrap items-end gap-4 px-4 py-2">
+<label class="flex flex-col min-w-[45%] flex-1">
+<p class="text-slate-700 dark:text-slate-300 text-sm font-semibold leading-normal pb-2">Precio Venta</p>
+<div class="relative">
+<input class="flex w-full min-w-0 flex-1 rounded-xl text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 h-12 placeholder:text-slate-400 pl-4 pr-8 text-base font-normal leading-normal shadow-sm" placeholder="0" type="text"/>
+<span class="absolute right-3 top-3 text-slate-400">€</span>
+</div>
+</label>
+<label class="flex flex-col min-w-[45%] flex-1">
+<p class="text-slate-700 dark:text-slate-300 text-sm font-semibold leading-normal pb-2">Precio Compra</p>
+<div class="relative">
+<input class="flex w-full min-w-0 flex-1 rounded-xl text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 h-12 placeholder:text-slate-400 pl-4 pr-8 text-base font-normal leading-normal shadow-sm" placeholder="0" type="text"/>
+<span class="absolute right-3 top-3 text-slate-400">€</span>
+</div>
+</label>
+</div>
+</div>
+<div class="h-px bg-slate-100 dark:bg-slate-800 mx-4 my-6"></div>
+<!-- Section: Datos Técnicos -->
+<div class="flex flex-col">
+<h3 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2">
+                    Datos Técnicos
+                </h3>
+<div class="flex flex-wrap items-end gap-4 px-4 py-2">
+<label class="flex flex-col w-full">
+<p class="text-slate-700 dark:text-slate-300 text-sm font-semibold leading-normal pb-2">Combustible</p>
+<div class="flex gap-2 w-full p-1 bg-slate-100 dark:bg-slate-900 rounded-xl">
+<button class="flex-1 py-2 text-sm font-medium rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm border border-slate-200 dark:border-slate-700 transition-all">Diesel</button>
+<button class="flex-1 py-2 text-sm font-medium rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-all">Gasolina</button>
+<button class="flex-1 py-2 text-sm font-medium rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-all">Híbrido</button>
+<button class="flex-1 py-2 text-sm font-medium rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-all">Elec.</button>
+</div>
+</label>
+</div>
+<div class="flex flex-wrap items-end gap-4 px-4 py-2">
+<label class="flex flex-col min-w-[45%] flex-1">
+<p class="text-slate-700 dark:text-slate-300 text-sm font-semibold leading-normal pb-2">Transmisión</p>
+<select class="form-select flex w-full min-w-0 flex-1 appearance-none rounded-xl text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 h-12 px-4 text-base font-normal leading-normal shadow-sm">
+<option>Automático</option>
+<option>Manual</option>
+</select>
+</label>
+<label class="flex flex-col min-w-[45%] flex-1">
+<p class="text-slate-700 dark:text-slate-300 text-sm font-semibold leading-normal pb-2">Tracción</p>
+<select class="form-select flex w-full min-w-0 flex-1 appearance-none rounded-xl text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 h-12 px-4 text-base font-normal leading-normal shadow-sm">
+<option>Delantera</option>
+<option>Trasera</option>
+<option>4x4</option>
+</select>
+</label>
+</div>
+<div class="flex flex-wrap items-end gap-4 px-4 py-2">
+<label class="flex flex-col min-w-[45%] flex-1">
+<p class="text-slate-700 dark:text-slate-300 text-sm font-semibold leading-normal pb-2">Potencia</p>
+<div class="relative">
+<input class="flex w-full min-w-0 flex-1 rounded-xl text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 h-12 placeholder:text-slate-400 pl-4 pr-10 text-base font-normal leading-normal shadow-sm" placeholder="150" type="number"/>
+<span class="absolute right-3 top-3 text-slate-400 text-sm font-medium">CV</span>
+</div>
+</label>
+<label class="flex flex-col min-w-[45%] flex-1">
+<p class="text-slate-700 dark:text-slate-300 text-sm font-semibold leading-normal pb-2">Cilindrada</p>
+<div class="relative">
+<input class="flex w-full min-w-0 flex-1 rounded-xl text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 h-12 placeholder:text-slate-400 pl-4 pr-10 text-base font-normal leading-normal shadow-sm" placeholder="2.0" type="text"/>
+<span class="absolute right-3 top-3 text-slate-400 text-sm font-medium">L</span>
+</div>
+</label>
+</div>
+</div>
+<div class="h-px bg-slate-100 dark:bg-slate-800 mx-4 my-6"></div>
+<!-- Section: Estado y Detalles -->
+<div class="flex flex-col">
+<h3 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2">
+                    Estado y Detalles
+                </h3>
+<div class="flex flex-wrap items-end gap-4 px-4 py-2">
+<label class="flex flex-col min-w-[45%] flex-1">
+<p class="text-slate-700 dark:text-slate-300 text-sm font-semibold leading-normal pb-2">Kilometraje</p>
+<div class="relative">
+<input class="flex w-full min-w-0 flex-1 rounded-xl text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 h-12 placeholder:text-slate-400 pl-4 pr-10 text-base font-normal leading-normal shadow-sm" placeholder="50000" type="number"/>
+<span class="absolute right-3 top-3 text-slate-400 text-sm font-medium">km</span>
+</div>
+</label>
+<label class="flex flex-col min-w-[45%] flex-1">
+<p class="text-slate-700 dark:text-slate-300 text-sm font-semibold leading-normal pb-2">Color</p>
+<div class="relative flex items-center">
+<div class="absolute left-3 w-6 h-6 rounded-full bg-slate-900 border border-slate-200 shadow-sm"></div>
+<input class="flex w-full min-w-0 flex-1 rounded-xl text-slate-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 h-12 placeholder:text-slate-400 pl-12 pr-4 text-base font-normal leading-normal shadow-sm" placeholder="Negro" type="text" value="Negro"/>
+</div>
+</label>
+</div>
+<div class="flex flex-wrap items-end gap-4 px-4 py-2 mt-2">
+<div class="flex flex-col w-full">
+<p class="text-slate-700 dark:text-slate-300 text-sm font-semibold leading-normal pb-2">Puertas</p>
+<div class="flex gap-3">
+<label class="cursor-pointer">
+<input class="peer sr-only" name="doors" type="radio" value="2"/>
+<div class="w-12 h-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary flex items-center justify-center font-medium transition-colors">2</div>
+</label>
+<label class="cursor-pointer">
+<input class="peer sr-only" name="doors" type="radio" value="3"/>
+<div class="w-12 h-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary flex items-center justify-center font-medium transition-colors">3</div>
+</label>
+<label class="cursor-pointer">
+<input class="peer sr-only" name="doors" type="radio" value="4"/>
+<div class="w-12 h-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary flex items-center justify-center font-medium transition-colors">4</div>
+</label>
+<label class="cursor-pointer">
+<input checked="" class="peer sr-only" name="doors" type="radio" value="5"/>
+<div class="w-12 h-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 peer-checked:bg-primary peer-checked:text-white peer-checked:border-primary flex items-center justify-center font-medium transition-colors">5</div>
+</label>
+</div>
+</div>
+</div>
+</div>
+<div class="h-px bg-slate-100 dark:bg-slate-800 mx-4 my-6"></div>
+<!-- Section: Equipamiento -->
+<div class="flex flex-col">
+<h3 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-4">
+                    Equipamiento
+                </h3>
+<div class="grid grid-cols-2 gap-3 px-4">
+<label class="flex items-center gap-3 p-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-900/50 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<input checked="" class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary/20" type="checkbox"/>
+<span class="text-sm font-medium text-slate-700 dark:text-slate-200">Navegador</span>
+</label>
+<label class="flex items-center gap-3 p-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-900/50 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<input checked="" class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary/20" type="checkbox"/>
+<span class="text-sm font-medium text-slate-700 dark:text-slate-200">Bluetooth</span>
+</label>
+<label class="flex items-center gap-3 p-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-900/50 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<input class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary/20" type="checkbox"/>
+<span class="text-sm font-medium text-slate-700 dark:text-slate-200">Techo Solar</span>
+</label>
+<label class="flex items-center gap-3 p-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-900/50 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<input class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary/20" type="checkbox"/>
+<span class="text-sm font-medium text-slate-700 dark:text-slate-200">Asientos Piel</span>
+</label>
+<label class="flex items-center gap-3 p-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-900/50 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<input checked="" class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary/20" type="checkbox"/>
+<span class="text-sm font-medium text-slate-700 dark:text-slate-200">Parktronic</span>
+</label>
+<label class="flex items-center gap-3 p-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-900/50 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<input class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary/20" type="checkbox"/>
+<span class="text-sm font-medium text-slate-700 dark:text-slate-200">Xenon/LED</span>
+</label>
+</div>
+</div>
+<div class="h-px bg-slate-100 dark:bg-slate-800 mx-4 my-6"></div>
+<!-- Section: Multimedia -->
+<div class="flex flex-col">
+<div class="flex items-center justify-between px-4 pb-4">
+<h3 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">
+                        Multimedia
+                    </h3>
+<span class="text-xs font-semibold text-primary bg-primary/10 px-2 py-1 rounded">3 Fotos</span>
+</div>
+<!-- Horizontal Image Scroll -->
+<div class="flex overflow-x-auto no-scrollbar gap-3 px-4 pb-2 snap-x">
+<!-- Upload Button -->
+<button class="snap-start shrink-0 w-28 h-28 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center gap-1 active:bg-slate-100 dark:active:bg-slate-800 transition-colors group">
+<span class="material-symbols-outlined text-3xl text-slate-400 group-hover:text-primary transition-colors">add_a_photo</span>
+<span class="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Añadir</span>
+</button>
+<!-- Image 1 -->
+<div class="snap-start shrink-0 w-36 h-28 rounded-xl bg-slate-100 overflow-hidden relative group">
+<img class="w-full h-full object-cover" data-alt="Dark shiny Audi car front view in studio" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyTIAr5tZSIaBMXxjFvQLgji5AMEdD6UBmQpkJLLoo347LEbc0_jYv9X-T3S9MoJZKFfGlc4KAYtFZNxwRHiZRM4-76d2XcMzNnWozCaIjd4Jjn2Z7OvISxRRVzoyt-dTJyGCSp5ZINJVP436zIqdTOIGZ0fW8HGbqpr-Wwz8v93l-Ffx4Skk7ZD65B4HStgTATggosCdFcFla42ZJ65m9adBSZTxtB4c1O6_dfcU3uDIe1wTdHm2jkbjfQhi6UreFHtWUqUx9ibyT"/>
+<button class="absolute top-1 right-1 p-1 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-sm">close</span>
+</button>
+</div>
+<!-- Image 2 -->
+<div class="snap-start shrink-0 w-36 h-28 rounded-xl bg-slate-100 overflow-hidden relative group">
+<img class="w-full h-full object-cover" data-alt="Audi car interior dashboard detail" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0Mohk5C3QlUgctw-Tw84b2cGZuqVXiytpUAYsEEu4um6PHep4PjzsxTUN4niqvW6GKLCUB50PLqgawoESdKfl0KGEhhE1RhmHKFahScJdHWBKsC4Ux9B-kVky6BXfe95K7SUWI_akGxJ3wv4NaalbGpzhaW2nQ_FYJ-JS8zGmChNJiqa7GXtUu7MxmmGUEjp2ApB6u7rWs5KAFhYq8ICpb4hOHgYg8mGoh26XEwzdFfXpu0lBHP4TEGbynxa7TOW6iBqaUf5PLp5P"/>
+<button class="absolute top-1 right-1 p-1 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-sm">close</span>
+</button>
+</div>
+<!-- Image 3 -->
+<div class="snap-start shrink-0 w-36 h-28 rounded-xl bg-slate-100 overflow-hidden relative group">
+<img class="w-full h-full object-cover" data-alt="Audi car rear view lights" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCsMksCeH09UGpYvZGuatah6Pv7b0T_AtBwlWolwltzWZJI2VsCtAyvFxIa9bEK8CG6qXwY8nUZUXufttkbuH3JcY3rXcRQZfeSK6dwJMtZhp-Sd7F0pGnZeLrd8oXbwrFgAXNp-yfUDFbTiwwNLKVFQzFT8nAFWS7VwhrMuw-pwYnuHfE5YjczgbhqV94-8Emc393WNZV0kUkPSPxzpap8Th_93Hr7OthEP3ysFcH2U1l2YdI727FkMm-8GJDoszyRDf0mB_C0Hpah"/>
+<button class="absolute top-1 right-1 p-1 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-sm">close</span>
+</button>
+</div>
+</div>
+<div class="px-4 mt-3">
+<button class="w-full py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-center gap-2 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-primary">upload_file</span>
+                        Subir Documentación (PDF)
+                    </button>
+</div>
+</div>
+<div class="h-px bg-slate-100 dark:bg-slate-800 mx-4 my-6"></div>
+<!-- Section: Disponibilidad (Status) -->
+<div class="flex flex-col px-4 pb-6">
+<h3 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] pb-4">
+                    Estado del Vehículo
+                </h3>
+<div class="grid grid-cols-3 gap-3 p-1 bg-slate-100 dark:bg-slate-900 rounded-xl">
+<label class="cursor-pointer">
+<input checked="" class="peer sr-only" name="status" type="radio"/>
+<div class="flex flex-col items-center justify-center gap-1 py-3 rounded-lg border-2 border-transparent peer-checked:bg-white dark:peer-checked:bg-slate-800 peer-checked:border-emerald-500/20 peer-checked:shadow-sm transition-all group">
+<div class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></div>
+<span class="text-xs font-bold text-slate-500 peer-checked:text-emerald-600 dark:peer-checked:text-emerald-400">Disponible</span>
+</div>
+</label>
+<label class="cursor-pointer">
+<input class="peer sr-only" name="status" type="radio"/>
+<div class="flex flex-col items-center justify-center gap-1 py-3 rounded-lg border-2 border-transparent peer-checked:bg-white dark:peer-checked:bg-slate-800 peer-checked:border-amber-500/20 peer-checked:shadow-sm transition-all group">
+<div class="w-2 h-2 rounded-full bg-amber-500"></div>
+<span class="text-xs font-bold text-slate-500 peer-checked:text-amber-600 dark:peer-checked:text-amber-400">Reservado</span>
+</div>
+</label>
+<label class="cursor-pointer">
+<input class="peer sr-only" name="status" type="radio"/>
+<div class="flex flex-col items-center justify-center gap-1 py-3 rounded-lg border-2 border-transparent peer-checked:bg-white dark:peer-checked:bg-slate-800 peer-checked:border-red-500/20 peer-checked:shadow-sm transition-all group">
+<div class="w-2 h-2 rounded-full bg-red-500"></div>
+<span class="text-xs font-bold text-slate-500 peer-checked:text-red-600 dark:peer-checked:text-red-400">Vendido</span>
+</div>
+</label>
+</div>
+</div>
+<!-- Footer Spacing -->
+<div class="h-8"></div>
+</div>
+</div>
+</body></html>

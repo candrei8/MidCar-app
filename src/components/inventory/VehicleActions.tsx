@@ -1,58 +1,53 @@
 "use client"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { QrCode, Globe, Share } from "lucide-react"
 import type { Vehicle } from "@/types"
 import { VehicleAdGenerator } from "@/components/inventory/VehicleAdGenerator"
 import { WebLinkModal } from "@/components/inventory/WebLinkModal"
 import { ShareModal } from "@/components/inventory/ShareModal"
+import { useToast } from "@/components/ui/toast"
 
 interface VehicleActionsProps {
     vehicle: Vehicle
 }
 
 export function VehicleActions({ vehicle }: VehicleActionsProps) {
+    const { addToast } = useToast()
     const [showAdGenerator, setShowAdGenerator] = useState(false)
     const [showWebLink, setShowWebLink] = useState(false)
     const [showShareModal, setShowShareModal] = useState(false)
 
     const handleSaveWebLink = (url: string) => {
-        // En producción guardaría en base de datos
-        alert(`✓ Enlace web guardado: ${url}`)
+        addToast('Enlace web guardado correctamente', 'success')
     }
+
+    const buttonClass = "flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-sm font-medium shadow-sm hover:bg-slate-50 transition-colors active:scale-95"
 
     return (
         <>
-            <Button
-                variant="outline"
-                size="sm"
+            <button
                 onClick={() => setShowWebLink(true)}
-                className="gap-2"
+                className={buttonClass}
             >
-                <Globe className="h-4 w-4" />
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>language</span>
                 Vincular Web
-            </Button>
+            </button>
 
-            <Button
-                variant="outline"
-                size="sm"
+            <button
                 onClick={() => setShowAdGenerator(true)}
-                className="gap-2"
+                className={buttonClass}
             >
-                <QrCode className="h-4 w-4" />
-                Generar Anuncio
-            </Button>
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>print</span>
+                Generar Flyer
+            </button>
 
-            <Button
-                variant="outline"
-                size="sm"
+            <button
                 onClick={() => setShowShareModal(true)}
-                className="gap-2"
+                className={buttonClass}
             >
-                <Share className="h-4 w-4" />
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>share</span>
                 Compartir
-            </Button>
+            </button>
 
             <VehicleAdGenerator
                 vehicle={vehicle}

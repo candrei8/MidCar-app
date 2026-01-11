@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MidCar Share Modal</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "3xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom scrollbar hiding for clean UI */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-gray-200 dark:bg-gray-900 font-display flex justify-center items-center min-h-screen p-4">
+<!-- Phone Frame Simulator -->
+<div class="relative w-full max-w-[390px] h-[844px] bg-white dark:bg-background-dark rounded-[40px] overflow-hidden shadow-2xl border-[8px] border-gray-900 relative group/design-root">
+<!-- Background App Content (Simulated as blurred/inactive) -->
+<div class="absolute inset-0 flex flex-col pointer-events-none">
+<!-- Header -->
+<div class="h-24 pt-12 pb-4 px-6 flex items-center justify-between bg-white dark:bg-background-dark border-b border-gray-100 dark:border-white/5">
+<span class="material-symbols-outlined text-gray-800 dark:text-white">arrow_back_ios_new</span>
+<span class="text-lg font-bold text-gray-900 dark:text-white">Inventario</span>
+<span class="material-symbols-outlined text-gray-800 dark:text-white">filter_list</span>
+</div>
+<!-- Body Mockup -->
+<div class="flex-1 p-4 bg-background-light dark:bg-black/20">
+<div class="w-full h-64 bg-gray-300 dark:bg-gray-700 rounded-2xl mb-4 animate-pulse"></div>
+<div class="w-2/3 h-6 bg-gray-300 dark:bg-gray-700 rounded mb-2 animate-pulse"></div>
+<div class="w-1/2 h-6 bg-gray-300 dark:bg-gray-700 rounded mb-8 animate-pulse"></div>
+</div>
+</div>
+<!-- Dimmed Backdrop Overlay -->
+<div class="absolute inset-0 bg-black/60 backdrop-blur-[2px] z-10 transition-opacity"></div>
+<!-- Bottom Sheet Modal -->
+<div class="absolute bottom-0 left-0 w-full bg-white dark:bg-background-dark z-20 rounded-t-[32px] shadow-[0_-8px_30px_rgba(0,0,0,0.12)] flex flex-col animate-slide-up h-auto max-h-[90%]">
+<!-- Handle -->
+<div class="w-full flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing">
+<div class="w-10 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+</div>
+<!-- Title -->
+<div class="px-6 pb-4 pt-1 text-center">
+<h2 class="text-xl font-bold text-gray-900 dark:text-white">Compartir Vehículo</h2>
+</div>
+<!-- Scrollable Area -->
+<div class="overflow-y-auto px-5 pb-8 space-y-8 no-scrollbar">
+<!-- Vehicle Preview Card -->
+<div class="bg-background-light dark:bg-white/5 p-3 rounded-2xl flex items-center gap-4 border border-gray-100 dark:border-white/5 shadow-sm">
+<!-- Thumbnail -->
+<div class="w-24 h-20 shrink-0 rounded-xl bg-cover bg-center shadow-inner relative overflow-hidden group" data-alt="White BMW sedan parked on a clean street" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCgL97XNChC5YPQgFrD2Xg_pOXxp8tDGOWw7p4fbk7eVFWxuTTKe-UrZGNO8muRMDjL0cZs3Smv5a-DosP3mcd0oze9UPN3Pb1DYD97JaSC7jo5iKF4KUmaOGDMA0cRRgkSR5rYCi2pkWg0Y5c6-PGQnc4Uc8tXRUZJRKK09XBzrtrCk07vTkB-k4ike5md8lmSwk2HrT1gf7TnZ0RoY0gQ1KEB4yPpAB_iMaCO8T84ennBGwsE2y34FYfDDg07VD6Afu67dIYZ3XYQ');">
+<div class="absolute inset-0 bg-black/5 dark:bg-white/5"></div>
+</div>
+<!-- Info -->
+<div class="flex flex-col justify-center min-w-0 flex-1">
+<h3 class="text-gray-900 dark:text-white font-bold text-base leading-snug truncate">BMW Serie 3 320d</h3>
+<p class="text-gray-500 dark:text-gray-400 text-xs font-medium mt-0.5">2019 • 45.000 km</p>
+<p class="text-primary font-bold text-lg mt-1 tracking-tight">24.900 €</p>
+</div>
+</div>
+<!-- Primary Action Grid (Quick Share) -->
+<div>
+<div class="grid grid-cols-3 gap-6">
+<!-- WhatsApp -->
+<button class="flex flex-col items-center gap-3 group">
+<div class="w-16 h-16 rounded-full bg-background-light dark:bg-white/10 flex items-center justify-center text-primary group-active:bg-green-100 dark:group-active:bg-green-900/30 group-active:text-green-600 transition-all duration-200 shadow-sm border border-gray-100 dark:border-white/5">
+<span class="material-symbols-outlined text-[32px]">chat</span>
+</div>
+<span class="text-xs font-semibold text-gray-700 dark:text-gray-300 group-active:text-primary transition-colors">WhatsApp</span>
+</button>
+<!-- Email -->
+<button class="flex flex-col items-center gap-3 group">
+<div class="w-16 h-16 rounded-full bg-background-light dark:bg-white/10 flex items-center justify-center text-primary group-active:bg-blue-100 dark:group-active:bg-blue-900/30 group-active:text-blue-600 transition-all duration-200 shadow-sm border border-gray-100 dark:border-white/5">
+<span class="material-symbols-outlined text-[32px]">mail</span>
+</div>
+<span class="text-xs font-semibold text-gray-700 dark:text-gray-300 group-active:text-primary transition-colors">Email</span>
+</button>
+<!-- SMS -->
+<button class="flex flex-col items-center gap-3 group">
+<div class="w-16 h-16 rounded-full bg-background-light dark:bg-white/10 flex items-center justify-center text-primary group-active:bg-indigo-100 dark:group-active:bg-indigo-900/30 group-active:text-indigo-600 transition-all duration-200 shadow-sm border border-gray-100 dark:border-white/5">
+<span class="material-symbols-outlined text-[32px]">sms</span>
+</div>
+<span class="text-xs font-semibold text-gray-700 dark:text-gray-300 group-active:text-primary transition-colors">SMS</span>
+</button>
+</div>
+</div>
+<!-- Secondary Actions List -->
+<div class="flex flex-col gap-3">
+<!-- Copy Link -->
+<button class="flex items-center gap-4 p-4 rounded-2xl bg-gray-50 dark:bg-white/5 active:bg-gray-100 dark:active:bg-white/10 transition-colors group">
+<div class="w-10 h-10 rounded-full bg-white dark:bg-white/10 flex items-center justify-center shrink-0 shadow-sm text-gray-900 dark:text-white border border-gray-100 dark:border-transparent group-active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[20px]">link</span>
+</div>
+<div class="flex-1 text-left">
+<p class="text-gray-900 dark:text-white font-bold text-sm">Copiar Enlace</p>
+<p class="text-gray-500 dark:text-gray-400 text-xs truncate">midcar.com/v/bmw-320d-xh5...</p>
+</div>
+<span class="material-symbols-outlined text-gray-400 text-xl">chevron_right</span>
+</button>
+<!-- Copy Data -->
+<button class="flex items-center gap-4 p-4 rounded-2xl bg-gray-50 dark:bg-white/5 active:bg-gray-100 dark:active:bg-white/10 transition-colors group">
+<div class="w-10 h-10 rounded-full bg-white dark:bg-white/10 flex items-center justify-center shrink-0 shadow-sm text-gray-900 dark:text-white border border-gray-100 dark:border-transparent group-active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[20px]">content_copy</span>
+</div>
+<div class="flex-1 text-left">
+<p class="text-gray-900 dark:text-white font-bold text-sm">Copiar Datos del Vehículo</p>
+<p class="text-gray-500 dark:text-gray-400 text-xs">Resumen en texto para pegar</p>
+</div>
+<span class="material-symbols-outlined text-gray-400 text-xl">chevron_right</span>
+</button>
+</div>
+<!-- Cancel Button -->
+<div>
+<button class="w-full py-4 rounded-2xl bg-gray-100 dark:bg-white/5 text-gray-900 dark:text-white font-bold text-base active:bg-gray-200 dark:active:bg-white/10 active:scale-[0.99] transition-all">
+                        Cancelar
+                    </button>
+</div>
+</div>
+<!-- Safe Area Spacer -->
+<div class="h-6 w-full"></div>
+</div>
+</div>
+</body></html>

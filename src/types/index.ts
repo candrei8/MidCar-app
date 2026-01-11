@@ -72,6 +72,9 @@ export interface Vehicle {
     // Timestamps
     created_at: string
     updated_at: string
+
+    // User tracking
+    created_by?: string  // ID del usuario que creó el vehículo
 }
 
 export interface VehicleImage {
@@ -141,6 +144,9 @@ export interface Lead {
 
     motivo_perdida: string | null
     notas: string
+
+    // User tracking
+    created_by?: string  // ID del usuario que creó el lead
 
     // Joined data
     cliente?: Client
@@ -361,6 +367,9 @@ export interface Contact {
     precio?: number
     reserva?: number
 
+    // User tracking
+    created_by?: string  // ID del usuario que creó el contacto
+
     // Relaciones (joined data)
     vehiculos?: Vehicle[]
 }
@@ -421,9 +430,19 @@ export interface PolizaSeguro {
 
     // Documents
     documentos: {
-        polizaPdf?: string
-        reciboPdf?: string
+        polizaPdf?: DocumentFile
+        reciboPdf?: DocumentFile
+        otros?: DocumentFile[]
     }
+}
+
+// Document file metadata
+export interface DocumentFile {
+    name: string
+    type: string
+    size: number
+    dataUrl: string
+    uploadedAt: string
 
     // State
     estado: InsuranceState

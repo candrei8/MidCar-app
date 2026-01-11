@@ -289,9 +289,19 @@ export function NewInteractionModal({
                     <Button variant="outline" onClick={onClose} className="text-xs">
                         Cancelar
                     </Button>
-                    <button onClick={handleSave} className="btn-luxury text-xs flex items-center gap-2">
-                        <Save className="h-3.5 w-3.5" />
-                        Guardar Interacción
+                    <button
+                        type="button"
+                        onClick={handleSave}
+                        className="group relative px-5 py-2.5 rounded-lg text-xs font-medium text-white overflow-hidden transition-all duration-300 ease-out hover:scale-[1.02] active:scale-[0.98] flex items-center gap-2 bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/40"
+                    >
+                        {/* Shine effect on hover */}
+                        <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-out" />
+
+                        {/* Icon with animation */}
+                        <Save className="h-4 w-4 relative z-10 transition-transform duration-300 group-hover:rotate-[-8deg]" />
+
+                        {/* Text */}
+                        <span className="relative z-10">Guardar Interacción</span>
                     </button>
                 </div>
             </DialogContent>
