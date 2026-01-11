@@ -3,6 +3,7 @@ import { Manrope } from "next/font/google"
 import "./globals.css"
 import { ToastProvider } from "@/components/ui/toast"
 import { AuthProvider } from "@/lib/auth-context"
+import { ServiceWorkerRegistration } from "@/components/pwa/ServiceWorkerRegistration"
 
 const manrope = Manrope({
     subsets: ["latin"],
@@ -10,12 +11,28 @@ const manrope = Manrope({
 })
 
 export const metadata: Metadata = {
-    title: "MidCar | Gestión de Concesionario",
-    description: "Sistema de gestión integral para MidCar - Concesionario de vehículos de ocasión en Madrid",
-    keywords: ["concesionario", "coches", "vehículos", "CRM", "gestión", "MidCar", "Madrid"],
+    title: "MidCar | Gestion de Concesionario",
+    description: "Sistema de gestion integral para MidCar - Concesionario de vehiculos de ocasion en Madrid",
+    keywords: ["concesionario", "coches", "vehiculos", "CRM", "gestion", "MidCar", "Madrid"],
     authors: [{ name: "MidCar" }],
+    manifest: "/manifest.json",
+    appleWebApp: {
+        capable: true,
+        statusBarStyle: "default",
+        title: "MidCar",
+    },
+    formatDetection: {
+        telephone: false,
+    },
     icons: {
-        icon: "/favicon.ico",
+        icon: [
+            { url: "/favicon.ico" },
+            { url: "/icon-192x192.svg", sizes: "192x192", type: "image/svg+xml" },
+            { url: "/icon-512x512.svg", sizes: "512x512", type: "image/svg+xml" },
+        ],
+        apple: [
+            { url: "/apple-touch-icon.svg", sizes: "180x180", type: "image/svg+xml" },
+        ],
     },
 }
 
@@ -49,6 +66,7 @@ export default function RootLayout({
                         {children}
                     </ToastProvider>
                 </AuthProvider>
+                <ServiceWorkerRegistration />
             </body>
         </html>
     )
