@@ -11,7 +11,7 @@
 
 import * as XLSX from 'xlsx'
 import { ParsedPolicy } from '@/components/insurance/ImportPreviewModal'
-import { mockVehicles } from '@/lib/mock-data'
+import type { Vehicle } from '@/types'
 
 // Normalize license plates for matching
 export const normalizeMatricula = (mat: string): string => {
@@ -102,8 +102,10 @@ export interface ParseResult {
 
 /**
  * Main parser function
+ * @param file - The file to parse
+ * @param vehicles - Array of vehicles to match against (from Supabase)
  */
-export async function parseInsuranceFile(file: File): Promise<ParseResult> {
+export async function parseInsuranceFile(file: File, vehicles: Vehicle[] = []): Promise<ParseResult> {
     const fileName = file.name.toLowerCase()
     const errors: string[] = []
 
@@ -194,7 +196,7 @@ export async function parseInsuranceFile(file: File): Promise<ParseResult> {
             }
 
             // Check if vehicle exists in stock
-            const vehicleMatch = mockVehicles.find(v => normalizeMatricula(v.matricula) === matricula)
+            const vehicleMatch = vehicles.find(v => normalizeMatricula(v.matricula) === matricula)
             if (vehicleMatch) {
                 matchedCount++
             } else {
@@ -238,8 +240,10 @@ export async function parseInsuranceFile(file: File): Promise<ParseResult> {
 
 /**
  * Match parsed policies with vehicles in stock
+ * @param policies - Parsed policies from the file
+ * @param vehicles - Array of vehicles to match against (from Supabase)
  */
-export function matchPoliciesWithVehicles(policies: ParsedPolicy[]) {
+export function matchPoliciesWithVehicles(policies: ParsedPolicy[], vehicles: Vehicle[] = []) {
     const matched: Array<{
         policy: ParsedPolicy
         vehicleId: string
@@ -250,7 +254,7 @@ export function matchPoliciesWithVehicles(policies: ParsedPolicy[]) {
     const unmatched: ParsedPolicy[] = []
 
     policies.forEach(policy => {
-        const vehicle = mockVehicles.find(
+        const vehicle = vehicles.find(
             v => normalizeMatricula(v.matricula) === policy.matricula && v.estado !== 'vendido'
         )
 
@@ -268,7 +272,7 @@ export function matchPoliciesWithVehicles(policies: ParsedPolicy[]) {
 
     // Find vehicles without a policy in this import
     const importedMatriculas = new Set(policies.map(p => p.matricula))
-    const vehiclesWithoutPolicy = mockVehicles
+    const vehiclesWithoutPolicy = vehicles
         .filter(v => v.estado !== 'vendido' && !importedMatriculas.has(normalizeMatricula(v.matricula)))
         .map(v => v.matricula)
 

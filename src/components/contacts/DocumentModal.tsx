@@ -31,7 +31,7 @@ import {
 } from "lucide-react"
 import { cn, formatCurrency } from "@/lib/utils"
 import type { Contact, Vehicle } from "@/types"
-import { mockVehicles } from "@/lib/mock-data"
+import { useFilteredData } from "@/hooks/useFilteredData"
 import { useToast } from "@/components/ui/toast"
 
 type DocumentType = 'proforma' | 'senal' | 'contrato' | 'factura'
@@ -88,6 +88,7 @@ export function DocumentModal({
     onGenerate
 }: DocumentModalProps) {
     const { addToast } = useToast()
+    const { vehicles: allVehicles } = useFilteredData()
     const config = DOCUMENT_CONFIG[type]
     const Icon = config.icon
 
@@ -104,9 +105,8 @@ export function DocumentModal({
     const [estadoPago, setEstadoPago] = useState('pendiente')
 
     const vehicle = useMemo(() => {
-        return mockVehicles.find(v => v.id === vehicleId
-        ) || initialVehicle
-    }, [vehicleId, initialVehicle])
+        return allVehicles.find(v => v.id === vehicleId) || initialVehicle
+    }, [vehicleId, initialVehicle, allVehicles])
 
     const documentNumber = useMemo(() => {
         const year = new Date().getFullYear()
@@ -202,7 +202,7 @@ export function DocumentModal({
                                 <SelectValue placeholder="Seleccionar vehículo" />
                             </SelectTrigger>
                             <SelectContent className="glass border-white/[0.06] max-h-[200px]">
-                                {mockVehicles.filter(v => v.estado !== 'vendido').map(v => (
+                                {allVehicles.filter(v => v.estado !== 'vendido').map(v => (
                                     <SelectItem key={v.id} value={v.id}>
                                         <div className="flex items-center gap-2">
                                             <Car className="h-3.5 w-3.5 text-white/40" />

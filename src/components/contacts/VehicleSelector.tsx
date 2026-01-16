@@ -18,8 +18,8 @@ import {
     Car,
     Check,
 } from "lucide-react"
-import { mockVehicles } from "@/lib/mock-data"
 import { formatCurrency } from "@/lib/utils"
+import { useFilteredData } from "@/hooks/useFilteredData"
 
 interface VehicleSelectorProps {
     open: boolean
@@ -31,13 +31,14 @@ interface VehicleSelectorProps {
 export function VehicleSelector({ open, onClose, onSelect, excludeIds = [] }: VehicleSelectorProps) {
     const [searchQuery, setSearchQuery] = useState("")
     const [selectedIds, setSelectedIds] = useState<string[]>([])
+    const { vehicles } = useFilteredData()
 
     // Filter available vehicles
     const availableVehicles = useMemo(() => {
-        return mockVehicles
+        return vehicles
             .filter(v => !excludeIds.includes(v.id))
             .filter(v => v.estado === 'disponible' || v.estado === 'reservado')
-    }, [excludeIds])
+    }, [excludeIds, vehicles])
 
     // Filter by search
     const filteredVehicles = useMemo(() => {

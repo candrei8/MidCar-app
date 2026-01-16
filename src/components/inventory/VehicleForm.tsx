@@ -55,6 +55,7 @@ export interface VehicleFormData {
     num_propietarios: string
     primera_mano: boolean
     es_nacional: boolean
+    fecha_itv_vencimiento: string
 
     // Step 3: Pricing
     precio_compra: string
@@ -102,12 +103,13 @@ export const initialFormData: VehicleFormData = {
     num_propietarios: "1",
     primera_mano: true,
     es_nacional: true,
+    fecha_itv_vencimiento: "",
 
     precio_compra: "",
-    gastos_compra: "0",
-    coste_reparaciones: "0",
+    gastos_compra: "",
+    coste_reparaciones: "",
     precio_venta: "",
-    descuento: "0",
+    descuento: "",
     garantia_meses: "12",
 
     descripcion: "",
@@ -522,6 +524,15 @@ export function VehicleForm({ initialData, onSubmit, isSubmitting = false, onCan
                                     placeholder="1"
                                     value={formData.num_propietarios}
                                     onChange={(e) => updateField('num_propietarios', e.target.value)}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="fecha_itv">Fecha Vencimiento ITV</Label>
+                                <Input
+                                    id="fecha_itv"
+                                    type="date"
+                                    value={formData.fecha_itv_vencimiento}
+                                    onChange={(e) => updateField('fecha_itv_vencimiento', e.target.value)}
                                 />
                             </div>
                         </div>

@@ -20,8 +20,11 @@ const DialogOverlay = React.forwardRef<
         ref={ref}
         className={cn(
             "fixed inset-0 z-50 bg-black/50 backdrop-blur-sm",
+            "data-[state=open]:animate-in data-[state=closed]:animate-out",
+            "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
             className
         )}
+        style={{ animationDuration: '150ms' }}
         {...props}
     />
 ))
@@ -39,14 +42,19 @@ const DialogContent = React.forwardRef<
                 "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%]",
                 "bg-white border border-slate-200 shadow-xl rounded-xl overflow-hidden",
                 "p-6",
+                "data-[state=open]:animate-in data-[state=closed]:animate-out",
+                "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+                "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
                 className
             )}
+            style={{ animationDuration: '150ms', willChange: 'transform, opacity' }}
             {...props}
         >
             {/* Close button */}
             <div className="absolute right-4 top-4 z-[100]">
                 <DialogPrimitive.Close
-                    className="h-8 w-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-700 hover:bg-slate-200 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#135bec]"
+                    className="h-8 w-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-700 hover:bg-slate-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#135bec]"
+                    style={{ transition: 'background-color 0.1s ease, color 0.1s ease' }}
                     aria-label="Cerrar"
                 >
                     <span className="material-symbols-outlined text-lg">close</span>

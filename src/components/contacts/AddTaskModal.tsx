@@ -30,8 +30,8 @@ import {
     Save
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { mockUsers } from "@/lib/mock-data"
 import { useToast } from "@/components/ui/toast"
+import type { User } from "@/types"
 
 const TASK_TYPES = [
     { value: 'llamar', label: 'Llamar', icon: Phone },
@@ -206,14 +206,10 @@ export function AddTaskModal({
                         <Label className="text-xs text-white/50">Asignar a</Label>
                         <Select value={asignadoA} onValueChange={setAsignadoA}>
                             <SelectTrigger className="bg-white/[0.02] border-white/[0.06] text-white/80">
-                                <SelectValue />
+                                <SelectValue placeholder="Seleccionar usuario" />
                             </SelectTrigger>
                             <SelectContent className="glass border-white/[0.06]">
-                                {mockUsers.map(user => (
-                                    <SelectItem key={user.id} value={user.id}>
-                                        {user.nombre} {user.apellidos}
-                                    </SelectItem>
-                                ))}
+                                <SelectItem value="self">Yo mismo</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>

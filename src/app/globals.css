@@ -1,40 +1,45 @@
 /* Stitch Design System - MidCar */
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+/* Nota: Material Symbols se carga en layout.tsx para evitar bloqueo de render */
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ===== ANIMATIONS ===== */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
+/* ===== PERFORMANCE OPTIMIZATIONS ===== */
+* {
+  /* Mejora la fluidez de scroll */
+  -webkit-overflow-scrolling: touch;
+}
 
-  to {
-    opacity: 1;
-  }
+/* GPU acceleration para elementos interactivos */
+button, a, [role="button"], .interactive {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* ===== ANIMATIONS - Optimizadas para 60fps ===== */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(100%);
+    transform: translate3d(0, 20px, 0);
   }
-
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
   }
 }
 
 .animate-slide-up {
-  animation: slideUp 0.3s ease-out;
+  animation: slideUp 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .animate-in {
-  animation: fadeIn 0.3s ease-out;
+  animation: fadeIn 0.15s ease-out;
 }
 
 /* ===== BASE STYLES ===== */
@@ -138,23 +143,27 @@
   }
 
   .card-stitch-hover {
-    @apply card-stitch transition-all duration-200 hover:shadow-md hover:border-primary/20;
+    @apply card-stitch hover:shadow-md hover:border-primary/20;
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
   }
 
   /* Buttons */
   .btn-primary {
-    @apply bg-primary text-white font-semibold rounded-full px-4 py-2 shadow-primary transition-all duration-200;
+    @apply bg-primary text-white font-semibold rounded-full px-4 py-2 shadow-primary;
     @apply hover:bg-primary-hover hover:shadow-lg;
+    transition: background-color 0.1s ease, box-shadow 0.1s ease;
   }
 
   .btn-secondary {
     @apply bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark text-text-primary-light dark:text-text-primary-dark font-medium rounded-full px-4 py-2;
-    @apply hover:bg-gray-50 dark:hover:bg-surface-dark-hover transition-colors;
+    @apply hover:bg-gray-50 dark:hover:bg-surface-dark-hover;
+    transition: background-color 0.1s ease;
   }
 
   /* Chips/Pills */
   .chip {
-    @apply inline-flex items-center gap-2 h-9 px-4 rounded-full text-sm font-medium transition-colors;
+    @apply inline-flex items-center gap-2 h-9 px-4 rounded-full text-sm font-medium;
+    transition: background-color 0.1s ease, color 0.1s ease;
   }
 
   .chip-active {
@@ -249,7 +258,8 @@
   }
 
   .progress-bar-fill {
-    @apply h-full rounded-full transition-all duration-500;
+    @apply h-full rounded-full;
+    transition: width 0.3s ease-out;
   }
 
   /* Contact cards */
@@ -276,7 +286,10 @@
   }
 
   .vehicle-image-inner {
-    @apply w-full h-full bg-center bg-no-repeat bg-cover transition-transform duration-500 group-hover:scale-105;
+    @apply w-full h-full bg-center bg-no-repeat bg-cover group-hover:scale-[1.02];
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform;
+    transform: translateZ(0);
   }
 
   /* Quick action cards */
@@ -285,7 +298,10 @@
   }
 
   .quick-action-bg {
-    @apply absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110;
+    @apply absolute inset-0 bg-cover bg-center group-hover:scale-[1.03];
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform;
+    transform: translateZ(0);
   }
 
   .quick-action-overlay {
@@ -341,32 +357,9 @@
     backdrop-filter: blur(4px);
   }
 
-  /* Animations */
-  .animate-in {
-    animation: fadeIn 0.3s ease-out, slideUp 0.3s ease-out;
-  }
-}
-
-/* ===== ANIMATIONS ===== */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  /* Animations - usa las definidas arriba */
+  .animate-in-subtle {
+    animation: fadeIn 0.12s ease-out;
   }
 }
 

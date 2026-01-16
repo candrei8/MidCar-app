@@ -4,8 +4,8 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { useState, useEffect, useRef } from "react"
-import { mockVehicles, mockClients } from "@/lib/mock-data"
 import { useAuth } from "@/lib/auth-context"
+import { useFilteredData } from "@/hooks/useFilteredData"
 import { ViewToggle } from "@/components/auth/ViewToggle"
 import { LogOut } from "lucide-react"
 
@@ -31,6 +31,7 @@ export function Header() {
     const pathname = usePathname()
     const router = useRouter()
     const { profile, signOut, isFullView } = useAuth()
+    const { vehicles, clients } = useFilteredData()
     const [searchQuery, setSearchQuery] = useState("")
     const [searchResults, setSearchResults] = useState<SearchResult[]>([])
     const [showResults, setShowResults] = useState(false)
@@ -59,18 +60,21 @@ export function Header() {
         router.push("/login")
     }
 
-    // Search logic
+    // Search logic - optimizado con debounce más corto
     useEffect(() => {
-        const timer = setTimeout(() => {
-            if (searchQuery.length < 2) {
-                setSearchResults([])
-                return
-            }
+        if (searchQuery.length < 2) {
+            setSearchResults([])
+            return
+        }
 
+        const timer = setTimeout(() => {
             const results: SearchResult[] = []
             const query = searchQuery.toLowerCase()
+            const maxResults = 5
 
-            mockVehicles.slice(0, 3).forEach(v => {
+            // Search in vehicles (con early exit)
+            for (const v of vehicles) {
+                if (results.length >= maxResults) break
                 if (
                     v.marca.toLowerCase().includes(query) ||
                     v.modelo.toLowerCase().includes(query) ||
@@ -85,30 +89,32 @@ export function Header() {
                         icon: 'directions_car'
                     })
                 }
-            })
+            }
 
-            mockClients.slice(0, 2).forEach(c => {
+            // Search in clients (con early exit)
+            for (const c of clients) {
+                if (results.length >= maxResults) break
                 if (
-                    c.nombre.toLowerCase().includes(query) ||
-                    c.apellidos.toLowerCase().includes(query)
+                    c.nombre?.toLowerCase().includes(query) ||
+                    c.apellidos?.toLowerCase().includes(query)
                 ) {
                     results.push({
                         id: c.id,
                         type: 'cliente',
-                        title: `${c.nombre} ${c.apellidos}`,
-                        subtitle: c.email,
+                        title: `${c.nombre || ''} ${c.apellidos || ''}`.trim(),
+                        subtitle: c.email || '',
                         url: `/contactos`,
                         icon: 'person'
                     })
                 }
-            })
+            }
 
-            setSearchResults(results.slice(0, 5))
+            setSearchResults(results)
             setShowResults(true)
-        }, 300)
+        }, 150)
 
         return () => clearTimeout(timer)
-    }, [searchQuery])
+    }, [searchQuery, vehicles, clients])
 
     const handleResultClick = (url: string) => {
         router.push(url)
@@ -255,6 +261,14 @@ export function Header() {
                                     <p className="text-xs text-slate-500">{profile?.email}</p>
                                 </div>
                                 <div className="p-2">
+                                    <Link
+                                        href="/configuracion"
+                                        onClick={() => setShowUserMenu(false)}
+                                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
+                                    >
+                                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>settings</span>
+                                        Configuración
+                                    </Link>
                                     <button
                                         onClick={handleSignOut}
                                         className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"

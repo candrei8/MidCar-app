@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { FileText, Upload, X, Check, Eye, Trash2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,17 @@ interface DocumentUploaderProps {
 
 export function DocumentUploader({ onDocumentsChange }: DocumentUploaderProps) {
     const [documents, setDocuments] = useState<UploadedDocument[]>([]);
+    const isFirstRender = useRef(true);
+
+    // Call onDocumentsChange after state update (not during render)
+    useEffect(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
+        onDocumentsChange(documents);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [documents]);
 
     const onDrop = useCallback((acceptedFiles: File[], docType: string) => {
         const newDocs = acceptedFiles.map(file => Object.assign(file, {
@@ -31,18 +42,12 @@ export function DocumentUploader({ onDocumentsChange }: DocumentUploaderProps) {
         setDocuments(prev => {
             // Remove existing document of same type if any
             const filtered = prev.filter(d => d.docType !== docType);
-            const updated = [...filtered, ...newDocs];
-            onDocumentsChange(updated);
-            return updated;
+            return [...filtered, ...newDocs];
         });
-    }, [onDocumentsChange]);
+    }, []);
 
     const removeDocument = (docType: string) => {
-        setDocuments(prev => {
-            const updated = prev.filter(d => d.docType !== docType);
-            onDocumentsChange(updated);
-            return updated;
-        });
+        setDocuments(prev => prev.filter(d => d.docType !== docType));
     };
 
     const getDocument = (docType: string) => documents.find(d => d.docType === docType);
@@ -54,10 +59,10 @@ export function DocumentUploader({ onDocumentsChange }: DocumentUploaderProps) {
                 {TIPOS_DOCUMENTO_VEHICULO.map((type) => {
                     const doc = getDocument(type.value);
                     return (
-                        <DocumentRow 
-                            key={type.value} 
-                            type={type} 
-                            document={doc} 
+                        <DocumentRow
+                            key={type.value}
+                            type={type}
+                            document={doc}
                             onDrop={(files) => onDrop(files, type.value)}
                             onRemove={() => removeDocument(type.value)}
                         />
@@ -95,7 +100,7 @@ function DocumentRow({ type, document, onDrop, onRemove }: DocumentRowProps) {
             isDragActive && "border-primary bg-primary/5"
         )} {...getRootProps()}>
             <input {...getInputProps()} />
-            
+
             <div className="flex items-center gap-4 flex-1">
                 <div className={cn(
                     "h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0",
@@ -103,7 +108,7 @@ function DocumentRow({ type, document, onDrop, onRemove }: DocumentRowProps) {
                 )}>
                     {document ? <Check className="h-5 w-5" /> : <FileText className="h-5 w-5" />}
                 </div>
-                
+
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                         <span className={cn("font-medium truncate", document ? "text-foreground" : "text-muted-foreground")}>
@@ -126,20 +131,20 @@ function DocumentRow({ type, document, onDrop, onRemove }: DocumentRowProps) {
             <div className="flex items-center gap-2">
                 {document ? (
                     <>
-                         <Button 
-                            variant="ghost" 
-                            size="icon" 
+                        <Button
+                            variant="ghost"
+                            size="icon"
                             className="h-8 w-8 text-muted-foreground hover:text-foreground"
                             onClick={(e) => {
                                 e.stopPropagation();
-                                if(document.preview) window.open(document.preview, '_blank');
+                                if (document.preview) window.open(document.preview, '_blank');
                             }}
                         >
                             <Eye className="h-4 w-4" />
                         </Button>
-                        <Button 
-                            variant="ghost" 
-                            size="icon" 
+                        <Button
+                            variant="ghost"
+                            size="icon"
                             className="h-8 w-8 text-destructive hover:bg-destructive/10"
                             onClick={(e) => {
                                 e.stopPropagation();
@@ -150,9 +155,9 @@ function DocumentRow({ type, document, onDrop, onRemove }: DocumentRowProps) {
                         </Button>
                     </>
                 ) : (
-                    <Button 
-                        variant="outline" 
-                        size="sm" 
+                    <Button
+                        variant="outline"
+                        size="sm"
                         onClick={open}
                         className={cn("gap-2", isDragActive && "border-primary text-primary")}
                     >

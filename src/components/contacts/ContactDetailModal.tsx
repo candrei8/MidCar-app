@@ -10,8 +10,10 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { cn, formatDate, formatCurrency } from "@/lib/utils"
 import { Contact, Vehicle } from "@/types"
-import { mockVehicles } from "@/lib/mock-data"
-import { ESTADOS_BACKOFFICE, ORIGENES_CONTACTO } from "@/lib/constants" // Removed unused constants
+import { useFilteredData } from "@/hooks/useFilteredData"
+import { ESTADOS_BACKOFFICE, ORIGENES_CONTACTO } from "@/lib/constants"
+import { deleteContact } from "@/lib/supabase-service"
+import { useToast } from "@/components/ui/toast"
 
 // Modales de acción (se mantienen logicamente, visualmente se activan desde los botones nuevos)
 import { NewInteractionModal, InteractionData } from "./NewInteractionModal"
@@ -26,23 +28,48 @@ interface ContactDetailModalProps {
     open: boolean
     onClose: () => void
     onStatusChange?: (contactId: string, newStatus: string) => void
+    onDelete?: (contactId: string) => void
 }
 
-export function ContactDetailModal({ contact, open, onClose, onStatusChange }: ContactDetailModalProps) {
+export function ContactDetailModal({ contact, open, onClose, onStatusChange, onDelete }: ContactDetailModalProps) {
+    const { addToast } = useToast()
     const [activeTab, setActiveTab] = useState<'cronologia' | 'vehiculos' | 'notas'>('cronologia')
+    const { vehicles } = useFilteredData()
 
     // Estados mantenidos para funcionalidad
     const [showInteractionModal, setShowInteractionModal] = useState(false)
     const [showTaskModal, setShowTaskModal] = useState(false)
     const [showDocumentModal, setShowDocumentModal] = useState(false)
     const [documentType, setDocumentType] = useState<'proforma' | 'senal' | 'contrato' | 'factura'>('proforma')
-    const [interactions, setInteractions] = useState<InteractionData[]>([]) // Mocked timeline for now
+    const [interactions, setInteractions] = useState<InteractionData[]>([])
     const [tasks, setTasks] = useState<TaskData[]>([])
     const [estadoLead, setEstadoLead] = useState(contact.estado)
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+    const [isDeleting, setIsDeleting] = useState(false)
+
+    const handleDelete = async () => {
+        setIsDeleting(true)
+        try {
+            const success = await deleteContact(contact.id)
+            if (success) {
+                addToast('Contacto eliminado correctamente', 'success')
+                onDelete?.(contact.id)
+                onClose()
+            } else {
+                addToast('Error al eliminar el contacto', 'error')
+            }
+        } catch (error) {
+            console.error('Error deleting contact:', error)
+            addToast('Error al eliminar el contacto', 'error')
+        } finally {
+            setIsDeleting(false)
+            setShowDeleteConfirm(false)
+        }
+    }
 
     // Obtener vehículos
     const contactVehicles = contact.vehiculos_interes
-        .map(id => mockVehicles.find(v => v.id === id))
+        .map(id => vehicles.find(v => v.id === id))
         .filter(Boolean) as Vehicle[]
 
     // Handlers (simplificados para la demo visual, manteniendo lógica básica)
@@ -75,9 +102,15 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange }: C
                             <span className="material-symbols-outlined text-[#135bec] text-2xl">arrow_back</span>
                         </button>
                         <h2 className="text-black dark:text-white text-lg font-bold leading-tight tracking-tight flex-1 text-center">Ficha de Contacto</h2>
-                        <div className="flex w-10 items-center justify-end">
+                        <div className="flex items-center gap-1">
                             <button className="flex size-10 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-[#135bec]">
                                 <span className="material-symbols-outlined text-xl">edit</span>
+                            </button>
+                            <button
+                                onClick={() => setShowDeleteConfirm(true)}
+                                className="flex size-10 items-center justify-center rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-red-500"
+                            >
+                                <span className="material-symbols-outlined text-xl">delete</span>
                             </button>
                         </div>
                     </div>
@@ -102,15 +135,52 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange }: C
                                     <span className="px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 text-xs font-medium text-[#3c3c4399] dark:text-[#ebebf599]">
                                         ID: #{contact.id.substring(0, 4)}
                                     </span>
-                                    <span className="px-2 py-0.5 rounded-md bg-green-100 dark:bg-green-900/30 text-xs font-medium text-green-700 dark:text-green-400">
-                                        Online hace 2h
-                                    </span>
+                                    {contact.origen && (
+                                        <span className="px-2 py-0.5 rounded-md bg-blue-100 dark:bg-blue-900/30 text-xs font-medium text-blue-700 dark:text-blue-400 capitalize">
+                                            {contact.origen}
+                                        </span>
+                                    )}
                                 </div>
-                                <p className="text-[#3c3c4399] dark:text-[#ebebf599] text-sm mt-2 font-medium text-center">
-                                    Interesado en {contact.vehiculos_interes.length > 0 ? 'Vehículo seleccionado' : 'Varios'} • Madrid
-                                </p>
+                                {contact.vehiculos_interes.length > 0 && (
+                                    <p className="text-[#3c3c4399] dark:text-[#ebebf599] text-sm mt-2 font-medium text-center">
+                                        {contact.vehiculos_interes.length} vehículo{contact.vehiculos_interes.length > 1 ? 's' : ''} de interés
+                                    </p>
+                                )}
                             </div>
                         </div>
+
+                        {/* Creator Info Card */}
+                        {(contact.created_by_name || contact.created_at) && (
+                            <div className="mx-4 mb-4 p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-100 dark:border-indigo-800">
+                                <div className="flex items-center justify-between">
+                                    {contact.created_by_name && (
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center">
+                                                <span className="material-symbols-outlined text-indigo-600 dark:text-indigo-400 text-sm">person</span>
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] text-indigo-500 dark:text-indigo-400 uppercase tracking-wider font-medium">Creado por</p>
+                                                <p className="text-sm font-semibold text-indigo-700 dark:text-indigo-300">{contact.created_by_name}</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {contact.created_at && (
+                                        <div className="text-right">
+                                            <p className="text-[10px] text-indigo-500 dark:text-indigo-400 uppercase tracking-wider font-medium">Fecha</p>
+                                            <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400">
+                                                {new Date(contact.created_at).toLocaleDateString('es-ES', {
+                                                    day: '2-digit',
+                                                    month: '2-digit',
+                                                    year: 'numeric',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit'
+                                                })}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
 
                         {/* ActionsBar */}
                         <div className="grid grid-cols-4 gap-2 px-4 mb-6">
@@ -239,45 +309,34 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange }: C
                                         )
                                     })}
 
-                                    {/* Mock Timeline Item 1 */}
-                                    <div className="relative">
-                                        <div className="absolute -left-[25px] mt-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30 border-2 border-white dark:border-[#000000]">
-                                            <span className="material-symbols-outlined text-red-600 dark:text-red-400 text-sm">phone_missed</span>
-                                        </div>
-                                        <div className="bg-white dark:bg-[#1c1c1e] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
-                                            <div className="flex justify-between items-start mb-1">
-                                                <h4 className="text-base font-bold text-black dark:text-white">Llamada perdida</h4>
-                                                <span className="text-xs text-[#3c3c4399] dark:text-[#ebebf599] font-medium">Hace 2 horas</span>
+                                    {/* Vehículo de interés si existe */}
+                                    {selectedVehicleFromContact(contactVehicles) && (
+                                        <div className="relative">
+                                            <div className="absolute -left-[25px] mt-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30 border-2 border-white dark:border-[#000000]">
+                                                <span className="material-symbols-outlined text-[#135bec] text-sm">directions_car</span>
                                             </div>
-                                            <p className="text-sm text-[#3c3c4399] dark:text-[#ebebf599]">Llamada saliente sin respuesta. Dejar mensaje de voz.</p>
-                                        </div>
-                                    </div>
-
-                                    {/* Mock Timeline Item 2 */}
-                                    <div className="relative">
-                                        <div className="absolute -left-[25px] mt-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30 border-2 border-white dark:border-[#000000]">
-                                            <span className="material-symbols-outlined text-[#135bec] text-sm">directions_car</span>
-                                        </div>
-                                        <div className="bg-white dark:bg-[#1c1c1e] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
-                                            <div className="flex justify-between items-start mb-1">
-                                                <h4 className="text-base font-bold text-black dark:text-white">Prueba de Vehículo</h4>
-                                                <span className="text-xs text-[#3c3c4399] dark:text-[#ebebf599] font-medium">Ayer, 16:30</span>
-                                            </div>
-                                            <p className="text-sm text-[#3c3c4399] dark:text-[#ebebf599] mb-3">Realizó prueba del Audi Q3. Comentó que le gusta el espacio del maletero pero duda del color.</p>
-
-                                            {selectedVehicleFromContact(contactVehicles) && (
+                                            <div className="bg-white dark:bg-[#1c1c1e] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+                                                <div className="flex justify-between items-start mb-1">
+                                                    <h4 className="text-base font-bold text-black dark:text-white">Vehículo de interés</h4>
+                                                </div>
                                                 <div className="flex gap-3 items-center bg-gray-50 dark:bg-gray-800/50 p-2 rounded-lg border border-gray-100 dark:border-gray-700">
-                                                    <div className="w-12 h-12 rounded-md bg-cover bg-center" style={{ backgroundImage: `url(${selectedVehicleFromContact(contactVehicles)?.imagen_principal})` }}></div>
+                                                    <div className="w-12 h-12 rounded-md bg-cover bg-center bg-gray-200" style={{ backgroundImage: selectedVehicleFromContact(contactVehicles)?.imagen_principal ? `url(${selectedVehicleFromContact(contactVehicles)?.imagen_principal})` : 'none' }}>
+                                                        {!selectedVehicleFromContact(contactVehicles)?.imagen_principal && (
+                                                            <div className="w-full h-full flex items-center justify-center">
+                                                                <span className="material-symbols-outlined text-gray-400">directions_car</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                     <div>
                                                         <p className="text-sm font-bold dark:text-white">{selectedVehicleFromContact(contactVehicles)?.marca} {selectedVehicleFromContact(contactVehicles)?.modelo}</p>
-                                                        <p className="text-xs text-gray-500 dark:text-gray-400">Ref: {selectedVehicleFromContact(contactVehicles)?.id.substring(0, 5)} • {formatCurrency(selectedVehicleFromContact(contactVehicles)?.precio_venta || 0)}</p>
+                                                        <p className="text-xs text-gray-500 dark:text-gray-400">{formatCurrency(selectedVehicleFromContact(contactVehicles)?.precio_venta || 0)}</p>
                                                     </div>
                                                 </div>
-                                            )}
+                                            </div>
                                         </div>
-                                    </div>
+                                    )}
 
-                                    {/* Start Item */}
+                                    {/* Contacto Creado */}
                                     <div className="relative">
                                         <div className="absolute -left-[25px] mt-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 border-2 border-white dark:border-[#000000]">
                                             <span className="material-symbols-outlined text-gray-500 dark:text-gray-400 text-sm">person_add</span>
@@ -316,21 +375,25 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange }: C
                                         )}
                                     </div>
 
-                                    <h3 className="text-lg font-bold text-black dark:text-white mt-6 mb-3">Sugerencias (Mock)</h3>
-                                    <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar opacity-60 grayscale hover:grayscale-0 transition-all">
-                                        {mockVehicles.slice(0, 2).map(vehicle => (
-                                            <div key={vehicle.id} className="w-64 flex-shrink-0 bg-white dark:bg-[#1c1c1e] rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden group">
-                                                <div className="h-32 bg-cover bg-center relative" style={{ backgroundImage: `url(${vehicle.imagen_principal})` }}>
-                                                </div>
-                                                <div className="p-3">
-                                                    <h4 className="font-bold text-black dark:text-white">{vehicle.marca} {vehicle.modelo}</h4>
-                                                    <div className="flex justify-between items-center mt-2">
-                                                        <span className="text-gray-500 font-bold">{formatCurrency(vehicle.precio_venta)}</span>
+                                    {vehicles.length > 0 && (
+                                        <>
+                                            <h3 className="text-lg font-bold text-black dark:text-white mt-6 mb-3">Otros vehículos disponibles</h3>
+                                            <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+                                                {vehicles.filter(v => v.estado === 'disponible').slice(0, 3).map(vehicle => (
+                                                    <div key={vehicle.id} className="w-64 flex-shrink-0 bg-white dark:bg-[#1c1c1e] rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden group">
+                                                        <div className="h-32 bg-cover bg-center relative" style={{ backgroundImage: `url(${vehicle.imagen_principal || '/placeholder-car.svg'})` }}>
+                                                        </div>
+                                                        <div className="p-3">
+                                                            <h4 className="font-bold text-black dark:text-white">{vehicle.marca} {vehicle.modelo}</h4>
+                                                            <div className="flex justify-between items-center mt-2">
+                                                                <span className="text-gray-500 font-bold">{formatCurrency(vehicle.precio_venta)}</span>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                </div>
+                                                ))}
                                             </div>
-                                        ))}
-                                    </div>
+                                        </>
+                                    )}
                                 </div>
                             )}
 
@@ -347,19 +410,10 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange }: C
                                         </div>
                                     </div>
 
-                                    {/* Saved Notes List */}
-                                    <div className="space-y-3">
-                                        <div className="flex gap-3 items-start">
-                                            <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center shrink-0">
-                                                <span className="text-xs font-bold text-gray-600 dark:text-gray-300">YO</span>
-                                            </div>
-                                            <div className="flex-1">
-                                                <div className="bg-white dark:bg-gray-800 p-3 rounded-tr-xl rounded-br-xl rounded-bl-xl shadow-sm text-sm text-black dark:text-white">
-                                                    Cliente prefiere contacto por las tardes a partir de las 18:00h. Está mirando financiación con su banco también.
-                                                </div>
-                                                <span className="text-[10px] text-gray-400 ml-1 mt-1 block">Ayer, 10:15 AM</span>
-                                            </div>
-                                        </div>
+                                    {/* Empty state cuando no hay notas */}
+                                    <div className="text-center py-8">
+                                        <span className="material-symbols-outlined text-4xl text-gray-300 dark:text-gray-600 mb-2 block">edit_note</span>
+                                        <p className="text-sm text-gray-400 dark:text-gray-500">Sin notas aún. Añade una nota para recordar detalles importantes.</p>
                                     </div>
                                 </div>
                             )}
@@ -384,6 +438,37 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange }: C
             <AddTaskModal open={showTaskModal} onClose={() => setShowTaskModal(false)} contactId={contact.id} contactName={`${contact.nombre}`} onSave={handleSaveTask} />
             <DocumentModal open={showDocumentModal} onClose={() => setShowDocumentModal(false)} type={documentType} contact={contact} vehicle={contactVehicles[0]} onGenerate={() => { }} />
 
+            {/* Delete Confirmation Dialog */}
+            <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+                <DialogContent className="max-w-sm p-0 overflow-hidden gap-0">
+                    <DialogTitle className="sr-only">Eliminar Contacto</DialogTitle>
+                    <div className="p-6 text-center">
+                        <div className="mx-auto w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mb-4">
+                            <span className="material-symbols-outlined text-3xl text-red-500">delete_forever</span>
+                        </div>
+                        <h3 className="text-xl font-bold mb-2">Eliminar Contacto</h3>
+                        <p className="text-gray-500 dark:text-gray-400 mb-6">
+                            ¿Estás seguro de que quieres eliminar este contacto? Esta acción no se puede deshacer.
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setShowDeleteConfirm(false)}
+                                className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                                disabled={isDeleting}
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleDelete}
+                                disabled={isDeleting}
+                                className="flex-1 px-4 py-2.5 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors disabled:opacity-50"
+                            >
+                                {isDeleting ? 'Eliminando...' : 'Eliminar'}
+                            </button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </>
     )
 }

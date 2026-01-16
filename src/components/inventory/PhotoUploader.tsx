@@ -1,16 +1,38 @@
 "use client"
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload, X, Star, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { DragDropContext, Droppable, Draggable, OnDragEndResponder } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, Draggable, OnDragEndResponder, DroppableProps } from 'react-beautiful-dnd';
 
-export interface UploadedFile extends File {
+// StrictModeDroppable wrapper to fix react-beautiful-dnd + React 18 compatibility
+function StrictModeDroppable({ children, ...props }: DroppableProps) {
+    const [enabled, setEnabled] = useState(false);
+
+    useEffect(() => {
+        const animation = requestAnimationFrame(() => setEnabled(true));
+        return () => {
+            cancelAnimationFrame(animation);
+            setEnabled(false);
+        };
+    }, []);
+
+    if (!enabled) {
+        return null;
+    }
+
+    return <Droppable {...props}>{children}</Droppable>;
+}
+
+// Separate interface - don't extend File
+export interface UploadedFile {
+    file: File;
     preview: string;
     id: string;
     progress: number;
+    name: string;
 }
 
 interface PhotoUploaderProps {
@@ -21,41 +43,67 @@ interface PhotoUploaderProps {
 export function PhotoUploader({ onFilesChange, onPrincipalChange }: PhotoUploaderProps) {
     const [files, setFiles] = useState<UploadedFile[]>([]);
     const [principal, setPrincipal] = useState<string | null>(null);
+    const urlsRef = useRef<string[]>([]);
+    const intervalsRef = useRef<NodeJS.Timeout[]>([]);
+
+    // Cleanup intervals on unmount
+    useEffect(() => {
+        return () => {
+            intervalsRef.current.forEach(clearInterval);
+        };
+    }, []);
 
     const onDrop = useCallback((acceptedFiles: File[]) => {
-        const newFiles = acceptedFiles.map(file => Object.assign(file, {
-            preview: URL.createObjectURL(file),
-            id: `${file.name}-${file.lastModified}-${Math.random()}`,
-            progress: 0,
-        }));
+        const newFiles: UploadedFile[] = acceptedFiles.map(file => {
+            const previewUrl = URL.createObjectURL(file);
+            urlsRef.current.push(previewUrl);
 
-        const combinedFiles = [...files, ...newFiles].slice(0, 20);
-        setFiles(combinedFiles);
-        onFilesChange(combinedFiles);
+            return {
+                file: file,
+                preview: previewUrl,
+                id: `${file.name}-${file.lastModified}-${Math.random()}`,
+                progress: 0,
+                name: file.name,
+            };
+        });
 
-        // Set principal if it's the first image
-        if (files.length === 0 && combinedFiles.length > 0) {
-            const firstFileId = combinedFiles[0].id;
-            setPrincipal(firstFileId);
-            onPrincipalChange(firstFileId);
-        }
+        // Calculate combined files outside of setState
+        setFiles(prev => {
+            const combinedFiles = [...prev, ...newFiles].slice(0, 20);
+            const isFirstUpload = prev.length === 0 && combinedFiles.length > 0;
+            const firstFileId = combinedFiles[0]?.id || null;
 
-        // Simulate upload progress
-        combinedFiles.forEach(file => {
-            if (file.progress === 0) {
+            // Schedule all parent updates for next tick to avoid setState during render
+            queueMicrotask(() => {
+                if (isFirstUpload && firstFileId) {
+                    setPrincipal(firstFileId);
+                    onPrincipalChange(firstFileId);
+                }
+                onFilesChange(combinedFiles);
+            });
+
+            // Simulate upload progress for new files
+            newFiles.forEach(newFile => {
                 let progress = 0;
                 const interval = setInterval(() => {
                     progress += 10;
                     if (progress >= 100) {
                         clearInterval(interval);
+                        intervalsRef.current = intervalsRef.current.filter(i => i !== interval);
                         progress = 100;
                     }
-                    setFiles(prevFiles => prevFiles.map(f => f.id === file.id ? { ...f, progress } : f));
+                    setFiles(currentFiles =>
+                        currentFiles.map(f =>
+                            f.id === newFile.id ? { ...f, progress } : f
+                        )
+                    );
                 }, 100);
-            }
-        });
+                intervalsRef.current.push(interval);
+            });
 
-    }, [files, onFilesChange, onPrincipalChange]);
+            return combinedFiles;
+        });
+    }, [onFilesChange, onPrincipalChange]);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
@@ -65,15 +113,29 @@ export function PhotoUploader({ onFilesChange, onPrincipalChange }: PhotoUploade
     });
 
     const removeFile = (fileId: string) => {
-        const newFiles = files.filter(file => file.id !== fileId);
-        setFiles(newFiles);
-        onFilesChange(newFiles);
-
-        if (principal === fileId) {
+        setFiles(prev => {
+            const fileToRemove = prev.find(f => f.id === fileId);
+            const newFiles = prev.filter(f => f.id !== fileId);
+            const needsNewPrincipal = principal === fileId;
             const newPrincipalId = newFiles.length > 0 ? newFiles[0].id : null;
-            setPrincipal(newPrincipalId);
-            onPrincipalChange(newPrincipalId);
-        }
+
+            // Revoke URL of removed file
+            if (fileToRemove) {
+                URL.revokeObjectURL(fileToRemove.preview);
+                urlsRef.current = urlsRef.current.filter(url => url !== fileToRemove.preview);
+            }
+
+            // Schedule parent updates for next tick
+            queueMicrotask(() => {
+                if (needsNewPrincipal) {
+                    setPrincipal(newPrincipalId);
+                    onPrincipalChange(newPrincipalId);
+                }
+                onFilesChange(newFiles);
+            });
+
+            return newFiles;
+        });
     };
 
     const handleSetPrincipal = (fileId: string) => {
@@ -86,19 +148,22 @@ export function PhotoUploader({ onFilesChange, onPrincipalChange }: PhotoUploade
             return;
         }
 
-        const items = Array.from(files);
-        const [reorderedItem] = items.splice(result.source.index, 1);
-        items.splice(result.destination.index, 0, reorderedItem);
-
-        setFiles(items);
-        onFilesChange(items);
+        setFiles(prev => {
+            const items = Array.from(prev);
+            const [reorderedItem] = items.splice(result.source.index, 1);
+            items.splice(result.destination!.index, 0, reorderedItem);
+            // Defer parent notification
+            queueMicrotask(() => onFilesChange(items));
+            return items;
+        });
     };
-    
-    useEffect(() => {
-        // Make sure to revoke the data uris to avoid memory leaks
-        return () => files.forEach(file => URL.revokeObjectURL(file.preview));
-    }, [files]);
 
+    // Cleanup URLs only on unmount
+    useEffect(() => {
+        return () => {
+            urlsRef.current.forEach(url => URL.revokeObjectURL(url));
+        };
+    }, []);
 
     return (
         <div className="space-y-4">
@@ -123,32 +188,40 @@ export function PhotoUploader({ onFilesChange, onPrincipalChange }: PhotoUploade
                 <div>
                     <h4 className="text-sm font-medium mb-2">Fotos subidas ({files.length}/20):</h4>
                     <DragDropContext onDragEnd={onDragEnd}>
-                        <Droppable droppableId="photos-list" direction="horizontal">
+                        <StrictModeDroppable droppableId="photos-list" direction="horizontal">
                             {(provided) => (
                                 <div
                                     {...provided.droppableProps}
                                     ref={provided.innerRef}
                                     className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4"
                                 >
-                                    {files.map((file, index) => (
-                                        <Draggable key={file.id} draggableId={file.id} index={index}>
+                                    {files.map((fileData, index) => (
+                                        <Draggable key={fileData.id} draggableId={fileData.id} index={index}>
                                             {(provided, snapshot) => (
                                                 <div
                                                     ref={provided.innerRef}
                                                     {...provided.draggableProps}
                                                     className={`relative group aspect-square ${snapshot.isDragging ? 'shadow-lg' : ''}`}
                                                 >
-                                                    <div className="relative w-full h-full">
+                                                    <div className="relative w-full h-full rounded-lg overflow-hidden bg-gray-100">
                                                         <img
-                                                            src={file.preview}
-                                                            alt={file.name}
-                                                            className="w-full h-full object-cover rounded-lg"
+                                                            src={fileData.preview}
+                                                            alt={fileData.name}
+                                                            className="w-full h-full object-cover"
+                                                            onError={(e) => {
+                                                                console.error('Image load error:', fileData.preview);
+                                                                e.currentTarget.src = '/placeholder-car.svg';
+                                                            }}
                                                         />
-                                                        {file.progress < 100 &&
-                                                            <Progress value={file.progress} className="absolute bottom-0 left-0 right-0 h-1" />
-                                                        }
+                                                        {fileData.progress < 100 && (
+                                                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                                                <div className="w-3/4">
+                                                                    <Progress value={fileData.progress} className="h-2" />
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                         <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                           <div {...provided.dragHandleProps} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 cursor-move text-white">
+                                                            <div {...provided.dragHandleProps} className="cursor-move text-white">
                                                                 <GripVertical size={24} />
                                                             </div>
                                                         </div>
@@ -159,17 +232,17 @@ export function PhotoUploader({ onFilesChange, onPrincipalChange }: PhotoUploade
                                                             type="button"
                                                             variant="secondary"
                                                             size="icon"
-                                                            className={`h-6 w-6 opacity-70 group-hover:opacity-100 transition-all ${principal === file.id ? 'bg-yellow-400 hover:bg-yellow-500 text-black' : ''}`}
-                                                            onClick={() => handleSetPrincipal(file.id)}
+                                                            className={`h-6 w-6 opacity-70 group-hover:opacity-100 transition-all ${principal === fileData.id ? 'bg-yellow-400 hover:bg-yellow-500 text-black' : ''}`}
+                                                            onClick={() => handleSetPrincipal(fileData.id)}
                                                         >
-                                                            <Star className={`h-4 w-4 ${principal === file.id ? 'fill-current' : ''}`} />
+                                                            <Star className={`h-4 w-4 ${principal === fileData.id ? 'fill-current' : ''}`} />
                                                         </Button>
                                                         <Button
                                                             type="button"
                                                             variant="destructive"
                                                             size="icon"
                                                             className="h-6 w-6 opacity-70 group-hover:opacity-100 transition-opacity"
-                                                            onClick={() => removeFile(file.id)}
+                                                            onClick={() => removeFile(fileData.id)}
                                                         >
                                                             <X className="h-4 w-4" />
                                                         </Button>
@@ -181,11 +254,10 @@ export function PhotoUploader({ onFilesChange, onPrincipalChange }: PhotoUploade
                                     {provided.placeholder}
                                 </div>
                             )}
-                        </Droppable>
+                        </StrictModeDroppable>
                     </DragDropContext>
                 </div>
             )}
         </div>
     );
 }
-

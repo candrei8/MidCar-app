@@ -4,10 +4,23 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
+// Debug: Log configuration status (only in browser, not during build)
+if (typeof window !== 'undefined') {
+    console.log('Supabase Config Debug:', {
+        urlExists: !!supabaseUrl,
+        urlLength: supabaseUrl.length,
+        keyExists: !!supabaseAnonKey,
+        keyLength: supabaseAnonKey.length,
+        urlStart: supabaseUrl.substring(0, 30) + '...'
+    })
+}
+
 // Check if Supabase is properly configured
 export const isSupabaseConfigured = Boolean(
     supabaseUrl &&
     supabaseAnonKey &&
+    supabaseUrl.length > 10 &&
+    supabaseAnonKey.length > 10 &&
     !supabaseUrl.includes('placeholder')
 )
 
@@ -95,6 +108,7 @@ export type Database = {
                     dias_en_stock: number
                     garantia_meses: number
                     tipo_garantia: string | null
+                    fecha_itv_vencimiento: string | null
                     imagen_principal: string | null
                     url_web: string | null
                     datos_sincronizados: boolean

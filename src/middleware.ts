@@ -5,7 +5,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 type CookieToSet = { name: string; value: string; options: CookieOptions }
 
 // Routes that require authentication
-const protectedRoutes = ['/dashboard', '/inventario', '/contactos', '/crm', '/seguro']
+const protectedRoutes = ['/dashboard', '/inventario', '/contactos', '/crm', '/seguro', '/contratos']
 
 // Routes that should redirect to dashboard if already authenticated
 const authRoutes = ['/login', '/registro']
@@ -71,11 +71,6 @@ export async function middleware(request: NextRequest) {
         }
     )
 
-    // Get user session - use getSession() instead of getUser() for performance
-    // getSession() reads from cookies locally, getUser() makes a network request
-    const { data: { session } } = await supabase.auth.getSession()
-    const user = session?.user ?? null
-
     // Check if current route is protected
     const isProtectedRoute = protectedRoutes.some(route =>
         pathname === route || pathname.startsWith(`${route}/`)
@@ -86,20 +81,45 @@ export async function middleware(request: NextRequest) {
         pathname === route || pathname.startsWith(`${route}/`)
     )
 
-    // If trying to access protected route without auth, redirect to login
-    if (isProtectedRoute && !user) {
-        const loginUrl = new URL('/login', request.url)
-        loginUrl.searchParams.set('redirect', pathname)
-        return NextResponse.redirect(loginUrl)
+    // SECURITY: For protected routes, use getUser() which validates with Supabase server
+    // This prevents bypassing auth with stale/fake cookies
+    if (isProtectedRoute) {
+        const { data: { user }, error } = await supabase.auth.getUser()
+
+        // If no valid user or error, force redirect to login
+        if (error || !user) {
+            // Clear any stale auth cookies
+            const loginUrl = new URL('/login', request.url)
+            loginUrl.searchParams.set('redirect', pathname)
+
+            const redirectResponse = NextResponse.redirect(loginUrl)
+            // Clear auth cookies to prevent cache issues
+            redirectResponse.cookies.delete('sb-access-token')
+            redirectResponse.cookies.delete('sb-refresh-token')
+
+            return redirectResponse
+        }
+
+        // Add cache-control headers to prevent caching of protected pages
+        response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
+        response.headers.set('Pragma', 'no-cache')
+        response.headers.set('Expires', '0')
+
+        return response
     }
 
-    // If trying to access auth routes while already authenticated, redirect to dashboard
-    if (isAuthRoute && user) {
-        return NextResponse.redirect(new URL('/dashboard', request.url))
+    // For auth routes, use getSession() (faster, reads from cookies)
+    // It's OK if stale session redirects to dashboard - user will see login required
+    if (isAuthRoute) {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session?.user) {
+            return NextResponse.redirect(new URL('/dashboard', request.url))
+        }
     }
 
     // Handle root path
     if (pathname === '/') {
+        const { data: { user } } = await supabase.auth.getUser()
         if (user) {
             return NextResponse.redirect(new URL('/dashboard', request.url))
         } else {

@@ -1,11 +1,7 @@
 import { EditVehicleClient } from "./EditVehicleClient"
-import { mockVehicles } from "@/lib/mock-data"
 
-export function generateStaticParams() {
-    return mockVehicles.map((vehicle) => ({
-        id: vehicle.id,
-    }))
-}
+// Allow dynamic routes - all vehicles come from Supabase
+export const dynamic = 'force-dynamic'
 
 export default async function EditarVehiculoPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params

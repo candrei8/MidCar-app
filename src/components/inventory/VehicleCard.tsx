@@ -1,10 +1,12 @@
 "use client"
 
+import { memo, useMemo } from "react"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import {
     Calendar,
     Gauge as GaugeIcon,
+    User,
 } from "lucide-react"
 import { formatCurrency, cn } from "@/lib/utils"
 import type { Vehicle } from "@/types"
@@ -12,10 +14,25 @@ import Link from "next/link"
 
 interface VehicleCardProps {
     vehicle: Vehicle
+    showCreator?: boolean // Para mostrar quién creó el vehículo
 }
 
-export function VehicleCard({ vehicle }: VehicleCardProps) {
-    const precioFinal = vehicle.precio_venta - vehicle.descuento
+export const VehicleCard = memo(function VehicleCard({ vehicle, showCreator = true }: VehicleCardProps) {
+    const precioFinal = useMemo(
+        () => vehicle.precio_venta - vehicle.descuento,
+        [vehicle.precio_venta, vehicle.descuento]
+    )
+
+    // Formatear la fecha de creación de forma corta
+    const formattedCreatedAt = useMemo(() => {
+        if (!vehicle.created_at) return null
+        const date = new Date(vehicle.created_at)
+        return date.toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: '2-digit'
+        })
+    }, [vehicle.created_at])
 
     return (
         <Link href={`/inventario/${vehicle.id}`}>
@@ -24,7 +41,7 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
                 <div className="relative aspect-[4/3] overflow-hidden">
                     <div
                         className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
-                        style={{ backgroundImage: `url(${vehicle.imagen_principal})` }}
+                        style={{ backgroundImage: `url(${vehicle.imagen_principal || '/placeholder-car.svg'})` }}
                     />
 
                     {/* Gradient overlay */}
@@ -91,8 +108,25 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
                             {vehicle.combustible}
                         </span>
                     </div>
+
+                    {/* Creator info - shows who created the vehicle and when */}
+                    {showCreator && vehicle.created_by_name && (
+                        <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
+                            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                <User className="h-3 w-3" />
+                                <span className="font-medium text-primary truncate max-w-[120px]">
+                                    {vehicle.created_by_name}
+                                </span>
+                            </span>
+                            {formattedCreatedAt && (
+                                <span className="text-xs text-muted-foreground">
+                                    {formattedCreatedAt}
+                                </span>
+                            )}
+                        </div>
+                    )}
                 </div>
             </Card>
         </Link>
     )
-}
+})

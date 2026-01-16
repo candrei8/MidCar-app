@@ -45,3 +45,8 @@ next-env.d.ts
 
 # Netlify
 .netlify
+
+# Temporary files
+tmpclaude-*
+*.tmp
+*.temp

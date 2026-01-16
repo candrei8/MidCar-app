@@ -57,9 +57,15 @@ export interface Vehicle {
     garantia_meses: number
     tipo_garantia: string
 
+    // ITV
+    fecha_itv_vencimiento?: string  // Fecha de vencimiento de la ITV (ISO date)
+
     // Images
     imagen_principal: string
     imagenes: VehicleImage[]
+
+    // Documents
+    documentos?: VehicleDocument[]
 
     // Web Link
     url_web?: string
@@ -75,6 +81,7 @@ export interface Vehicle {
 
     // User tracking
     created_by?: string  // ID del usuario que creó el vehículo
+    created_by_name?: string  // Nombre del usuario que creó el vehículo
 }
 
 export interface VehicleImage {
@@ -84,6 +91,15 @@ export interface VehicleImage {
     es_principal: boolean
     orden: number
     tipo: 'exterior' | 'interior' | 'motor' | 'detalle'
+}
+
+export interface VehicleDocument {
+    id: string
+    vehiculo_id: string
+    nombre: string
+    tipo: string  // ficha_tecnica, permiso_circulacion, itv, contrato, etc.
+    url: string   // base64 data URL
+    fecha_subida: string
 }
 
 export interface VehicleEquipment {
@@ -147,6 +163,13 @@ export interface Lead {
 
     // User tracking
     created_by?: string  // ID del usuario que creó el lead
+    created_by_name?: string  // Nombre del usuario que creó el lead
+
+    // Datos del cliente embebidos (para leads sin cliente_id)
+    cliente_nombre?: string
+    cliente_apellidos?: string
+    cliente_email?: string
+    cliente_telefono?: string
 
     // Joined data
     cliente?: Client
@@ -369,6 +392,7 @@ export interface Contact {
 
     // User tracking
     created_by?: string  // ID del usuario que creó el contacto
+    created_by_name?: string  // Nombre del usuario que creó el contacto
 
     // Relaciones (joined data)
     vehiculos?: Vehicle[]
@@ -479,4 +503,268 @@ export const INSURANCE_STATE_CONFIG: Record<InsuranceState, { label: string; col
     por_vencer: { label: 'Por vencer', color: '#eab308', icon: 'clock' },
     vencido: { label: 'Vencido', color: '#f97316', icon: 'shield-x' },
     en_tramite: { label: 'En trámite', color: '#3b82f6', icon: 'loader' },
+}
+
+// ============================================================================
+// CONTRACT TYPES (Contratos de Compraventa)
+// ============================================================================
+
+export type ContractType = 'venta' | 'compra' | 'permuta'
+export type ContractStatus = 'borrador' | 'pendiente_firma' | 'firmado' | 'anulado'
+export type PaymentMethod = 'contado' | 'financiacion' | 'transferencia' | 'mixto'
+
+// Datos de la empresa (vendedor o comprador profesional)
+export interface CompanyData {
+    id: string
+    nombre: string
+    cif: string
+    direccion: string
+    codigo_postal: string
+    municipio: string
+    provincia: string
+    telefono: string
+    email: string
+    representante_nombre: string
+    representante_dni: string
+    representante_cargo: string
+    logo_url?: string
+}
+
+// Datos de persona física (comprador o vendedor particular)
+export interface PersonData {
+    nombre: string
+    apellidos: string
+    dni_nie: string
+    direccion: string
+    codigo_postal: string
+    municipio: string
+    provincia: string
+    telefono: string
+    email: string
+    fecha_nacimiento?: string
+    nacionalidad?: string
+}
+
+// Datos del vehículo para el contrato
+export interface ContractVehicleData {
+    matricula: string
+    bastidor: string
+    marca: string
+    modelo: string
+    version?: string
+    fecha_matriculacion: string
+    kilometros: number
+    combustible: string
+    color: string
+    num_propietarios?: number
+    // ITV
+    fecha_itv?: string
+    resultado_itv?: 'favorable' | 'desfavorable' | 'negativa'
+    // Documentación
+    tiene_permiso_circulacion: boolean
+    tiene_ficha_tecnica: boolean
+    tiene_itv_vigente: boolean
+    tiene_justificante_pago_impuesto: boolean
+}
+
+// Condiciones económicas
+export interface ContractEconomics {
+    precio_venta: number
+    iva_porcentaje: number // 21, 12, 4, 0 (particular)
+    iva_importe: number
+    precio_total: number
+    // Forma de pago
+    forma_pago: PaymentMethod
+    // Si es financiación
+    entidad_financiera?: string
+    importe_financiado?: number
+    entrada?: number
+    num_cuotas?: number
+    // Vehículo a cuenta
+    vehiculo_entrega?: {
+        matricula: string
+        marca: string
+        modelo: string
+        valor_tasacion: number
+    }
+    // Reserva/señal
+    reserva_importe?: number
+    reserva_fecha?: string
+}
+
+// Garantía del vehículo
+export interface ContractWarranty {
+    tiene_garantia: boolean
+    meses_garantia: number
+    tipo_garantia: 'legal' | 'comercial' | 'extendida'
+    descripcion_garantia?: string
+    exclusiones?: string
+}
+
+// Contrato completo
+export interface Contract {
+    id: string
+    numero_contrato: string
+    tipo: ContractType
+    estado: ContractStatus
+
+    // Fecha y lugar
+    fecha_contrato: string
+    lugar_firma: string
+
+    // Partes del contrato
+    vendedor: CompanyData | PersonData
+    vendedor_tipo: 'empresa' | 'particular'
+    comprador: PersonData
+    comprador_tipo: 'empresa' | 'particular'
+
+    // Vehículo
+    vehiculo: ContractVehicleData
+    vehiculo_id?: string // Referencia al vehículo en inventario
+
+    // Económico
+    economico: ContractEconomics
+
+    // Garantía
+    garantia: ContractWarranty
+
+    // Cláusulas adicionales
+    clausulas_adicionales?: string
+    observaciones?: string
+
+    // Entrega
+    fecha_entrega_prevista?: string
+    fecha_entrega_real?: string
+    lugar_entrega?: string
+
+    // Firmas
+    firma_vendedor?: string // Base64 de la firma
+    firma_comprador?: string
+    fecha_firma_vendedor?: string
+    fecha_firma_comprador?: string
+
+    // Tracking
+    created_at: string
+    updated_at: string
+    created_by?: string
+    created_by_name?: string
+}
+
+// Configuración de empresa por defecto
+export const DEFAULT_COMPANY: CompanyData = {
+    id: 'default',
+    nombre: 'MidCar Automoción S.L.',
+    cif: 'B12345678',
+    direccion: 'Calle Principal, 123',
+    codigo_postal: '28001',
+    municipio: 'Madrid',
+    provincia: 'Madrid',
+    telefono: '912 345 678',
+    email: 'ventas@midcar.es',
+    representante_nombre: 'Juan García López',
+    representante_dni: '12345678A',
+    representante_cargo: 'Gerente',
+}
+
+// ============================================================================
+// EMPRESA VENDEDORA (Configurable por el usuario)
+// ============================================================================
+
+export interface EmpresaVendedora {
+    id: string
+    nombre_comercial: string
+    razon_social: string
+    cif: string
+    direccion: string
+    codigo_postal: string
+    localidad: string
+    provincia: string
+    telefono: string
+    email: string
+    web?: string
+    logo?: string // Base64 o URL
+    activa: boolean
+    es_ejemplo: boolean
+    created_at: string
+    updated_at: string
+}
+
+// ============================================================================
+// INVOICE / FACTURACIÓN
+// ============================================================================
+
+export type InvoiceStatus = 'pendiente' | 'pagada' | 'parcial' | 'anulada'
+
+export interface Invoice {
+    id: string
+    numero_factura: string
+    fecha_factura: string
+    fecha_vencimiento?: string
+
+    // Relaciones
+    empresa_id: string
+    vehiculo_id: string
+    contrato_id?: string // Vinculación opcional con contrato
+
+    // Cliente
+    cliente: PersonData
+    tipo_cliente: 'particular' | 'empresa'
+
+    // Concepto
+    concepto: string
+
+    // Desglose económico
+    base_imponible: number
+    descuento?: number // Descuento aplicado
+    iva_porcentaje: number
+    iva_importe: number
+    total: number
+
+    // Estado y pago
+    estado: InvoiceStatus
+    forma_pago: string
+    fecha_pago?: string
+    importe_pagado?: number
+    iban?: string // IBAN para transferencias
+
+    // Observaciones
+    notas?: string
+
+    // Tracking
+    created_at: string
+    updated_at: string
+    created_by?: string
+    created_by_name?: string
+}
+
+// ============================================================================
+// CONTRATO EXTENDIDO (campos adicionales solicitados)
+// ============================================================================
+
+export type TipoDocumentoIdentidad = 'DNI' | 'NIE' | 'Pasaporte' | 'CIF'
+export type TipoCliente = 'particular' | 'empresa'
+export type EstadoITV = 'Auto' | 'Manual' | 'Pendiente'
+
+export interface ContractExtended extends Contract {
+    // Empresa vendedora dinámica
+    empresa_id?: string
+
+    // Cliente extendido
+    tipo_cliente: TipoCliente
+    tipo_documento: TipoDocumentoIdentidad
+
+    // Dirección extendida
+    escalera_piso?: string
+    comunidad?: string
+
+    // ITV
+    estado_itv?: EstadoITV
+    km_venta?: number
+    proximo_itv?: string
+
+    // Transacción
+    fecha_transaccion?: string
+    reserva?: number
+    total_pago?: number // precio_venta - reserva
+    distribuidor?: string
 }

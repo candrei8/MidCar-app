@@ -1,9 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import * as XLSX from 'xlsx'
-import { saveAs } from 'file-saver'
-import { Button } from "@/components/ui/button"
+import { useState, useEffect, useMemo, useCallback, memo, lazy, Suspense } from "react"
+import dynamic from 'next/dynamic'
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
     DropdownMenu,
@@ -19,10 +17,13 @@ import {
 } from "lucide-react"
 import { useToast } from "@/components/ui/toast"
 import { formatRelativeTime, formatCurrency, cn } from "@/lib/utils"
-import { ESTADOS_LEAD, PRIORIDADES_LEAD } from "@/lib/constants"
 import type { Lead } from "@/types"
-import { LeadDetailModal, StatusBadge, NewLeadModal } from "@/components/crm"
+import { StatusBadge } from "@/components/crm"
 import { useFilteredData } from "@/hooks/useFilteredData"
+
+// Lazy load modales para reducir bundle inicial
+const LeadDetailModal = dynamic(() => import('@/components/crm/LeadDetailModal').then(m => ({ default: m.LeadDetailModal })), { ssr: false })
+const NewLeadModal = dynamic(() => import('@/components/crm/NewLeadModal').then(m => ({ default: m.NewLeadModal })), { ssr: false })
 
 type FilterType = 'todos' | 'nuevos' | 'enProceso' | 'vendidos' | 'perdidos'
 
@@ -65,38 +66,55 @@ export default function CRMPage() {
         }
     }
 
-    // Filter leads - usando grupos de estados
-    const filteredLeads = leads.filter(lead => {
-        const matchesSearch =
-            lead.cliente?.nombre?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            lead.cliente?.apellidos?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            lead.vehiculo?.marca?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            lead.vehiculo?.modelo?.toLowerCase().includes(searchQuery.toLowerCase())
+    // Filter leads - memoizado para evitar recálculos innecesarios
+    const filteredLeads = useMemo(() => {
+        const searchLower = searchQuery.toLowerCase()
+        return leads.filter(lead => {
+            // Filtrar por búsqueda
+            if (searchQuery) {
+                const matchesSearch =
+                    lead.cliente?.nombre?.toLowerCase().includes(searchLower) ||
+                    lead.cliente?.apellidos?.toLowerCase().includes(searchLower) ||
+                    lead.vehiculo?.marca?.toLowerCase().includes(searchLower) ||
+                    lead.vehiculo?.modelo?.toLowerCase().includes(searchLower)
+                if (!matchesSearch) return false
+            }
 
-        // Filtrar por grupo de estados
-        let matchesStatus = true
-        if (statusFilter !== "todos") {
-            const allowedStates = FILTER_GROUPS[statusFilter as keyof typeof FILTER_GROUPS] || []
-            matchesStatus = allowedStates.includes(lead.estado)
+            // Filtrar por grupo de estados
+            if (statusFilter !== "todos") {
+                const allowedStates = FILTER_GROUPS[statusFilter as keyof typeof FILTER_GROUPS] || []
+                if (!allowedStates.includes(lead.estado)) return false
+            }
+
+            return true
+        })
+    }, [leads, searchQuery, statusFilter])
+
+    // Stats - single-pass optimizado
+    const stats = useMemo(() => {
+        let nuevos = 0, enProceso = 0, vendidos = 0
+        for (const l of leads) {
+            if (FILTER_GROUPS.nuevos.includes(l.estado)) nuevos++
+            else if (FILTER_GROUPS.enProceso.includes(l.estado)) enProceso++
+            else if (FILTER_GROUPS.vendidos.includes(l.estado)) vendidos++
         }
+        return { total: leads.length, nuevos, enProceso, vendidos }
+    }, [leads])
 
-        return matchesSearch && matchesStatus
-    })
-
-    // Stats - usando los grupos correctos
-    const stats = {
-        total: leads.length,
-        nuevos: leads.filter(l => FILTER_GROUPS.nuevos.includes(l.estado)).length,
-        enProceso: leads.filter(l => FILTER_GROUPS.enProceso.includes(l.estado)).length,
-        vendidos: leads.filter(l => FILTER_GROUPS.vendidos.includes(l.estado)).length,
-    }
-
-    const getInitials = (nombre: string, apellidos: string) => {
+    // Helper memoizado
+    const getInitials = useCallback((nombre: string, apellidos: string) => {
         return `${nombre.charAt(0)}${apellidos.charAt(0)}`.toUpperCase()
-    }
+    }, [])
 
-    const handleExport = () => {
+    // Dynamic import de XLSX para reducir bundle inicial (~500KB)
+    const handleExport = async () => {
         try {
+            addToast("Generando reporte...", 'info')
+            const [XLSX, { saveAs }] = await Promise.all([
+                import('xlsx'),
+                import('file-saver')
+            ])
+
             const dataToExport = filteredLeads.map(lead => ({
                 Fecha: new Date(lead.fecha_creacion).toLocaleDateString(),
                 Cliente: `${lead.cliente?.nombre || ''} ${lead.cliente?.apellidos || ''}`,
@@ -117,13 +135,14 @@ export default function CRMPage() {
             const data = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' })
 
             saveAs(data, `midcar_leads_${new Date().toISOString().split('T')[0]}.xlsx`)
+            addToast("Reporte generado", 'success')
         } catch (error) {
             console.error("Error exporting report:", error)
             addToast("Error al generar el reporte", 'error')
         }
     }
 
-    const getStatusConfig = (estado: string) => {
+    const getStatusConfig = useCallback((estado: string) => {
         const config: Record<string, { bg: string, text: string, icon: string }> = {
             'nuevo': { bg: 'bg-blue-100 text-blue-700 border-blue-200', text: 'Nuevo', icon: 'fiber_new' },
             'contactado': { bg: 'bg-cyan-100 text-cyan-700 border-cyan-200', text: 'Contactado', icon: 'call' },
@@ -135,16 +154,16 @@ export default function CRMPage() {
             'perdido': { bg: 'bg-gray-100 text-gray-500 border-gray-200', text: 'Perdido', icon: 'cancel' },
         }
         return config[estado] || { bg: 'bg-gray-100 text-gray-600 border-gray-200', text: estado, icon: 'help' }
-    }
+    }, [])
 
-    const getPriorityConfig = (prioridad: string) => {
+    const getPriorityConfig = useCallback((prioridad: string) => {
         const config: Record<string, { color: string, label: string }> = {
             'alta': { color: 'text-red-500', label: 'Alta' },
             'media': { color: 'text-amber-500', label: 'Media' },
             'baja': { color: 'text-gray-400', label: 'Baja' },
         }
         return config[prioridad] || { color: 'text-gray-400', label: prioridad }
-    }
+    }, [])
 
     return (
         <div className="min-h-screen bg-[#f6f6f8] flex flex-col">
@@ -246,30 +265,22 @@ export default function CRMPage() {
                     icon="groups"
                     label="Total Leads"
                     value={stats.total}
-                    trend="+12%"
-                    trendUp={true}
                 />
                 <StatCard
                     icon="fiber_new"
                     label="Nuevos"
                     value={stats.nuevos}
-                    trend="+4 esta semana"
-                    trendUp={true}
                     highlight
                 />
                 <StatCard
                     icon="handshake"
                     label="En Proceso"
                     value={stats.enProceso}
-                    trend="8 activos"
-                    trendUp={null}
                 />
                 <StatCard
                     icon="check_circle"
                     label="Vendidos"
                     value={stats.vendidos}
-                    trend="+2 este mes"
-                    trendUp={true}
                 />
             </div>
 
@@ -283,6 +294,7 @@ export default function CRMPage() {
                             getStatusConfig={getStatusConfig}
                             getPriorityConfig={getPriorityConfig}
                             getInitials={getInitials}
+                            isFullView={isFullView}
                             onClick={() => setSelectedLead(lead)}
                         />
                     ))}
@@ -331,13 +343,11 @@ export default function CRMPage() {
     )
 }
 
-// Stat Card Component
-function StatCard({ icon, label, value, trend, trendUp, highlight = false }: {
+// Stat Card Component - memoizado
+const StatCard = memo(function StatCard({ icon, label, value, highlight = false }: {
     icon: string,
     label: string,
     value: number,
-    trend?: string,
-    trendUp?: boolean | null,
     highlight?: boolean
 }) {
     return (
@@ -353,41 +363,76 @@ function StatCard({ icon, label, value, trend, trendUp, highlight = false }: {
             </div>
             <div className="flex-1 min-w-0">
                 <p className="text-xs text-slate-500 uppercase tracking-wider font-medium">{label}</p>
-                <div className="flex items-baseline gap-2">
-                    <span className={cn(
-                        "text-2xl font-bold",
-                        highlight ? "text-[#135bec]" : "text-slate-900"
-                    )}>{value}</span>
-                    {trend && (
-                        <span className={cn(
-                            "text-xs font-medium",
-                            trendUp === true ? "text-green-500" : trendUp === false ? "text-red-500" : "text-slate-400"
-                        )}>
-                            {trend}
-                        </span>
-                    )}
-                </div>
+                <span className={cn(
+                    "text-2xl font-bold",
+                    highlight ? "text-[#135bec]" : "text-slate-900"
+                )}>{value}</span>
             </div>
         </div>
     )
+})
+
+// Formatear fecha y hora de creación
+function formatCreatedAt(dateString: string) {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    const timeStr = date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+
+    if (diffMins < 1) return 'Ahora mismo'
+    if (diffMins < 60) return `Hace ${diffMins} min`
+    if (diffHours < 24) return `Hoy ${timeStr}`
+    if (diffDays === 1) return `Ayer ${timeStr}`
+    if (diffDays < 7) return `Hace ${diffDays} días`
+
+    return date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) + ` ${timeStr}`
 }
 
-// Lead Card Component (Mobile-optimized)
-function LeadCard({ lead, getStatusConfig, getPriorityConfig, getInitials, onClick }: {
+// Lead Card Component (Mobile-optimized) - memoizado
+const LeadCard = memo(function LeadCard({ lead, getStatusConfig, getPriorityConfig, getInitials, isFullView, onClick }: {
     lead: Lead,
     getStatusConfig: (estado: string) => { bg: string, text: string, icon: string },
     getPriorityConfig: (prioridad: string) => { color: string, label: string },
     getInitials: (nombre: string, apellidos: string) => string,
+    isFullView: boolean,
     onClick: () => void
 }) {
-    const statusConfig = getStatusConfig(lead.estado)
-    const priorityConfig = getPriorityConfig(lead.prioridad)
+    const statusConfig = useMemo(() => getStatusConfig(lead.estado), [getStatusConfig, lead.estado])
+    const priorityConfig = useMemo(() => getPriorityConfig(lead.prioridad), [getPriorityConfig, lead.prioridad])
+    // Usar el nombre guardado en el lead o mostrar "Usuario"
+    const creatorName = lead.created_by_name || (lead.created_by ? 'Usuario' : null)
+    const createdAt = lead.fecha_creacion ? formatCreatedAt(lead.fecha_creacion) : null
 
     return (
         <div
             onClick={onClick}
-            className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 cursor-pointer hover:shadow-md hover:border-gray-200 transition-all active:scale-[0.99]"
+            className="relative bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden cursor-pointer hover:shadow-md hover:border-gray-200 will-change-transform"
+            style={{ transition: 'box-shadow 0.15s ease, border-color 0.15s ease, transform 0.1s ease' }}
         >
+            {/* Creator info - always show when there's creator data */}
+            {creatorName && (
+                <div className="bg-indigo-50/50 border-b border-indigo-100/50 px-4 py-2">
+                    <div className="flex items-center justify-between text-[11px]">
+                        <span className="inline-flex items-center gap-1.5 text-indigo-600 font-medium">
+                            <span className="material-symbols-outlined text-[14px]">person</span>
+                            {creatorName}
+                        </span>
+                        {createdAt && (
+                            <span className="inline-flex items-center gap-1 text-indigo-500">
+                                <span className="material-symbols-outlined text-[12px]">schedule</span>
+                                {createdAt}
+                            </span>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* Main Content */}
+            <div className="p-4">
             {/* Top Row: Client + Status */}
             <div className="flex items-start justify-between gap-3 mb-3">
                 <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -482,6 +527,7 @@ function LeadCard({ lead, getStatusConfig, getPriorityConfig, getInitials, onCli
                     </DropdownMenu>
                 </div>
             </div>
+            </div>
         </div>
     )
-}
+})

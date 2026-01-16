@@ -321,3 +321,121 @@ export const getAllEquipmentIds = (): string[] => {
     })
     return ids
 }
+
+// ============================================================================
+// CONTRATOS Y FACTURACIÓN
+// ============================================================================
+
+// Estados de ITV para contratos
+export const ESTADOS_ITV = [
+    { value: 'Auto', label: 'Automático' },
+    { value: 'Manual', label: 'Manual' },
+    { value: 'Pendiente', label: 'Pendiente' },
+] as const
+
+// Estados de factura
+export const ESTADOS_FACTURA = [
+    { value: 'pendiente', label: 'Pendiente', color: '#f59e0b' },
+    { value: 'pagada', label: 'Pagada', color: '#10b981' },
+    { value: 'parcial', label: 'Parcialmente pagada', color: '#3b82f6' },
+    { value: 'anulada', label: 'Anulada', color: '#ef4444' },
+] as const
+
+// Formas de pago
+export const FORMAS_PAGO = [
+    { value: 'contado', label: 'Contado' },
+    { value: 'transferencia', label: 'Transferencia bancaria' },
+    { value: 'financiacion', label: 'Financiación' },
+    { value: 'mixto', label: 'Pago mixto' },
+    { value: 'tarjeta', label: 'Tarjeta de crédito/débito' },
+] as const
+
+// Tipos de IVA
+export const TIPOS_IVA = [
+    { value: 21, label: '21% (General)' },
+    { value: 10, label: '10% (Reducido)' },
+    { value: 4, label: '4% (Superreducido)' },
+    { value: 0, label: '0% (Exento)' },
+] as const
+
+// Provincias de España
+export const PROVINCIAS = [
+    'A Coruña', 'Álava', 'Albacete', 'Alicante', 'Almería', 'Asturias', 'Ávila',
+    'Badajoz', 'Barcelona', 'Burgos', 'Cáceres', 'Cádiz', 'Cantabria', 'Castellón',
+    'Ciudad Real', 'Córdoba', 'Cuenca', 'Girona', 'Granada', 'Guadalajara',
+    'Guipúzcoa', 'Huelva', 'Huesca', 'Illes Balears', 'Jaén', 'La Rioja',
+    'Las Palmas', 'León', 'Lleida', 'Lugo', 'Madrid', 'Málaga', 'Murcia',
+    'Navarra', 'Ourense', 'Palencia', 'Pontevedra', 'Salamanca', 'Santa Cruz de Tenerife',
+    'Segovia', 'Sevilla', 'Soria', 'Tarragona', 'Teruel', 'Toledo', 'Valencia',
+    'Valladolid', 'Vizcaya', 'Zamora', 'Zaragoza', 'Ceuta', 'Melilla'
+] as const
+
+// ============================================================================
+// VALIDACIONES (Regex patterns)
+// ============================================================================
+
+// DNI español: 8 dígitos + letra
+export const DNI_REGEX = /^[0-9]{8}[A-Z]$/i
+
+// NIE: X/Y/Z + 7 dígitos + letra
+export const NIE_REGEX = /^[XYZ][0-9]{7}[A-Z]$/i
+
+// CIF español: Letra + 7 dígitos + letra/dígito
+export const CIF_REGEX = /^[ABCDEFGHJNPQRSUVW][0-9]{7}[0-9A-J]$/i
+
+// Código postal español: 5 dígitos
+export const CP_REGEX = /^[0-9]{5}$/
+
+// Matrícula española nueva: 0000XXX (sin vocales ni Ñ/Q)
+export const MATRICULA_NUEVA_REGEX = /^[0-9]{4}[BCDFGHJKLMNPRSTVWXYZ]{3}$/i
+
+// Matrícula española antigua: X-0000-XX o XX-0000-XX
+export const MATRICULA_ANTIGUA_REGEX = /^[A-Z]{1,2}[0-9]{4}[A-Z]{2}$/i
+
+// Email
+export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+// Teléfono español (fijo o móvil)
+export const TELEFONO_REGEX = /^(\+34)?[6789][0-9]{8}$/
+
+// Función para validar DNI con letra correcta
+export const validarDNI = (dni: string): boolean => {
+    if (!DNI_REGEX.test(dni)) return false
+    const letras = 'TRWAGMYFPDXBNJZSQVHLCKE'
+    const numero = parseInt(dni.substring(0, 8))
+    const letra = dni.charAt(8).toUpperCase()
+    return letras[numero % 23] === letra
+}
+
+// Función para validar NIE con letra correcta
+export const validarNIE = (nie: string): boolean => {
+    if (!NIE_REGEX.test(nie)) return false
+    const letras = 'TRWAGMYFPDXBNJZSQVHLCKE'
+    let nieNumero = nie.substring(1, 8)
+    const primeraLetra = nie.charAt(0).toUpperCase()
+    if (primeraLetra === 'X') nieNumero = '0' + nieNumero
+    else if (primeraLetra === 'Y') nieNumero = '1' + nieNumero
+    else if (primeraLetra === 'Z') nieNumero = '2' + nieNumero
+    const numero = parseInt(nieNumero)
+    const letra = nie.charAt(8).toUpperCase()
+    return letras[numero % 23] === letra
+}
+
+// Función para validar matrícula española
+export const validarMatricula = (matricula: string): boolean => {
+    const cleaned = matricula.replace(/[- ]/g, '').toUpperCase()
+    return MATRICULA_NUEVA_REGEX.test(cleaned) || MATRICULA_ANTIGUA_REGEX.test(cleaned)
+}
+
+// ============================================================================
+// NAVEGACIÓN EXTENDIDA
+// ============================================================================
+
+export const NAV_ITEMS_EXTENDED = [
+    { href: '/dashboard', label: 'Dashboard', icon: 'LayoutDashboard' },
+    { href: '/contactos', label: 'Contactos', icon: 'Mail' },
+    { href: '/crm', label: 'CRM', icon: 'Users' },
+    { href: '/inventario', label: 'Inventario', icon: 'Car' },
+    { href: '/seguro', label: 'Seguros', icon: 'Shield' },
+    { href: '/configuracion', label: 'Configuración', icon: 'Settings' },
+] as const

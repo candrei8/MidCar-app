@@ -12,21 +12,50 @@ import type { Lead } from "@/types"
 import { formatRelativeTime, formatCurrency, formatDate, cn } from "@/lib/utils"
 import { ESTADOS_LEAD } from "@/lib/constants"
 import { SaleConfirmationModal, type SaleData } from "@/components/crm/SaleConfirmationModal"
+import { EditLeadModal } from "@/components/crm/EditLeadModal"
 import { createSale } from "@/lib/sales-service"
+import { deleteLead } from "@/lib/supabase-service"
+import { useToast } from "@/components/ui/toast"
 
 interface LeadDetailModalProps {
     lead: Lead
     open: boolean
     onClose: () => void
     onStatusChange?: (leadId: string, newStatus: string) => void
+    onDelete?: (leadId: string) => void
 }
 
-export function LeadDetailModal({ lead, open, onClose, onStatusChange }: LeadDetailModalProps) {
+export function LeadDetailModal({ lead, open, onClose, onStatusChange, onDelete }: LeadDetailModalProps) {
+    const { addToast } = useToast()
     const [activeTab, setActiveTab] = useState<'cronologia' | 'vehiculos' | 'notas'>('cronologia')
     const [currentStatus, setCurrentStatus] = useState<string>(lead.estado)
     const [statusSaved, setStatusSaved] = useState(false)
     const [showSaleModal, setShowSaleModal] = useState(false)
+    const [showEditModal, setShowEditModal] = useState(false)
     const [saleClosed, setSaleClosed] = useState(false)
+    const [currentLead, setCurrentLead] = useState<Lead>(lead)
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+    const [isDeleting, setIsDeleting] = useState(false)
+
+    const handleDelete = async () => {
+        setIsDeleting(true)
+        try {
+            const success = await deleteLead(lead.id)
+            if (success) {
+                addToast('Lead eliminado correctamente', 'success')
+                onDelete?.(lead.id)
+                onClose()
+            } else {
+                addToast('Error al eliminar el lead', 'error')
+            }
+        } catch (error) {
+            console.error('Error deleting lead:', error)
+            addToast('Error al eliminar el lead', 'error')
+        } finally {
+            setIsDeleting(false)
+            setShowDeleteConfirm(false)
+        }
+    }
 
     const handleStatusChange = (newStatus: string) => {
         // If changing to 'vendido' and has a vehicle, show sale confirmation modal
@@ -107,31 +136,25 @@ export function LeadDetailModal({ lead, open, onClose, onStatusChange }: LeadDet
         { value: 'vendido', label: 'Vendido' },
     ]
 
-    // Mock timeline data
+    // Timeline basado en datos reales del lead
     const timelineEvents = [
-        {
-            icon: 'phone_missed',
-            iconBg: 'bg-red-100',
-            iconColor: 'text-red-600',
-            title: 'Llamada perdida',
-            description: 'Llamada saliente sin respuesta',
-            time: 'Hace 2 horas'
-        },
-        {
+        // Solo mostrar interés en vehículo si existe
+        ...(lead.vehiculo ? [{
             icon: 'directions_car',
             iconBg: 'bg-blue-100',
             iconColor: 'text-primary',
             title: 'Interés en vehículo',
-            description: lead.vehiculo ? `Interesado en ${lead.vehiculo.marca} ${lead.vehiculo.modelo}` : 'Consulta general',
+            description: `Interesado en ${lead.vehiculo.marca} ${lead.vehiculo.modelo}`,
             time: formatRelativeTime(lead.ultima_interaccion),
             vehicle: lead.vehiculo
-        },
+        }] : []),
+        // Evento de creación del lead (siempre presente)
         {
             icon: 'person_add',
             iconBg: 'bg-gray-100',
             iconColor: 'text-gray-500',
             title: 'Lead Creado',
-            description: `Origen: ${lead.cliente?.origen_lead || 'Web'}`,
+            description: lead.created_by_name ? `Por: ${lead.created_by_name}` : `Origen: ${lead.cliente?.origen_lead || 'Manual'}`,
             time: formatDate(lead.fecha_creacion),
             isStart: true
         }
@@ -154,9 +177,18 @@ export function LeadDetailModal({ lead, open, onClose, onStatusChange }: LeadDet
                             <span className="material-symbols-outlined text-primary text-2xl">arrow_back</span>
                         </button>
                         <h2 className="text-lg font-bold leading-tight tracking-tight flex-1 text-center">Ficha de Contacto</h2>
-                        <div className="flex w-10 items-center justify-end">
-                            <button className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-primary">
+                        <div className="flex items-center gap-1">
+                            <button
+                                onClick={() => setShowEditModal(true)}
+                                className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-primary"
+                            >
                                 <span className="material-symbols-outlined text-xl">edit</span>
+                            </button>
+                            <button
+                                onClick={() => setShowDeleteConfirm(true)}
+                                className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-red-500"
+                            >
+                                <span className="material-symbols-outlined text-xl">delete</span>
                             </button>
                         </div>
                     </div>
@@ -194,6 +226,39 @@ export function LeadDetailModal({ lead, open, onClose, onStatusChange }: LeadDet
                                 </p>
                             </div>
                         </div>
+
+                        {/* Creator Info Card */}
+                        {(lead.created_by_name || lead.fecha_creacion) && (
+                            <div className="mx-4 mb-4 p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-100 dark:border-indigo-800">
+                                <div className="flex items-center justify-between">
+                                    {lead.created_by_name && (
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center">
+                                                <span className="material-symbols-outlined text-indigo-600 dark:text-indigo-400 text-sm">person</span>
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] text-indigo-500 dark:text-indigo-400 uppercase tracking-wider font-medium">Creado por</p>
+                                                <p className="text-sm font-semibold text-indigo-700 dark:text-indigo-300">{lead.created_by_name}</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {lead.fecha_creacion && (
+                                        <div className="text-right">
+                                            <p className="text-[10px] text-indigo-500 dark:text-indigo-400 uppercase tracking-wider font-medium">Fecha</p>
+                                            <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400">
+                                                {new Date(lead.fecha_creacion).toLocaleDateString('es-ES', {
+                                                    day: '2-digit',
+                                                    month: '2-digit',
+                                                    year: 'numeric',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit'
+                                                })}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
 
                         {/* ActionsBar */}
                         <div className="grid grid-cols-4 gap-2 px-4 mb-6">
@@ -496,6 +561,51 @@ export function LeadDetailModal({ lead, open, onClose, onStatusChange }: LeadDet
                     vehicle={lead.vehiculo}
                 />
             )}
+
+            {/* Edit Lead Modal */}
+            <EditLeadModal
+                lead={currentLead}
+                open={showEditModal}
+                onClose={() => setShowEditModal(false)}
+                onSave={(updatedLead) => {
+                    setCurrentLead(updatedLead)
+                    if (onStatusChange && updatedLead.estado !== currentStatus) {
+                        onStatusChange(lead.id, updatedLead.estado)
+                        setCurrentStatus(updatedLead.estado)
+                    }
+                }}
+            />
+
+            {/* Delete Confirmation Dialog */}
+            <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+                <DialogContent className="max-w-sm p-0 overflow-hidden gap-0">
+                    <div className="p-6 text-center">
+                        <div className="mx-auto w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mb-4">
+                            <span className="material-symbols-outlined text-3xl text-red-500">delete_forever</span>
+                        </div>
+                        <h3 className="text-xl font-bold mb-2">Eliminar Lead</h3>
+                        <p className="text-gray-500 dark:text-gray-400 mb-6">
+                            ¿Estás seguro de que quieres eliminar este lead? Esta acción no se puede deshacer.
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setShowDeleteConfirm(false)}
+                                className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                                disabled={isDeleting}
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleDelete}
+                                disabled={isDeleting}
+                                className="flex-1 px-4 py-2.5 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors disabled:opacity-50"
+                            >
+                                {isDeleting ? 'Eliminando...' : 'Eliminar'}
+                            </button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </>
     )
 }

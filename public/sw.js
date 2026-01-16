@@ -1,15 +1,27 @@
-const CACHE_NAME = 'midcar-v1';
+const CACHE_NAME = 'midcar-v3';
 
+// Only cache truly static assets - no HTML pages
 const STATIC_ASSETS = [
-  '/',
-  '/dashboard',
-  '/inventario',
-  '/crm',
-  '/seguro',
-  '/contactos',
   '/icon-192x192.svg',
   '/icon-512x512.svg',
   '/manifest.json'
+];
+
+// Routes that should NEVER be cached (auth + all protected routes)
+const EXCLUDED_ROUTES = [
+  '/login',
+  '/registro',
+  '/register',
+  '/logout',
+  '/auth',
+  '/api/',
+  // All protected routes - NEVER cache these
+  '/dashboard',
+  '/inventario',
+  '/contactos',
+  '/crm',
+  '/seguro',
+  '/contratos'
 ];
 
 // Install event - cache static assets
@@ -39,19 +51,37 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// Check if a URL should be excluded from caching
+function shouldExclude(url) {
+  return EXCLUDED_ROUTES.some(route => url.pathname.startsWith(route));
+}
+
 // Fetch event - network first, fallback to cache
 self.addEventListener('fetch', (event) => {
   // Skip non-GET requests
   if (event.request.method !== 'GET') return;
 
-  // Skip API calls and external requests
   const url = new URL(event.request.url);
+
+  // Skip external requests
   if (url.origin !== location.origin) return;
-  if (url.pathname.startsWith('/api/')) return;
+
+  // Skip excluded routes (auth pages, API calls)
+  if (shouldExclude(url)) return;
+
+  // Skip requests that don't want to follow redirects
+  if (event.request.redirect === 'error' || event.request.redirect === 'manual') {
+    return;
+  }
 
   event.respondWith(
-    fetch(event.request)
+    fetch(event.request, { redirect: 'follow' })
       .then((response) => {
+        // Don't cache redirects, errors, or opaque responses
+        if (!response || response.status !== 200 || response.type === 'opaque' || response.redirected) {
+          return response;
+        }
+
         // Clone the response before caching
         const responseClone = response.clone();
 

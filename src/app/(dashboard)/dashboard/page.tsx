@@ -6,9 +6,6 @@ import { useRouter } from "next/navigation"
 import {
     getDashboardData,
     type DashboardData,
-    type CriticalAlert,
-    type ActivityItem,
-    formatTrend
 } from "@/lib/dashboard-service"
 import { formatCurrency, formatRelativeTime, cn } from "@/lib/utils"
 import { VINScannerModal } from "@/components/inventory/VINScannerModal"
@@ -27,6 +24,36 @@ import {
     PieChart,
     Pie
 } from 'recharts'
+
+// Helper function to format trend percentage
+function formatTrend(value: number): { text: string; isPositive: boolean } {
+    const isPositive = value >= 0
+    return {
+        text: `${isPositive ? '+' : ''}${value.toFixed(1)}%`,
+        isPositive
+    }
+}
+
+// Local type definitions for dashboard
+interface CriticalAlert {
+    id: string
+    tipo: string
+    severidad: 'danger' | 'warning' | 'info'
+    titulo: string
+    descripcion: string
+    enlace: string
+}
+
+interface ActivityItem {
+    id: string
+    titulo: string
+    descripcion: string
+    fecha: string
+    icono: string
+    color: string
+    enlace?: string
+}
+
 
 export default function DashboardPage() {
     const router = useRouter()
@@ -110,25 +137,76 @@ export default function DashboardPage() {
         )
     }
 
-    // En Mi Vista: todo vacío. En Visión Completa: datos reales
-    const emptyStockMetrics = {
-        total: 0, disponible: 0, reservado: 0, vendido: 0, enTaller: 0,
-        valorStock: 0, inversionStock: 0, margenPotencial: 0, margenPorcentaje: 0
+    // AHORA USAMOS MÉTRICAS REALES DE filteredStats EN LUGAR DE CEROS
+    const stock = {
+        total: filteredStats.totalVehicles,
+        disponible: filteredStats.vehiclesDisponible,
+        reservado: filteredStats.vehiclesReservado,
+        vendido: filteredStats.vehiclesVendido,
+        enTaller: filteredStats.vehiclesTaller,
+        valorStock: filteredStats.valorStock,
+        inversionStock: filteredStats.inversionStock,
+        margenPotencial: filteredStats.margenPotencial,
+        margenPorcentaje: filteredStats.margenPorcentaje,
     }
-    const emptySalesMetrics = {
-        vehiculosVendidos: 0, ingresosReales: 0, margenBrutoReal: 0,
-        margenPorcentaje: 0, ticketMedio: 0, ventasUltimos30Dias: 0, tendenciaMensual: 0
+    const sales = {
+        vehiculosVendidos: filteredStats.vehiclesVendido,
+        ingresosReales: filteredStats.ventasIngreso,
+        margenBrutoReal: filteredStats.margenRealizado,
+        margenPorcentaje: filteredStats.margenVentasPorcentaje,
+        ticketMedio: filteredStats.vehiclesVendido > 0 ? filteredStats.ventasIngreso / filteredStats.vehiclesVendido : 0,
+        ventasUltimos30Dias: filteredStats.vehiclesVendido, // TODO: filtrar por fecha
+        tendenciaMensual: 0, // TODO: calcular tendencia
     }
-    const emptyPerformance = {
-        diasPromedioStock: 0, vehiculosEnRiesgo: [], vehiculosNuevos7Dias: 0, rotacionMensual: 0
+    const performance = {
+        diasPromedioStock: filteredStats.diasPromedioStock,
+        vehiculosEnRiesgo: filteredStats.vehiculosMuchosDiasStock,
+        vehiculosNuevos7Dias: 0, // TODO: calcular desde fecha_alta
+        rotacionMensual: 0, // TODO: calcular
     }
 
-    const stock = isFullView ? data.stock : emptyStockMetrics
-    const sales = isFullView ? data.sales : emptySalesMetrics
-    const performance = isFullView ? data.performance : emptyPerformance
+    // GENERAR ALERTAS REALES desde los datos
+    const realAlerts: CriticalAlert[] = []
+
+    // Alertas ITV Vencida (crítico)
+    if (filteredStats.vehiculosITVVencida.length > 0) {
+        realAlerts.push({
+            id: 'itv-vencida',
+            tipo: 'itv',
+            severidad: 'danger',
+            titulo: `${filteredStats.vehiculosITVVencida.length} vehículo(s) con ITV vencida`,
+            descripcion: filteredStats.vehiculosITVVencida.slice(0, 3).map(v => `${v.marca} ${v.modelo} (${v.matricula})`).join(', '),
+            enlace: '/inventario'
+        })
+    }
+
+    // Alertas ITV Próxima (warning)
+    if (filteredStats.vehiculosITVProxima.length > 0) {
+        realAlerts.push({
+            id: 'itv-proxima',
+            tipo: 'itv',
+            severidad: 'warning',
+            titulo: `${filteredStats.vehiculosITVProxima.length} vehículo(s) con ITV próxima a vencer`,
+            descripcion: 'Vencen en los próximos 30 días',
+            enlace: '/inventario'
+        })
+    }
+
+    // Alertas Stock Estancado (warning)
+    if (filteredStats.vehiculosMuchosDiasStock.length > 0) {
+        realAlerts.push({
+            id: 'stock-estancado',
+            tipo: 'stock',
+            severidad: 'warning',
+            titulo: `${filteredStats.vehiculosMuchosDiasStock.length} vehículo(s) +90 días en stock`,
+            descripcion: 'Considera ajustar precios o promocionar',
+            enlace: '/inventario'
+        })
+    }
+
     const brands = isFullView ? data.brands : []
     const activity = isFullView ? data.activity : []
-    const alerts = isFullView ? data.alerts : []
+    const alerts = realAlerts // USAMOS ALERTAS REALES
     const chartData = isFullView ? data.chartData : { salesOverTime: [], leadsOverTime: [] }
 
     // Usar métricas de leads filtradas por usuario
@@ -538,11 +616,12 @@ function AlertCard({ alert }: { alert: CriticalAlert }) {
         info: 'bg-blue-50 border-blue-200 text-blue-800'
     }
 
-    const icons = {
+    const icons: Record<string, string> = {
         stock_aging: 'schedule',
         lead_pending: 'notifications_active',
         low_stock: 'inventory_2',
-        high_margin: 'trending_up'
+        high_margin: 'trending_up',
+        itv_expiring: 'verified'
     }
 
     return (

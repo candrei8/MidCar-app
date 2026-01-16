@@ -18,7 +18,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
 import {
     Phone,
     Mail,
@@ -29,10 +28,12 @@ import {
     Users,
     Save,
     ArrowRight,
+    UserPlus
 } from "lucide-react"
 import { ORIGENES_CONTACTO } from "@/lib/constants"
-import { addUserContact, generateId } from "@/lib/data-store"
+import { createContact } from "@/lib/supabase-service"
 import { useAuth } from "@/lib/auth-context"
+import { useToast } from "@/components/ui/toast"
 import type { Contact } from "@/types"
 
 interface NewContactModalProps {
@@ -42,12 +43,15 @@ interface NewContactModalProps {
 }
 
 export function NewContactModal({ open, onClose, onContactCreated }: NewContactModalProps) {
-    const { user } = useAuth()
+    const { user, profile } = useAuth()
+    const { addToast } = useToast()
+    const [isLoading, setIsLoading] = useState(false)
     const [formData, setFormData] = useState({
+        nombre: "",
+        apellidos: "",
         telefono: "",
         email: "",
         origen: "",
-        consentimiento_rgpd: false,
     })
     const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -74,68 +78,90 @@ export function NewContactModal({ open, onClose, onContactCreated }: NewContactM
             newErrors.telefono = "Formato de teléfono inválido"
         }
 
-        if (!formData.email.trim()) {
-            newErrors.email = "El email es obligatorio"
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        // Email es opcional, pero si se proporciona debe ser válido
+        if (formData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
             newErrors.email = "Formato de email inválido"
         }
 
         if (!formData.origen) {
-            newErrors.origen = "Selecciona el origen del contacto"
-        }
-
-        if (!formData.consentimiento_rgpd) {
-            newErrors.consentimiento_rgpd = "Es necesario el consentimiento RGPD"
+            newErrors.origen = "Selecciona el origen"
         }
 
         setErrors(newErrors)
         return Object.keys(newErrors).length === 0
     }
 
-    const handleSave = (continueEditing: boolean) => {
+    const handleSave = async (continueEditing: boolean) => {
         if (!validateForm()) return
 
-        const newContact: Contact = {
-            id: generateId(),
-            telefono: formData.telefono,
-            email: formData.email,
-            origen: formData.origen as Contact['origen'],
-            estado: 'nuevo',
-            vehiculos_interes: [],
-            preferencias_comunicacion: [],
-            acepta_marketing: false,
-            consentimiento_rgpd: formData.consentimiento_rgpd,
-            fecha_registro: new Date().toISOString(),
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            created_by: user?.id || undefined, // ID del usuario que crea el contacto
-        }
+        setIsLoading(true)
 
-        // Guardar en el data store (localStorage por ahora, Supabase en producción)
-        addUserContact(newContact)
+        try {
+            // Obtener nombre del creador
+            const creatorName = profile
+                ? `${profile.nombre} ${profile.apellidos}`.trim()
+                : user?.email?.split('@')[0] || 'Usuario'
 
-        // Reset form
-        setFormData({
-            telefono: "",
-            email: "",
-            origen: "",
-            consentimiento_rgpd: false,
-        })
-        setErrors({})
+            const now = new Date().toISOString()
+            const contactData = {
+                nombre: formData.nombre || undefined,
+                apellidos: formData.apellidos || undefined,
+                telefono: formData.telefono,
+                email: formData.email || '',
+                origen: formData.origen as Contact['origen'],
+                estado: 'pendiente' as Contact['estado'],
+                vehiculos_interes: [] as string[],
+                preferencias_comunicacion: [] as string[],
+                acepta_marketing: false,
+                consentimiento_rgpd: true,
+                fecha_registro: now,
+                created_at: now,
+                updated_at: now,
+                created_by: user?.id || undefined,
+                created_by_name: creatorName,
+            }
 
-        if (continueEditing) {
-            onContactCreated(newContact)
-        } else {
-            onClose()
+            // Guardar en Supabase
+            const newContact = await createContact(contactData)
+
+            if (newContact) {
+                // Notificar actualización de datos
+                window.dispatchEvent(new CustomEvent('midcar-data-updated', { detail: { type: 'contacts' } }))
+                addToast('Contacto creado correctamente', 'success')
+
+                // Reset form
+                setFormData({
+                    nombre: "",
+                    apellidos: "",
+                    telefono: "",
+                    email: "",
+                    origen: "",
+                })
+                setErrors({})
+
+                if (continueEditing) {
+                    onContactCreated(newContact)
+                } else {
+                    onClose()
+                }
+            } else {
+                throw new Error('No se pudo crear el contacto')
+            }
+        } catch (error) {
+            console.error('Error creating contact:', error)
+            addToast('Error al crear el contacto', 'error')
+        } finally {
+            setIsLoading(false)
         }
     }
 
     const handleClose = () => {
         setFormData({
+            nombre: "",
+            apellidos: "",
             telefono: "",
             email: "",
             origen: "",
-            consentimiento_rgpd: false,
         })
         setErrors({})
         onClose()
@@ -143,67 +169,100 @@ export function NewContactModal({ open, onClose, onContactCreated }: NewContactM
 
     return (
         <Dialog open={open} onOpenChange={handleClose}>
-            <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                    <DialogTitle className="text-xl flex items-center gap-2">
-                        <Users className="h-5 w-5 text-primary" />
+            <DialogContent className="sm:max-w-[480px] p-0 gap-0 overflow-hidden">
+                {/* Header */}
+                <DialogHeader className="px-5 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-slate-100">
+                    <DialogTitle className="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
+                        <UserPlus className="h-5 w-5 text-[#135bec]" />
                         Nuevo Contacto
                     </DialogTitle>
-                    <DialogDescription>
-                        Registra un nuevo contacto con los datos básicos. Podrás completar la información más adelante.
+                    <DialogDescription className="text-slate-500 text-sm">
+                        Registra los datos básicos del contacto.
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="space-y-5 py-4">
-                    {/* Teléfono */}
+                {/* Form */}
+                <div className="px-5 sm:px-6 py-5 sm:py-6 space-y-5">
+                    {/* Nombre y Apellidos */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                            <Label htmlFor="nombre" className="text-sm font-medium text-slate-700">
+                                Nombre <span className="text-slate-400 font-normal">(opcional)</span>
+                            </Label>
+                            <Input
+                                id="nombre"
+                                placeholder="Juan"
+                                value={formData.nombre}
+                                onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                                className="h-11"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="apellidos" className="text-sm font-medium text-slate-700">
+                                Apellidos <span className="text-slate-400 font-normal">(opcional)</span>
+                            </Label>
+                            <Input
+                                id="apellidos"
+                                placeholder="Garcia"
+                                value={formData.apellidos}
+                                onChange={(e) => setFormData({ ...formData, apellidos: e.target.value })}
+                                className="h-11"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Telefono */}
                     <div className="space-y-2">
-                        <Label htmlFor="telefono" className="flex items-center gap-2">
-                            <Phone className="h-4 w-4" />
-                            Teléfono <span className="text-destructive">*</span>
+                        <Label htmlFor="telefono" className="text-sm font-medium text-slate-700">
+                            Telefono <span className="text-red-500">*</span>
                         </Label>
-                        <Input
-                            id="telefono"
-                            placeholder="+34 612 345 678"
-                            value={formData.telefono}
-                            onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
-                            className={errors.telefono ? "border-destructive" : ""}
-                        />
+                        <div className="relative">
+                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                            <Input
+                                id="telefono"
+                                placeholder="+34 612 345 678"
+                                value={formData.telefono}
+                                onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
+                                className={`pl-10 h-11 ${errors.telefono ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                            />
+                        </div>
                         {errors.telefono && (
-                            <p className="text-xs text-destructive">{errors.telefono}</p>
+                            <p className="text-xs text-red-500">{errors.telefono}</p>
                         )}
                     </div>
 
                     {/* Email */}
                     <div className="space-y-2">
-                        <Label htmlFor="email" className="flex items-center gap-2">
-                            <Mail className="h-4 w-4" />
-                            Email <span className="text-destructive">*</span>
+                        <Label htmlFor="email" className="text-sm font-medium text-slate-700">
+                            Email <span className="text-slate-400 font-normal">(opcional)</span>
                         </Label>
-                        <Input
-                            id="email"
-                            type="email"
-                            placeholder="cliente@email.com"
-                            value={formData.email}
-                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                            className={errors.email ? "border-destructive" : ""}
-                        />
+                        <div className="relative">
+                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                            <Input
+                                id="email"
+                                type="email"
+                                placeholder="cliente@email.com"
+                                value={formData.email}
+                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                className={`pl-10 h-11 ${errors.email ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                            />
+                        </div>
                         {errors.email && (
-                            <p className="text-xs text-destructive">{errors.email}</p>
+                            <p className="text-xs text-red-500">{errors.email}</p>
                         )}
                     </div>
 
                     {/* Origen */}
                     <div className="space-y-2">
-                        <Label className="flex items-center gap-2">
-                            <Globe className="h-4 w-4" />
-                            ¿Cómo nos ha contactado? <span className="text-destructive">*</span>
+                        <Label className="text-sm font-medium text-slate-700">
+                            Origen <span className="text-red-500">*</span>
                         </Label>
                         <Select
                             value={formData.origen}
                             onValueChange={(value) => setFormData({ ...formData, origen: value })}
                         >
-                            <SelectTrigger className={errors.origen ? "border-destructive" : ""}>
-                                <SelectValue placeholder="Selecciona el origen" />
+                            <SelectTrigger className={`h-11 ${errors.origen ? "border-red-500 focus:ring-red-500" : ""}`}>
+                                <SelectValue placeholder="¿Cómo nos contactó?" />
                             </SelectTrigger>
                             <SelectContent>
                                 {ORIGENES_CONTACTO.map(origen => (
@@ -217,49 +276,67 @@ export function NewContactModal({ open, onClose, onContactCreated }: NewContactM
                             </SelectContent>
                         </Select>
                         {errors.origen && (
-                            <p className="text-xs text-destructive">{errors.origen}</p>
+                            <p className="text-xs text-red-500">{errors.origen}</p>
                         )}
                     </div>
-
-                    {/* Consentimiento RGPD */}
-                    <div className="flex items-start space-x-3 pt-2">
-                        <Checkbox
-                            id="rgpd"
-                            checked={formData.consentimiento_rgpd}
-                            onCheckedChange={(checked) =>
-                                setFormData({ ...formData, consentimiento_rgpd: checked as boolean })
-                            }
-                            className={errors.consentimiento_rgpd ? "border-destructive" : ""}
-                        />
-                        <div className="grid gap-1.5 leading-none">
-                            <Label
-                                htmlFor="rgpd"
-                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                            >
-                                Consentimiento RGPD <span className="text-destructive">*</span>
-                            </Label>
-                            <p className="text-xs text-muted-foreground">
-                                El cliente consiente el tratamiento de sus datos personales
-                            </p>
-                        </div>
-                    </div>
-                    {errors.consentimiento_rgpd && (
-                        <p className="text-xs text-destructive">{errors.consentimiento_rgpd}</p>
-                    )}
                 </div>
 
-                <div className="flex justify-end gap-3 pt-4 border-t">
-                    <Button variant="outline" onClick={handleClose}>
-                        Cancelar
-                    </Button>
-                    <Button variant="outline" onClick={() => handleSave(false)} className="gap-2">
-                        <Save className="h-4 w-4" />
-                        Guardar
-                    </Button>
-                    <Button onClick={() => handleSave(true)} className="gap-2">
-                        Guardar y completar datos
-                        <ArrowRight className="h-4 w-4" />
-                    </Button>
+                {/* Footer */}
+                <div className="px-5 sm:px-6 py-4 bg-slate-50 border-t border-slate-100">
+                    {/* Mobile: stack buttons */}
+                    <div className="flex flex-col sm:hidden gap-2">
+                        <Button
+                            onClick={() => handleSave(true)}
+                            disabled={isLoading}
+                            className="w-full h-11 bg-[#135bec] hover:bg-blue-700 text-white gap-2"
+                        >
+                            {isLoading ? "Guardando..." : "Guardar y completar"}
+                            <ArrowRight className="h-4 w-4" />
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={() => handleSave(false)}
+                            disabled={isLoading}
+                            className="w-full h-11 gap-2"
+                        >
+                            <Save className="h-4 w-4" />
+                            Solo guardar
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            onClick={handleClose}
+                            className="w-full h-11"
+                        >
+                            Cancelar
+                        </Button>
+                    </div>
+
+                    {/* Desktop: horizontal buttons */}
+                    <div className="hidden sm:flex justify-end gap-3">
+                        <Button
+                            variant="ghost"
+                            onClick={handleClose}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={() => handleSave(false)}
+                            disabled={isLoading}
+                            className="gap-2"
+                        >
+                            <Save className="h-4 w-4" />
+                            Guardar
+                        </Button>
+                        <Button
+                            onClick={() => handleSave(true)}
+                            disabled={isLoading}
+                            className="bg-[#135bec] hover:bg-blue-700 text-white gap-2"
+                        >
+                            {isLoading ? "Guardando..." : "Guardar y completar"}
+                            <ArrowRight className="h-4 w-4" />
+                        </Button>
+                    </div>
                 </div>
             </DialogContent>
         </Dialog>

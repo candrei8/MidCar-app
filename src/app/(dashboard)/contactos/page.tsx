@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react"
-import { mockVehicles } from "@/lib/mock-data"
 import { formatDate, cn } from "@/lib/utils"
 import { ORIGENES_CONTACTO, ESTADOS_BACKOFFICE } from "@/lib/constants"
 import type { Contact } from "@/types"
@@ -25,8 +24,8 @@ export default function ContactosPage() {
     const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
     const [isNewContactOpen, setIsNewContactOpen] = useState(false)
 
-    // Obtener contactos filtrados por usuario (Mi Vista / Visión Completa)
-    const { contacts: userFilteredContacts, isFullView } = useFilteredData()
+    // Obtener contactos y vehículos filtrados por usuario (Mi Vista / Visión Completa)
+    const { contacts: userFilteredContacts, vehicles: allVehicles, isFullView, isLoading } = useFilteredData()
 
     // Estado local para gestionar contactos (permite modificar estados)
     const [contacts, setContacts] = useState<Contact[]>(userFilteredContacts)
@@ -53,7 +52,7 @@ export default function ContactosPage() {
     const enrichedContacts = contacts.map(contact => ({
         ...contact,
         vehiculos: contact.vehiculos_interes
-            .map(id => mockVehicles.find(v => v.id === id))
+            .map(id => allVehicles.find(v => v.id === id))
             .filter(Boolean)
     }))
 
@@ -304,6 +303,7 @@ export default function ContactosPage() {
                         getInitials={getInitials}
                         getOrigenIcon={getOrigenIcon}
                         getEstadoBadge={getEstadoBadge}
+                        isFullView={isFullView}
                         onCall={handleCall}
                         onWhatsApp={handleWhatsApp}
                         onEmail={handleEmail}
@@ -359,6 +359,27 @@ export default function ContactosPage() {
     )
 }
 
+// Formatear fecha y hora de creación
+function formatCreatedAt(dateString: string) {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    // Formato de hora
+    const timeStr = date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+
+    if (diffMins < 1) return 'Ahora mismo'
+    if (diffMins < 60) return `Hace ${diffMins} min`
+    if (diffHours < 24) return `Hoy ${timeStr}`
+    if (diffDays === 1) return `Ayer ${timeStr}`
+    if (diffDays < 7) return `Hace ${diffDays} días`
+
+    return date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) + ` ${timeStr}`
+}
+
 // Contact Card Component
 function ContactCard({
     contact,
@@ -366,6 +387,7 @@ function ContactCard({
     getInitials,
     getOrigenIcon,
     getEstadoBadge,
+    isFullView,
     onCall,
     onWhatsApp,
     onEmail,
@@ -376,6 +398,7 @@ function ContactCard({
     getInitials: (c: Contact) => string
     getOrigenIcon: (o: string) => string
     getEstadoBadge: (e: string) => { bg: string, text: string, label: string }
+    isFullView: boolean
     onCall: (e: React.MouseEvent, phone: string) => void
     onWhatsApp: (e: React.MouseEvent, phone: string) => void
     onEmail: (e: React.MouseEvent, email: string) => void
@@ -384,6 +407,9 @@ function ContactCard({
     const badge = getEstadoBadge(contact.estado)
     const vehicle = contact.vehiculos?.[0]
     const isLost = contact.estado === 'cerrado'
+    // Usar el nombre guardado en el contacto o mostrar "Usuario"
+    const creatorName = contact.created_by_name || (contact.created_by ? 'Usuario' : null)
+    const createdAt = contact.created_at ? formatCreatedAt(contact.created_at) : null
 
     return (
         <div
@@ -393,6 +419,24 @@ function ContactCard({
             )}
             onClick={onClick}
         >
+            {/* Creator info - always show when there's creator data */}
+            {creatorName && (
+                <div className="bg-indigo-50/50 border-b border-indigo-100/50 px-4 py-2">
+                    <div className="flex items-center justify-between text-[11px]">
+                        <span className="inline-flex items-center gap-1.5 text-indigo-600 font-medium">
+                            <span className="material-symbols-outlined text-[14px]">person</span>
+                            {creatorName}
+                        </span>
+                        {createdAt && (
+                            <span className="inline-flex items-center gap-1 text-indigo-500">
+                                <span className="material-symbols-outlined text-[12px]">schedule</span>
+                                {createdAt}
+                            </span>
+                        )}
+                    </div>
+                </div>
+            )}
+
             {/* Main Content */}
             <div className="p-4 pb-3">
                 <div className="flex items-start justify-between mb-3">

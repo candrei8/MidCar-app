@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState, ReactNode, useRef } from 'react'
+import { createContext, useContext, useEffect, useState, ReactNode, useRef, useMemo, useCallback } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase, isSupabaseConfigured } from './supabase'
 
@@ -46,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [profile, setProfile] = useState<UserProfile | null>(null)
     const [session, setSession] = useState<Session | null>(null)
     const [loading, setLoading] = useState(true)
-    const [isFullView, setIsFullView] = useState(false)
+    const [isFullView, setIsFullView] = useState(true) // Vista completa siempre activa - sin contraseña
     const authInitialized = useRef(false)
 
     // Fetch user profile from database with timeout
@@ -135,7 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     setProfile(userProfile)
                 } else {
                     setProfile(null)
-                    setIsFullView(false)
+                    // Vista completa siempre activa - no resetear
                 }
 
                 setLoading(false)
@@ -147,7 +147,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     }, [])
 
-    const signIn = async (email: string, password: string) => {
+    const signIn = useCallback(async (email: string, password: string) => {
         try {
             const { error } = await supabase.auth.signInWithPassword({
                 email,
@@ -157,9 +157,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } catch (err) {
             return { error: err as Error }
         }
-    }
+    }, [])
 
-    const signUp = async (email: string, password: string, profileData: Partial<UserProfile>) => {
+    const signUp = useCallback(async (email: string, password: string, profileData: Partial<UserProfile>) => {
         try {
             const { data, error } = await supabase.auth.signUp({
                 email,
@@ -202,74 +202,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } catch (err) {
             return { error: err as Error }
         }
-    }
+    }, [])
 
-    const signOut = async () => {
-        setIsFullView(false)
+    const signOut = useCallback(async () => {
+        // Vista completa siempre activa - no resetear
         await supabase.auth.signOut()
-    }
+    }, [])
 
-    const unlockFullView = async (code: string): Promise<FullViewResult> => {
-        try {
-            // Obtener token de sesión para enviar con la request
-            const { data: { session: currentSession } } = await supabase.auth.getSession()
+    // Vista completa siempre activa - esta función se mantiene por compatibilidad
+    const unlockFullView = useCallback(async (_code: string): Promise<FullViewResult> => {
+        // Siempre devuelve éxito - ya no se requiere contraseña
+        return { success: true }
+    }, [])
 
-            const headers: Record<string, string> = {
-                'Content-Type': 'application/json',
-            }
-
-            // Incluir token de autenticación si hay sesión activa
-            if (currentSession?.access_token) {
-                headers['Authorization'] = `Bearer ${currentSession.access_token}`
-            }
-
-            const response = await fetch('/api/auth/verify-fullview', {
-                method: 'POST',
-                headers,
-                body: JSON.stringify({ code }),
-            })
-
-            const data = await response.json()
-
-            if (data.success) {
-                setIsFullView(true)
-                return { success: true }
-            } else {
-                return {
-                    success: false,
-                    error: data.error || 'Código incorrecto',
-                    remainingAttempts: data.remainingAttempts,
-                    locked: data.locked
-                }
-            }
-        } catch (error) {
-            return {
-                success: false,
-                error: 'Error de conexión. Inténtalo de nuevo.'
-            }
-        }
-    }
-
-    const lockFullView = () => {
+    const lockFullView = useCallback(() => {
         setIsFullView(false)
-    }
+    }, [])
+
+    // Memoizar el valor del contexto para evitar re-renders innecesarios
+    const contextValue = useMemo(() => ({
+        user,
+        profile,
+        session,
+        loading,
+        isFullView,
+        isConfigured: isSupabaseConfigured,
+        signIn,
+        signUp,
+        signOut,
+        unlockFullView,
+        lockFullView,
+    }), [user, profile, session, loading, isFullView, signIn, signUp, signOut, unlockFullView, lockFullView])
 
     return (
-        <AuthContext.Provider
-            value={{
-                user,
-                profile,
-                session,
-                loading,
-                isFullView,
-                isConfigured: isSupabaseConfigured, // SECURITY: Expose configuration status
-                signIn,
-                signUp,
-                signOut,
-                unlockFullView,
-                lockFullView,
-            }}
-        >
+        <AuthContext.Provider value={contextValue}>
             {children}
         </AuthContext.Provider>
     )

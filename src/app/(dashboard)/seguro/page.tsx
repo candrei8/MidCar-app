@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useCallback } from "react"
+import { useState, useMemo, useCallback, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import {
     Table,
@@ -23,7 +23,15 @@ import {
     Clock,
     ShieldX,
 } from "lucide-react"
-import { mockInsurancePolicies, getDaysRemaining, calculateInsuranceState } from "@/lib/mock-insurance"
+import {
+    getPolicies,
+    createPolicy,
+    updatePolicy,
+    deletePolicy as deletePolicyDB,
+    PolicyDB,
+    getDaysRemaining,
+    calculateInsuranceState
+} from "@/lib/supabase-service"
 import { useFilteredData } from "@/hooks/useFilteredData"
 import { PolizaSeguro, Vehicle, InsuranceState, INSURANCE_STATE_CONFIG } from "@/types"
 import { cn, formatCurrency, formatDate } from "@/lib/utils"
@@ -31,8 +39,8 @@ import { parseInsuranceFile, matchPoliciesWithVehicles, normalizeMatricula } fro
 import { ImportPreviewModal, ImportResult, ParsedPolicy, MatchedPolicy } from "@/components/insurance/ImportPreviewModal"
 import { InsurancePolicyModal } from "@/components/insurance/InsurancePolicyModal"
 import { InsuranceDetailPanel } from "@/components/insurance/InsuranceDetailPanel"
-import { defaultCoverages } from "@/lib/mock-insurance"
 import { useDropzone } from "react-dropzone"
+import { useAuth } from "@/lib/auth-context"
 
 // State for drag & drop
 interface ParseError {
@@ -74,12 +82,67 @@ const ALERT_COLORS: Record<string, { border: string; bg: string; bgIcon: string;
     }
 }
 
+// Default coverages for new policies
+const defaultCoverages = {
+    rcObligatoria: true,
+    rcVoluntaria: false,
+    defensaJuridica: false,
+    asistenciaViaje: false,
+    robo: false,
+    incendio: false,
+    lunas: false,
+    daniosPropios: false,
+    ocupantes: false,
+    vehiculoSustitucion: false,
+}
+
+// Transform PolicyDB (snake_case from Supabase) to PolizaSeguro (camelCase for UI)
+function policyDBToPoliza(policy: PolicyDB): PolizaSeguro {
+    return {
+        id: policy.id,
+        vehiculoId: policy.vehiculo_id || '',
+        companiaAseguradora: policy.compania_aseguradora,
+        numeroPoliza: policy.numero_poliza,
+        tipoPoliza: policy.tipo_poliza || 'terceros_basico',
+        fechaAlta: policy.fecha_alta,
+        fechaVencimiento: policy.fecha_vencimiento,
+        primaAnual: policy.prima_anual || 0,
+        franquicia: policy.franquicia,
+        tomadorNombre: policy.tomador_nombre || '',
+        tomadorNif: policy.tomador_nif || '',
+        coberturas: policy.coberturas || defaultCoverages,
+        documentos: {},
+    }
+}
+
+// Transform PolizaSeguro (camelCase) to PolicyDB (snake_case for Supabase)
+function polizaToPolicyDB(poliza: Partial<PolizaSeguro>, vehiculo?: Vehicle): Omit<PolicyDB, 'id' | 'created_at' | 'updated_at'> {
+    return {
+        vehiculo_id: poliza.vehiculoId,
+        vehiculo_matricula: vehiculo?.matricula,
+        numero_poliza: poliza.numeroPoliza || '',
+        compania_aseguradora: poliza.companiaAseguradora || 'AXA',
+        tipo_poliza: poliza.tipoPoliza,
+        fecha_alta: poliza.fechaAlta || new Date().toISOString().split('T')[0],
+        fecha_vencimiento: poliza.fechaVencimiento || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        prima_anual: poliza.primaAnual,
+        franquicia: poliza.franquicia,
+        tomador_nombre: poliza.tomadorNombre,
+        tomador_nif: poliza.tomadorNif,
+        coberturas: poliza.coberturas,
+        documento_poliza: poliza.documentos?.polizaPdf?.dataUrl,
+        documento_recibo: poliza.documentos?.reciboPdf?.dataUrl,
+        estado: 'activa',
+    }
+}
+
 export default function SeguroPage() {
     // Obtener vehículos filtrados por vista (Mi Vista / Visión Completa)
     const { vehicles: filteredVehicles, isFullView } = useFilteredData()
+    const { user, profile } = useAuth()
 
-    // State - Cargar pólizas
-    const [policies, setPolicies] = useState<PolizaSeguro[]>(mockInsurancePolicies)
+    // State - Cargar pólizas desde Supabase
+    const [policies, setPolicies] = useState<PolicyDB[]>([])
     const [isLoading, setIsLoading] = useState(false)
     const [showImportPreview, setShowImportPreview] = useState(false)
     const [importResult, setImportResult] = useState<ImportResult | null>(null)
@@ -94,19 +157,30 @@ export default function SeguroPage() {
 
     // Modal state
     const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null)
-    const [selectedPolicy, setSelectedPolicy] = useState<PolizaSeguro | null>(null)
+    const [selectedPolicy, setSelectedPolicy] = useState<PolicyDB | null>(null)
     const [isPolicyModalOpen, setIsPolicyModalOpen] = useState(false)
     const [isDetailOpen, setIsDetailOpen] = useState(false)
 
+    // Load policies from Supabase on mount
+    useEffect(() => {
+        const loadPolicies = async () => {
+            setIsLoading(true)
+            const data = await getPolicies()
+            setPolicies(data)
+            setIsLoading(false)
+        }
+        loadPolicies()
+    }, [])
+
     // Get policy for a vehicle
     const getPolicyForVehicle = useCallback((vehicleId: string) => {
-        return policies.find(p => p.vehiculoId === vehicleId)
+        return policies.find(p => p.vehiculo_id === vehicleId)
     }, [policies])
 
     // Calculate state for each policy
-    const getPolicyState = useCallback((policy: PolizaSeguro | undefined): InsuranceState => {
+    const getPolicyState = useCallback((policy: PolicyDB | undefined): InsuranceState => {
         if (!policy) return 'sin_seguro'
-        return calculateInsuranceState(policy.fechaVencimiento)
+        return calculateInsuranceState(policy.fecha_vencimiento)
     }, [])
 
     // Comparison data with policies (usando vehículos filtrados)
@@ -120,7 +194,7 @@ export default function SeguroPage() {
                     vehicle,
                     policy,
                     state,
-                    daysRemaining: policy ? getDaysRemaining(policy.fechaVencimiento) : null,
+                    daysRemaining: policy ? getDaysRemaining(policy.fecha_vencimiento) : null,
                 }
             })
     }, [getPolicyForVehicle, getPolicyState])
@@ -263,27 +337,30 @@ export default function SeguroPage() {
         setIsImporting(true)
 
         try {
-            // Create new policies from matched data
-            const newPolicies: PolizaSeguro[] = importResult.matched.map(match => ({
+            // Create new policies from matched data (in PolicyDB format for state)
+            const newPolicies: PolicyDB[] = importResult.matched.map(match => ({
                 id: `ins-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                vehiculoId: match.vehicleId,
-                companiaAseguradora: 'AXA', // Default, could be from file
-                numeroPoliza: match.policy.numeroPoliza,
-                tipoPoliza: (match.policy.tipoPoliza?.toLowerCase().includes('terceros') ? 'terceros_basico' : 'todo_riesgo_franquicia') as any,
-                fechaAlta: match.policy.fechaAlta || new Date().toISOString().split('T')[0],
-                fechaVencimiento: match.policy.fechaVencimiento || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                primaAnual: match.policy.prima || 350,
+                vehiculo_id: match.vehicleId,
+                vehiculo_matricula: match.policy.matricula,
+                numero_poliza: match.policy.numeroPoliza,
+                compania_aseguradora: 'AXA',
+                tipo_poliza: (match.policy.tipoPoliza?.toLowerCase().includes('terceros') ? 'terceros_basico' : 'todo_riesgo_franquicia') as PolicyDB['tipo_poliza'],
+                fecha_alta: match.policy.fechaAlta || new Date().toISOString().split('T')[0],
+                fecha_vencimiento: match.policy.fechaVencimiento || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                prima_anual: match.policy.prima || 350,
                 franquicia: 300,
-                tomadorNombre: 'MidCar Concesionario S.L.',
-                tomadorNif: 'B12345678',
+                tomador_nombre: 'MidCar Concesionario S.L.',
+                tomador_nif: 'B12345678',
                 coberturas: defaultCoverages,
-                documentos: {},
+                estado: 'activa',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
             }))
 
             // Update policies state - replace existing for same vehicle or add new
             setPolicies(prev => {
-                const updatedVehicleIds = new Set(newPolicies.map(p => p.vehiculoId))
-                const filtered = prev.filter(p => !updatedVehicleIds.has(p.vehiculoId))
+                const updatedVehicleIds = new Set(newPolicies.map(p => p.vehiculo_id))
+                const filtered = prev.filter(p => !updatedVehicleIds.has(p.vehiculo_id))
                 return [...filtered, ...newPolicies]
             })
 
@@ -309,33 +386,46 @@ export default function SeguroPage() {
         setIsPolicyModalOpen(true)
     }
 
-    const handleEditPolicy = (vehicle: Vehicle, policy: PolizaSeguro) => {
+    const handleEditPolicy = (vehicle: Vehicle, policy: PolicyDB) => {
         setSelectedVehicle(vehicle)
         setSelectedPolicy(policy)
         setIsPolicyModalOpen(true)
     }
 
-    const handleViewPolicy = (vehicle: Vehicle, policy: PolizaSeguro) => {
+    const handleViewPolicy = (vehicle: Vehicle, policy: PolicyDB) => {
         if (!policy) return
         setSelectedVehicle(vehicle)
         setSelectedPolicy(policy)
         setIsDetailOpen(true)
     }
 
-    const handleDeletePolicy = (policyId: string) => {
+    const handleDeletePolicy = async (policyId: string) => {
         if (confirm('¿Estás seguro de que quieres eliminar esta póliza?')) {
+            await deletePolicyDB(policyId)
             setPolicies(prev => prev.filter(p => p.id !== policyId))
             setIsDetailOpen(false)
         }
     }
 
-    const handleSavePolicy = (policyData: Partial<PolizaSeguro>) => {
-        const existingIndex = policies.findIndex(p => p.id === policyData.id)
-        if (existingIndex >= 0) {
-            setPolicies(prev => prev.map((p, i) => i === existingIndex ? { ...p, ...policyData } as PolizaSeguro : p))
+    const handleSavePolicy = async (policyData: Partial<PolizaSeguro>) => {
+        if (!selectedVehicle) return
+        // Convert camelCase to snake_case for DB
+        const dbPolicy = polizaToPolicyDB(policyData, selectedVehicle)
+
+        if (selectedPolicy) {
+            // Update existing
+            const updated = await updatePolicy(selectedPolicy.id, dbPolicy)
+            if (updated) {
+                setPolicies(prev => prev.map(p => p.id === selectedPolicy.id ? updated : p))
+            }
         } else {
-            setPolicies(prev => [...prev, policyData as PolizaSeguro])
+            // Create new
+            const created = await createPolicy(dbPolicy)
+            if (created) {
+                setPolicies(prev => [...prev, created])
+            }
         }
+        setIsPolicyModalOpen(false)
     }
 
     // State icon component
@@ -561,8 +651,8 @@ export default function SeguroPage() {
                                                         </div>
                                                     </TableCell>
                                                     <TableCell className="font-mono text-xs">{item.vehicle.matricula}</TableCell>
-                                                    <TableCell className="text-xs text-gray-500">{item.policy?.numeroPoliza || '-'}</TableCell>
-                                                    <TableCell className="text-xs">{item.policy ? formatDate(item.policy.fechaVencimiento) : '-'}</TableCell>
+                                                    <TableCell className="text-xs text-gray-500">{item.policy?.numero_poliza || '-'}</TableCell>
+                                                    <TableCell className="text-xs">{item.policy ? formatDate(item.policy.fecha_vencimiento) : '-'}</TableCell>
                                                     <TableCell>
                                                         <DropdownMenu>
                                                             <DropdownMenuTrigger asChild>
@@ -622,7 +712,7 @@ export default function SeguroPage() {
                                                     </span>
                                                     <span className="hidden md:flex items-center gap-1">
                                                         <span className="material-symbols-outlined text-[14px]">calendar_month</span>
-                                                        {item.state === 'sin_seguro' ? `Entrada: ${item.vehicle.fecha_entrada_stock}` : `Vence: ${item.policy?.fechaVencimiento}`}
+                                                        {item.state === 'sin_seguro' ? `Entrada: ${item.vehicle.fecha_entrada_stock}` : `Vence: ${item.policy?.fecha_vencimiento}`}
                                                     </span>
                                                     <span className="hidden md:flex items-center gap-1">
                                                         <span className="material-symbols-outlined text-[14px]">sell</span>
@@ -696,7 +786,7 @@ export default function SeguroPage() {
                     open={isPolicyModalOpen}
                     onClose={() => setIsPolicyModalOpen(false)}
                     vehicle={selectedVehicle}
-                    existingPolicy={selectedPolicy}
+                    existingPolicy={selectedPolicy ? policyDBToPoliza(selectedPolicy) : null}
                     onSave={handleSavePolicy}
                 />
             )}
@@ -704,7 +794,7 @@ export default function SeguroPage() {
             {isDetailOpen && selectedVehicle && selectedPolicy && (
                 <InsuranceDetailPanel
                     vehicle={selectedVehicle}
-                    policy={selectedPolicy}
+                    policy={policyDBToPoliza(selectedPolicy)}
                     onClose={() => setIsDetailOpen(false)}
                     onEdit={() => {
                         setIsDetailOpen(false)

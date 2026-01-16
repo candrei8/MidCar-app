@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useCallback, memo } from "react"
 import Link from "next/link"
 import { formatCurrency, cn } from "@/lib/utils"
 import { MARCAS, COMBUSTIBLES } from "@/lib/constants"
@@ -34,51 +34,62 @@ export default function InventarioPage() {
         return count
     }, [statusFilter, brandFilter, fuelFilter, priceFilter, yearFilter])
 
-    // Filter vehicles
+    // Filter vehicles - optimizado con early returns
     const filteredVehicles = useMemo(() => {
+        const searchLower = searchQuery.toLowerCase()
         return baseVehicles.filter(vehicle => {
-            const searchLower = searchQuery.toLowerCase()
-            const matchesSearch =
-                vehicle.marca.toLowerCase().includes(searchLower) ||
-                vehicle.modelo.toLowerCase().includes(searchLower) ||
-                vehicle.matricula.toLowerCase().includes(searchLower)
+            // Early returns para evitar comprobaciones innecesarias
+            if (statusFilter !== "todos" && vehicle.estado !== statusFilter) return false
+            if (brandFilter !== "todos" && vehicle.marca !== brandFilter) return false
+            if (fuelFilter !== "todos" && vehicle.combustible !== fuelFilter) return false
 
-            const matchesStatus = statusFilter === "todos" || vehicle.estado === statusFilter
-            const matchesBrand = brandFilter === "todos" || vehicle.marca === brandFilter
-            const matchesFuel = fuelFilter === "todos" || vehicle.combustible === fuelFilter
+            // Search filter
+            if (searchQuery) {
+                const matchesSearch =
+                    vehicle.marca.toLowerCase().includes(searchLower) ||
+                    vehicle.modelo.toLowerCase().includes(searchLower) ||
+                    vehicle.matricula.toLowerCase().includes(searchLower)
+                if (!matchesSearch) return false
+            }
 
             // Price ranges
-            let matchesPrice = true
-            if (priceFilter === "bajo") matchesPrice = vehicle.precio_venta < 10000
-            else if (priceFilter === "medio") matchesPrice = vehicle.precio_venta >= 10000 && vehicle.precio_venta < 20000
-            else if (priceFilter === "alto") matchesPrice = vehicle.precio_venta >= 20000 && vehicle.precio_venta < 30000
-            else if (priceFilter === "premium") matchesPrice = vehicle.precio_venta >= 30000
+            if (priceFilter !== "todos") {
+                const precio = vehicle.precio_venta
+                if (priceFilter === "bajo" && precio >= 10000) return false
+                if (priceFilter === "medio" && (precio < 10000 || precio >= 20000)) return false
+                if (priceFilter === "alto" && (precio < 20000 || precio >= 30000)) return false
+                if (priceFilter === "premium" && precio < 30000) return false
+            }
 
             // Year ranges
-            let matchesYear = true
-            const year = vehicle.año_matriculacion
-            if (yearFilter === "nuevo") matchesYear = year >= 2024
-            else if (yearFilter === "reciente") matchesYear = year >= 2020 && year < 2024
-            else if (yearFilter === "medio") matchesYear = year >= 2015 && year < 2020
-            else if (yearFilter === "antiguo") matchesYear = year < 2015
+            if (yearFilter !== "todos") {
+                const year = vehicle.año_matriculacion
+                if (yearFilter === "nuevo" && year < 2024) return false
+                if (yearFilter === "reciente" && (year < 2020 || year >= 2024)) return false
+                if (yearFilter === "medio" && (year < 2015 || year >= 2020)) return false
+                if (yearFilter === "antiguo" && year >= 2015) return false
+            }
 
-            return matchesSearch && matchesStatus && matchesBrand && matchesFuel && matchesPrice && matchesYear
+            return true
         })
-    }, [searchQuery, statusFilter, brandFilter, fuelFilter, priceFilter, yearFilter])
+    }, [baseVehicles, searchQuery, statusFilter, brandFilter, fuelFilter, priceFilter, yearFilter])
 
-    // Stats
-    const stats = {
-        total: baseVehicles.length,
-        disponible: baseVehicles.filter(v => v.estado === 'disponible').length,
-        reservado: baseVehicles.filter(v => v.estado === 'reservado').length,
-        vendido: baseVehicles.filter(v => v.estado === 'vendido').length,
-    }
+    // Stats - single-pass optimizado
+    const stats = useMemo(() => {
+        let disponible = 0, reservado = 0, vendido = 0
+        for (const v of baseVehicles) {
+            if (v.estado === 'disponible') disponible++
+            else if (v.estado === 'reservado') reservado++
+            else if (v.estado === 'vendido') vendido++
+        }
+        return { total: baseVehicles.length, disponible, reservado, vendido }
+    }, [baseVehicles])
 
-    // Get unique brands from vehicles
+    // Get unique brands from vehicles - memoizado correctamente
     const availableBrands = useMemo(() => {
         const brands = new Set(baseVehicles.map(v => v.marca))
         return Array.from(brands).sort()
-    }, [])
+    }, [baseVehicles])
 
     const clearAllFilters = () => {
         setSearchQuery("")
@@ -89,7 +100,7 @@ export default function InventarioPage() {
         setYearFilter("todos")
     }
 
-    const getStatusBadge = (estado: string) => {
+    const getStatusBadge = useCallback((estado: string) => {
         const config: Record<string, { bg: string, text: string }> = {
             'disponible': { bg: 'bg-green-500/90', text: 'Disponible' },
             'reservado': { bg: 'bg-amber-500/90', text: 'Reservado' },
@@ -97,7 +108,7 @@ export default function InventarioPage() {
             'en_transito': { bg: 'bg-blue-500/90', text: 'En Tránsito' },
         }
         return config[estado] || { bg: 'bg-slate-500/90', text: estado }
-    }
+    }, [])
 
     return (
         <div className="min-h-screen bg-[#f6f6f8] flex flex-col">
@@ -331,24 +342,37 @@ export default function InventarioPage() {
     )
 }
 
-// Vehicle Card Component
-function VehicleCard({
+// Vehicle Card Component - memoizado
+const VehicleCard = memo(function VehicleCard({
     vehicle,
     getStatusBadge
 }: {
     vehicle: Vehicle
     getStatusBadge: (estado: string) => { bg: string, text: string }
 }) {
-    const badge = getStatusBadge(vehicle.estado)
+    const badge = useMemo(() => getStatusBadge(vehicle.estado), [getStatusBadge, vehicle.estado])
+
+    // Formatear la fecha de creación
+    const formattedDate = useMemo(() => {
+        if (!vehicle.created_at) return null
+        const date = new Date(vehicle.created_at)
+        return date.toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: '2-digit'
+        })
+    }, [vehicle.created_at])
 
     return (
-        <Link href={`/inventario/${vehicle.id}`}>
-            <article className="flex flex-col bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 border border-gray-100 cursor-pointer">
+        <Link href={`/inventario/${vehicle.id}`} prefetch={false}>
+            <article className="flex flex-col bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md border border-gray-100 cursor-pointer will-change-transform" style={{ transition: 'box-shadow 0.15s ease' }}>
                 {/* Image */}
                 <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100">
                     <img
                         className="h-full w-full object-cover"
-                        src={vehicle.imagen_principal || vehicle.imagenes?.[0]?.url || '/placeholder-car.jpg'}
+                        loading="lazy"
+                        decoding="async"
+                        src={vehicle.imagen_principal || vehicle.imagenes?.[0]?.url || '/placeholder-car.svg'}
                         alt={`${vehicle.marca} ${vehicle.modelo}`}
                     />
                     {/* Status Badge */}
@@ -372,8 +396,25 @@ function VehicleCard({
                     <p className="text-base font-bold text-[#135bec] mt-1">
                         {formatCurrency(vehicle.precio_venta)}
                     </p>
+
+                    {/* Creator Info */}
+                    {vehicle.created_by_name && (
+                        <div className="flex items-center justify-between pt-2 mt-1 border-t border-gray-100">
+                            <div className="flex items-center gap-1 min-w-0">
+                                <span className="material-symbols-outlined text-[14px] text-gray-400">person</span>
+                                <span className="text-[11px] font-medium text-[#135bec] truncate max-w-[80px]">
+                                    {vehicle.created_by_name}
+                                </span>
+                            </div>
+                            {formattedDate && (
+                                <span className="text-[10px] text-gray-400 shrink-0">
+                                    {formattedDate}
+                                </span>
+                            )}
+                        </div>
+                    )}
                 </div>
             </article>
         </Link>
     )
-}
+})

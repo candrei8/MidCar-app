@@ -13,8 +13,8 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { UserPlus, Search, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { mockUsers } from "@/lib/mock-data"
 import { useToast } from "@/components/ui/toast"
+import type { User } from "@/types"
 
 interface AssignCommercialModalProps {
     open: boolean
@@ -35,7 +35,8 @@ export function AssignCommercialModal({
     const [motivo, setMotivo] = useState('')
     const [notificar, setNotificar] = useState(true)
 
-    const commercials = mockUsers.filter(u => u.rol === 'vendedor' || u.rol === 'admin')
+    // TODO: Fetch commercials from Supabase users table
+    const commercials: User[] = []
 
     const filteredCommercials = commercials.filter(c =>
         `${c.nombre} ${c.apellidos}`.toLowerCase().includes(searchQuery.toLowerCase())

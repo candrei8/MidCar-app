@@ -6,9 +6,8 @@ import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { VehicleForm, VehicleFormData } from "@/components/inventory/VehicleForm"
-import { mockVehicles } from "@/lib/mock-data"
+import { getVehicleById, updateVehicle } from "@/lib/supabase-service"
 import { useToast } from "@/components/ui/toast"
-import { updateAnyVehicle, getUserVehicles, getVehicleOverrides } from "@/lib/data-store"
 
 interface EditVehicleFormProps {
     vehicleId: string
@@ -22,30 +21,20 @@ export function EditVehicleForm({ vehicleId }: EditVehicleFormProps) {
     const [notFoundState, setNotFoundState] = useState(false)
 
     useEffect(() => {
-        // Buscar en mock vehicles y user vehicles
-        const userVehicles = getUserVehicles()
-        const overrides = getVehicleOverrides()
+        // Load vehicle from Supabase
+        const loadVehicle = async () => {
+            const vehicle = await getVehicleById(vehicleId)
 
-        let vehicle = mockVehicles.find(v => v.id === vehicleId)
-        if (vehicle && overrides[vehicleId]) {
-            // Aplicar overrides si existen
-            vehicle = { ...vehicle, ...overrides[vehicleId] }
-        }
+            if (!vehicle) {
+                setNotFoundState(true)
+                return
+            }
 
-        if (!vehicle) {
-            vehicle = userVehicles.find(v => v.id === vehicleId)
-        }
-
-        if (!vehicle) {
-            setNotFoundState(true)
-            return
-        }
-
-        // Map existing images to UploadedFile format
-        // Handle both string[] and VehicleImage[] formats
-        const imageUrls = vehicle.imagenes.map((img: any) =>
-            typeof img === 'string' ? img : img.url || img.preview || ''
-        )
+            // Map existing images to UploadedFile format
+            // Handle both string[] and VehicleImage[] formats
+            const imageUrls = (vehicle.imagenes || []).map((img: any) =>
+                typeof img === 'string' ? img : img.url || img.preview || ''
+            )
 
         const fotos = imageUrls.map((url: string, index: number) => ({
             id: `existing-${index}`,
@@ -113,7 +102,9 @@ export function EditVehicleForm({ vehicleId }: EditVehicleFormProps) {
             documentos: [] // No documents in mock data
         }
 
-        setInitialData(formData)
+            setInitialData(formData)
+        }
+        loadVehicle()
     }, [vehicleId])
 
     const handleSave = async (formData: VehicleFormData) => {
@@ -155,12 +146,18 @@ export function EditVehicleForm({ vehicleId }: EditVehicleFormProps) {
                 equipamiento: formData.equipamiento || [],
             }
 
-            // Guardar cambios (funciona tanto para mock como para user vehicles)
-            updateAnyVehicle(vehicleId, updates)
+            // Save changes to Supabase
+            const result = await updateVehicle(vehicleId, updates)
 
-            // Show success and redirect
-            addToast('Vehículo actualizado correctamente', 'success')
-            router.push(`/inventario/${vehicleId}`)
+            if (result) {
+                // Dispatch update event
+                window.dispatchEvent(new CustomEvent('midcar-data-updated', { detail: { type: 'vehicles' } }))
+                // Show success and redirect
+                addToast('Vehículo actualizado correctamente', 'success')
+                router.push(`/inventario/${vehicleId}`)
+            } else {
+                throw new Error('No se pudo actualizar el vehículo')
+            }
         } catch (error) {
             console.error('Error saving vehicle:', error)
             addToast('Error al guardar el vehículo', 'error')
