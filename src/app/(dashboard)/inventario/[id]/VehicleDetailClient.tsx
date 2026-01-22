@@ -8,10 +8,12 @@ import { cn, formatCurrency } from "@/lib/utils"
 import { ShareModal } from "@/components/inventory/ShareModal"
 import { ContractGeneratorModal } from "@/components/inventory/ContractGeneratorModal"
 import { InvoiceGeneratorModal } from "@/components/inventory/InvoiceGeneratorModal"
+import { DocumentGeneratorModal } from "@/components/documents"
 import { getVehicleById } from "@/lib/supabase-service"
+import { getContacts } from "@/lib/db/contacts"
 import { useToast } from "@/components/ui/toast"
 import { useAuth } from "@/lib/auth-context"
-import type { Vehicle } from "@/types"
+import type { Vehicle, Contact } from "@/types"
 
 interface VehicleDetailClientProps {
     id: string
@@ -54,6 +56,8 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
     const [showShareModal, setShowShareModal] = useState(false)
     const [showContractModal, setShowContractModal] = useState(false)
     const [showInvoiceModal, setShowInvoiceModal] = useState(false)
+    const [showDocumentModal, setShowDocumentModal] = useState(false)
+    const [contacts, setContacts] = useState<Contact[]>([])
 
     // Load vehicle from Supabase
     useEffect(() => {
@@ -65,6 +69,19 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
         }
         loadVehicle()
     }, [id])
+
+    // Load contacts for document generator
+    useEffect(() => {
+        const loadContacts = async () => {
+            try {
+                const contactsData = await getContacts()
+                setContacts(contactsData)
+            } catch (error) {
+                console.error('Error loading contacts:', error)
+            }
+        }
+        loadContacts()
+    }, [])
 
     // Show loading state
     if (isLoading) {
@@ -208,6 +225,7 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
                         setShowAllEquipment={setShowAllEquipment}
                         onGenerateContract={() => setShowContractModal(true)}
                         onGenerateInvoice={() => setShowInvoiceModal(true)}
+                        onGenerateDocument={() => setShowDocumentModal(true)}
                     />
                 </div>
 
@@ -523,36 +541,45 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
                             </div>
                         )}
 
-                        {/* Actions - Contract & Invoice */}
+                        {/* Actions - Documents */}
                         <div className="bg-white dark:bg-surface-dark rounded-xl border border-gray-100 dark:border-gray-800 p-6 shadow-sm">
-                            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Acciones</h3>
+                            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Documentos</h3>
                             <div className="space-y-3">
+                                {/* New Enterprise Document Generator */}
                                 <button
-                                    onClick={() => setShowContractModal(true)}
-                                    className="w-full flex items-center gap-3 p-4 rounded-xl bg-primary/5 hover:bg-primary/10 border border-primary/20 transition-colors group"
+                                    onClick={() => setShowDocumentModal(true)}
+                                    className="w-full flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-primary/10 to-purple-500/10 hover:from-primary/20 hover:to-purple-500/20 border border-primary/30 transition-all group"
                                 >
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
-                                        <span className="material-symbols-outlined">description</span>
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-purple-500 text-white shadow-lg">
+                                        <span className="material-symbols-outlined">auto_awesome</span>
                                     </div>
                                     <div className="flex-1 text-left">
-                                        <p className="font-semibold text-gray-900 dark:text-white">Generar Contrato</p>
-                                        <p className="text-xs text-gray-500">Contrato de compraventa PDF</p>
+                                        <p className="font-semibold text-gray-900 dark:text-white">Generar Documento</p>
+                                        <p className="text-xs text-gray-500">Contratos, facturas, proformas...</p>
                                     </div>
-                                    <span className="material-symbols-outlined text-gray-400 group-hover:text-primary transition-colors">chevron_right</span>
+                                    <span className="material-symbols-outlined text-primary group-hover:translate-x-1 transition-transform">arrow_forward</span>
                                 </button>
-                                <button
-                                    onClick={() => setShowInvoiceModal(true)}
-                                    className="w-full flex items-center gap-3 p-4 rounded-xl bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 border border-green-200 dark:border-green-800 transition-colors group"
-                                >
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/50 text-green-600 group-hover:bg-green-600 group-hover:text-white transition-colors">
-                                        <span className="material-symbols-outlined">receipt_long</span>
+
+                                {/* Legacy buttons - can be removed later */}
+                                <div className="pt-2 border-t border-gray-100 dark:border-gray-800">
+                                    <p className="text-xs text-gray-400 mb-2">Acceso rápido (legado)</p>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => setShowContractModal(true)}
+                                            className="flex-1 flex items-center justify-center gap-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm transition-colors"
+                                        >
+                                            <span className="material-symbols-outlined text-[18px]">description</span>
+                                            Contrato
+                                        </button>
+                                        <button
+                                            onClick={() => setShowInvoiceModal(true)}
+                                            className="flex-1 flex items-center justify-center gap-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm transition-colors"
+                                        >
+                                            <span className="material-symbols-outlined text-[18px]">receipt</span>
+                                            Factura
+                                        </button>
                                     </div>
-                                    <div className="flex-1 text-left">
-                                        <p className="font-semibold text-gray-900 dark:text-white">Generar Factura</p>
-                                        <p className="text-xs text-gray-500">Factura de venta PDF</p>
-                                    </div>
-                                    <span className="material-symbols-outlined text-gray-400 group-hover:text-green-600 transition-colors">chevron_right</span>
-                                </button>
+                                </div>
                             </div>
                         </div>
 
@@ -582,6 +609,17 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
                 onOpenChange={setShowInvoiceModal}
                 onSuccess={() => addToast('Factura generada correctamente', 'success')}
             />
+
+            {/* Enterprise Document Generator Modal */}
+            <DocumentGeneratorModal
+                isOpen={showDocumentModal}
+                onClose={() => setShowDocumentModal(false)}
+                vehicle={vehicle}
+                contacts={contacts}
+                onDocumentGenerated={(type) => {
+                    addToast(`Documento ${type} generado correctamente`, 'success')
+                }}
+            />
         </div>
     )
 }
@@ -599,7 +637,8 @@ function MobileContent({
     showAllEquipment,
     setShowAllEquipment,
     onGenerateContract,
-    onGenerateInvoice
+    onGenerateInvoice,
+    onGenerateDocument
 }: any) {
     const DGT_COLORS: Record<string, string> = {
         '0': 'bg-blue-500 text-white',
@@ -800,39 +839,45 @@ function MobileContent({
                 </div>
             )}
 
-            {/* Actions - Contract & Invoice (Mobile) */}
+            {/* Actions - Documents (Mobile) */}
             <div className="px-5 pb-8">
                 <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
                     <span className="material-symbols-outlined text-primary">fact_check</span>
-                    Acciones
+                    Documentos
                 </h3>
                 <div className="space-y-3">
+                    {/* New Enterprise Document Generator */}
                     <button
-                        onClick={onGenerateContract}
-                        className="w-full flex items-center gap-3 p-4 rounded-xl bg-primary/5 active:bg-primary/10 border border-primary/20 transition-colors"
+                        onClick={onGenerateDocument}
+                        className="w-full flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-primary/10 to-purple-500/10 active:from-primary/20 active:to-purple-500/20 border border-primary/30 transition-colors"
                     >
-                        <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                            <span className="material-symbols-outlined">description</span>
+                        <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-purple-500 text-white shadow-lg">
+                            <span className="material-symbols-outlined">auto_awesome</span>
                         </div>
                         <div className="flex-1 text-left">
-                            <p className="font-semibold text-gray-900">Generar Contrato</p>
-                            <p className="text-xs text-gray-500">Contrato de compraventa PDF</p>
+                            <p className="font-semibold text-gray-900">Generar Documento</p>
+                            <p className="text-xs text-gray-500">Contratos, facturas, proformas...</p>
                         </div>
-                        <span className="material-symbols-outlined text-gray-400">chevron_right</span>
+                        <span className="material-symbols-outlined text-primary">arrow_forward</span>
                     </button>
-                    <button
-                        onClick={onGenerateInvoice}
-                        className="w-full flex items-center gap-3 p-4 rounded-xl bg-green-50 active:bg-green-100 border border-green-200 transition-colors"
-                    >
-                        <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-green-100 text-green-600">
-                            <span className="material-symbols-outlined">receipt_long</span>
-                        </div>
-                        <div className="flex-1 text-left">
-                            <p className="font-semibold text-gray-900">Generar Factura</p>
-                            <p className="text-xs text-gray-500">Factura de venta PDF</p>
-                        </div>
-                        <span className="material-symbols-outlined text-gray-400">chevron_right</span>
-                    </button>
+
+                    {/* Legacy quick access */}
+                    <div className="flex gap-2 pt-2">
+                        <button
+                            onClick={onGenerateContract}
+                            className="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl bg-gray-50 active:bg-gray-100 border border-gray-200 transition-colors"
+                        >
+                            <span className="material-symbols-outlined text-[20px] text-gray-500">description</span>
+                            <span className="text-sm font-medium text-gray-700">Contrato</span>
+                        </button>
+                        <button
+                            onClick={onGenerateInvoice}
+                            className="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl bg-gray-50 active:bg-gray-100 border border-gray-200 transition-colors"
+                        >
+                            <span className="material-symbols-outlined text-[20px] text-gray-500">receipt</span>
+                            <span className="text-sm font-medium text-gray-700">Factura</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 

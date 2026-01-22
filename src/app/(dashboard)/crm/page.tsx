@@ -7,6 +7,7 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
+    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
@@ -14,12 +15,14 @@ import {
     Phone,
     Mail,
     MessageCircle,
+    Trash2,
 } from "lucide-react"
 import { useToast } from "@/components/ui/toast"
 import { formatRelativeTime, formatCurrency, cn } from "@/lib/utils"
 import type { Lead } from "@/types"
 import { StatusBadge } from "@/components/crm"
 import { useFilteredData } from "@/hooks/useFilteredData"
+import { deleteLead as deleteLeadFromDB } from "@/lib/supabase-service"
 
 // Lazy load modales para reducir bundle inicial
 const LeadDetailModal = dynamic(() => import('@/components/crm/LeadDetailModal').then(m => ({ default: m.LeadDetailModal })), { ssr: false })
@@ -63,6 +66,14 @@ export default function CRMPage() {
         // También actualizar el lead seleccionado si es el mismo
         if (selectedLead?.id === leadId) {
             setSelectedLead(prev => prev ? { ...prev, estado: newStatus as Lead['estado'] } : null)
+        }
+    }
+
+    // Handler para eliminar un lead
+    const handleDeleteLead = (leadId: string) => {
+        setLeads(prev => prev.filter(l => l.id !== leadId))
+        if (selectedLead?.id === leadId) {
+            setSelectedLead(null)
         }
     }
 
@@ -296,6 +307,7 @@ export default function CRMPage() {
                             getInitials={getInitials}
                             isFullView={isFullView}
                             onClick={() => setSelectedLead(lead)}
+                            onDelete={handleDeleteLead}
                         />
                     ))}
                 </div>
@@ -331,6 +343,7 @@ export default function CRMPage() {
                     open={!!selectedLead}
                     onClose={() => setSelectedLead(null)}
                     onStatusChange={handleStatusChange}
+                    onDelete={handleDeleteLead}
                 />
             )}
 
@@ -393,13 +406,14 @@ function formatCreatedAt(dateString: string) {
 }
 
 // Lead Card Component (Mobile-optimized) - memoizado
-const LeadCard = memo(function LeadCard({ lead, getStatusConfig, getPriorityConfig, getInitials, isFullView, onClick }: {
+const LeadCard = memo(function LeadCard({ lead, getStatusConfig, getPriorityConfig, getInitials, isFullView, onClick, onDelete }: {
     lead: Lead,
     getStatusConfig: (estado: string) => { bg: string, text: string, icon: string },
     getPriorityConfig: (prioridad: string) => { color: string, label: string },
     getInitials: (nombre: string, apellidos: string) => string,
     isFullView: boolean,
-    onClick: () => void
+    onClick: () => void,
+    onDelete: (leadId: string) => void
 }) {
     const statusConfig = useMemo(() => getStatusConfig(lead.estado), [getStatusConfig, lead.estado])
     const priorityConfig = useMemo(() => getPriorityConfig(lead.prioridad), [getPriorityConfig, lead.prioridad])
@@ -519,9 +533,31 @@ const LeadCard = memo(function LeadCard({ lead, getStatusConfig, getPriorityConf
                                 <span className="material-symbols-outlined text-[18px] mr-2">visibility</span>
                                 Ver ficha
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="cursor-pointer">
+                            <DropdownMenuItem
+                                className="cursor-pointer"
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    window.open(`https://wa.me/${lead.cliente?.telefono?.replace(/\D/g, '')}`, '_blank')
+                                }}
+                            >
                                 <MessageCircle className="h-4 w-4 mr-2" />
                                 WhatsApp
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                                className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+                                onClick={async (e) => {
+                                    e.stopPropagation()
+                                    if (window.confirm('¿Estás seguro de que quieres eliminar este lead?')) {
+                                        const success = await deleteLeadFromDB(lead.id)
+                                        if (success) {
+                                            onDelete(lead.id)
+                                        }
+                                    }
+                                }}
+                            >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Eliminar
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>

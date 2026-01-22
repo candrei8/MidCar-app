@@ -7,6 +7,15 @@ import type { Contact } from "@/types"
 import { NewContactModal } from "@/components/contacts/NewContactModal"
 import { ContactDetailModal } from "@/components/contacts/ContactDetailModal"
 import { useFilteredData } from "@/hooks/useFilteredData"
+import { deleteContact as deleteContactFromDB } from "@/lib/supabase-service"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { MoreVertical, Trash2, Eye, Phone, MessageCircle, Mail } from "lucide-react"
 
 type FilterType = 'todos' | 'nuevos' | 'enProceso' | 'cerrados'
 
@@ -45,6 +54,14 @@ export default function ContactosPage() {
         // También actualizar el contacto seleccionado si es el mismo
         if (selectedContact?.id === contactId) {
             setSelectedContact(prev => prev ? { ...prev, estado: newStatus as Contact['estado'] } : null)
+        }
+    }
+
+    // Handler para eliminar un contacto
+    const handleDeleteContact = (contactId: string) => {
+        setContacts(prev => prev.filter(c => c.id !== contactId))
+        if (selectedContact?.id === contactId) {
+            setSelectedContact(null)
         }
     }
 
@@ -308,6 +325,7 @@ export default function ContactosPage() {
                         onWhatsApp={handleWhatsApp}
                         onEmail={handleEmail}
                         onClick={() => setSelectedContact(contact as Contact)}
+                        onDelete={handleDeleteContact}
                     />
                 ))}
             </div>
@@ -353,6 +371,7 @@ export default function ContactosPage() {
                     open={!!selectedContact}
                     onClose={() => setSelectedContact(null)}
                     onStatusChange={handleStatusChange}
+                    onDelete={handleDeleteContact}
                 />
             )}
         </div>
@@ -391,7 +410,8 @@ function ContactCard({
     onCall,
     onWhatsApp,
     onEmail,
-    onClick
+    onClick,
+    onDelete
 }: {
     contact: Contact & { vehiculos?: any[] }
     getContactName: (c: Contact) => string
@@ -403,6 +423,7 @@ function ContactCard({
     onWhatsApp: (e: React.MouseEvent, phone: string) => void
     onEmail: (e: React.MouseEvent, email: string) => void
     onClick: () => void
+    onDelete: (contactId: string) => void
 }) {
     const badge = getEstadoBadge(contact.estado)
     const vehicle = contact.vehiculos?.[0]
@@ -454,12 +475,80 @@ function ContactCard({
                             </div>
                         </div>
                     </div>
-                    <span className={cn(
-                        "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold ring-1 ring-inset ring-current/10",
-                        badge.bg, badge.text
-                    )}>
-                        {badge.label}
-                    </span>
+                    <div className="flex items-center gap-2">
+                        <span className={cn(
+                            "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold ring-1 ring-inset ring-current/10",
+                            badge.bg, badge.text
+                        )}>
+                            {badge.label}
+                        </span>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                <button className="h-8 w-8 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
+                                    <MoreVertical className="h-4 w-4" />
+                                </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48 bg-white border-gray-200">
+                                <DropdownMenuItem onClick={onClick} className="cursor-pointer">
+                                    <Eye className="h-4 w-4 mr-2" />
+                                    Ver ficha
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    className="cursor-pointer"
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        if (contact.telefono) {
+                                            window.open(`tel:${contact.telefono}`, '_self')
+                                        }
+                                    }}
+                                >
+                                    <Phone className="h-4 w-4 mr-2" />
+                                    Llamar
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    className="cursor-pointer"
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        if (contact.telefono) {
+                                            const cleanPhone = contact.telefono.replace(/\s/g, '')
+                                            window.open(`https://wa.me/34${cleanPhone}`, '_blank')
+                                        }
+                                    }}
+                                >
+                                    <MessageCircle className="h-4 w-4 mr-2" />
+                                    WhatsApp
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    className="cursor-pointer"
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        if (contact.email) {
+                                            window.open(`mailto:${contact.email}`, '_self')
+                                        }
+                                    }}
+                                >
+                                    <Mail className="h-4 w-4 mr-2" />
+                                    Email
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                    className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+                                    onClick={async (e) => {
+                                        e.stopPropagation()
+                                        if (window.confirm('¿Estás seguro de que quieres eliminar este contacto?')) {
+                                            const success = await deleteContactFromDB(contact.id)
+                                            if (success) {
+                                                onDelete(contact.id)
+                                            }
+                                        }
+                                    }}
+                                >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Eliminar
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </div>
 
                 {/* Contact Info */}

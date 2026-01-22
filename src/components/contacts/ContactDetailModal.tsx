@@ -22,6 +22,7 @@ import { SetPriorityModal } from "./SetPriorityModal"
 import { PostponeContactModal } from "./PostponeContactModal"
 import { AssignCommercialModal } from "./AssignCommercialModal"
 import { DocumentModal } from "./DocumentModal"
+import { EditContactModal } from "./EditContactModal"
 
 interface ContactDetailModalProps {
     contact: Contact
@@ -46,6 +47,8 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
     const [estadoLead, setEstadoLead] = useState(contact.estado)
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
+    const [showEditModal, setShowEditModal] = useState(false)
+    const [currentContact, setCurrentContact] = useState<Contact>(contact)
 
     const handleDelete = async () => {
         setIsDeleting(true)
@@ -103,7 +106,10 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
                         </button>
                         <h2 className="text-black dark:text-white text-lg font-bold leading-tight tracking-tight flex-1 text-center">Ficha de Contacto</h2>
                         <div className="flex items-center gap-1">
-                            <button className="flex size-10 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-[#135bec]">
+                            <button
+                                onClick={() => setShowEditModal(true)}
+                                className="flex size-10 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-[#135bec]"
+                            >
                                 <span className="material-symbols-outlined text-xl">edit</span>
                             </button>
                             <button
@@ -129,21 +135,21 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
                             </div>
                             <div className="flex flex-col items-center justify-center gap-1">
                                 <h1 className="text-2xl font-bold leading-tight tracking-tight text-center text-black dark:text-white">
-                                    {contact.nombre} {contact.apellidos}
+                                    {currentContact.nombre} {currentContact.apellidos}
                                 </h1>
                                 <div className="flex items-center gap-2">
                                     <span className="px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 text-xs font-medium text-[#3c3c4399] dark:text-[#ebebf599]">
-                                        ID: #{contact.id.substring(0, 4)}
+                                        ID: #{currentContact.id.substring(0, 4)}
                                     </span>
-                                    {contact.origen && (
+                                    {currentContact.origen && (
                                         <span className="px-2 py-0.5 rounded-md bg-blue-100 dark:bg-blue-900/30 text-xs font-medium text-blue-700 dark:text-blue-400 capitalize">
-                                            {contact.origen}
+                                            {currentContact.origen}
                                         </span>
                                     )}
                                 </div>
-                                {contact.vehiculos_interes.length > 0 && (
+                                {currentContact.vehiculos_interes.length > 0 && (
                                     <p className="text-[#3c3c4399] dark:text-[#ebebf599] text-sm mt-2 font-medium text-center">
-                                        {contact.vehiculos_interes.length} vehículo{contact.vehiculos_interes.length > 1 ? 's' : ''} de interés
+                                        {currentContact.vehiculos_interes.length} vehículo{currentContact.vehiculos_interes.length > 1 ? 's' : ''} de interés
                                     </p>
                                 )}
                             </div>
@@ -184,7 +190,7 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
 
                         {/* ActionsBar */}
                         <div className="grid grid-cols-4 gap-2 px-4 mb-6">
-                            <button className="flex flex-col items-center gap-2 group" onClick={() => window.open(`tel:${contact.telefono}`)}>
+                            <button className="flex flex-col items-center gap-2 group" onClick={() => window.open(`tel:${currentContact.telefono}`)}>
                                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#135bec] text-white shadow-lg shadow-[#135bec]/30 active:scale-95 transition-all">
                                     <span className="material-symbols-outlined text-2xl">call</span>
                                 </div>
@@ -196,7 +202,7 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
                                 </div>
                                 <span className="text-xs font-medium text-[#3c3c4399] dark:text-[#ebebf599] group-hover:text-[#135bec] transition-colors">WhatsApp</span>
                             </button>
-                            <button className="flex flex-col items-center gap-2 group" onClick={() => window.open(`mailto:${contact.email}`)}>
+                            <button className="flex flex-col items-center gap-2 group" onClick={() => window.open(`mailto:${currentContact.email}`)}>
                                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#135bec] text-white shadow-lg shadow-[#135bec]/30 active:scale-95 transition-all">
                                     <span className="material-symbols-outlined text-2xl">mail</span>
                                 </div>
@@ -434,9 +440,22 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
             </Dialog>
 
             {/* Hidden Modals reused logic */}
-            <NewInteractionModal open={showInteractionModal} onClose={() => setShowInteractionModal(false)} contactId={contact.id} contactName={`${contact.nombre}`} onSave={handleSaveInteraction} />
-            <AddTaskModal open={showTaskModal} onClose={() => setShowTaskModal(false)} contactId={contact.id} contactName={`${contact.nombre}`} onSave={handleSaveTask} />
-            <DocumentModal open={showDocumentModal} onClose={() => setShowDocumentModal(false)} type={documentType} contact={contact} vehicle={contactVehicles[0]} onGenerate={() => { }} />
+            <NewInteractionModal open={showInteractionModal} onClose={() => setShowInteractionModal(false)} contactId={currentContact.id} contactName={`${currentContact.nombre}`} onSave={handleSaveInteraction} />
+            <AddTaskModal open={showTaskModal} onClose={() => setShowTaskModal(false)} contactId={currentContact.id} contactName={`${currentContact.nombre}`} onSave={handleSaveTask} />
+            <DocumentModal open={showDocumentModal} onClose={() => setShowDocumentModal(false)} type={documentType} contact={currentContact} vehicle={contactVehicles[0]} onGenerate={() => { }} />
+
+            {/* Edit Contact Modal */}
+            <EditContactModal
+                contact={currentContact}
+                open={showEditModal}
+                onClose={() => setShowEditModal(false)}
+                onSave={(updatedContact) => {
+                    setCurrentContact(updatedContact)
+                    if (onStatusChange && updatedContact.estado !== contact.estado) {
+                        onStatusChange(contact.id, updatedContact.estado)
+                    }
+                }}
+            />
 
             {/* Delete Confirmation Dialog */}
             <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
