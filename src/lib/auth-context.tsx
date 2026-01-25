@@ -46,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [profile, setProfile] = useState<UserProfile | null>(null)
     const [session, setSession] = useState<Session | null>(null)
     const [loading, setLoading] = useState(true)
-    const [isFullView, setIsFullView] = useState(true) // Vista completa siempre activa - sin contraseña
+    const [isFullView, setIsFullView] = useState(false) // Vista personal por defecto - requiere contraseña para vista completa
     const authInitialized = useRef(false)
 
     // Fetch user profile from database with timeout
@@ -135,7 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     setProfile(userProfile)
                 } else {
                     setProfile(null)
-                    // Vista completa siempre activa - no resetear
+                    setIsFullView(false) // Resetear a vista personal al cerrar sesión
                 }
 
                 setLoading(false)
@@ -205,14 +205,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, [])
 
     const signOut = useCallback(async () => {
-        // Vista completa siempre activa - no resetear
+        setIsFullView(false) // Resetear a vista personal al cerrar sesión
         await supabase.auth.signOut()
     }, [])
 
-    // Vista completa siempre activa - esta función se mantiene por compatibilidad
-    const unlockFullView = useCallback(async (_code: string): Promise<FullViewResult> => {
-        // Siempre devuelve éxito - ya no se requiere contraseña
-        return { success: true }
+    // Verificar código de acceso para vista completa
+    const unlockFullView = useCallback(async (code: string): Promise<FullViewResult> => {
+        try {
+            const response = await fetch('/api/auth/verify-fullview', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ code }),
+            })
+
+            const result = await response.json()
+
+            if (result.success) {
+                setIsFullView(true)
+                return { success: true }
+            } else {
+                return {
+                    success: false,
+                    error: result.error || 'Código incorrecto',
+                    remainingAttempts: result.remainingAttempts,
+                    locked: result.locked,
+                }
+            }
+        } catch (error) {
+            console.error('Error verifying full view code:', error)
+            return { success: false, error: 'Error de conexión' }
+        }
     }, [])
 
     const lockFullView = useCallback(() => {

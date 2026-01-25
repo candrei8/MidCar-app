@@ -12,6 +12,14 @@ import { formatCurrency, cn } from "@/lib/utils"
 import type { Vehicle } from "@/types"
 import Link from "next/link"
 
+// Helper para obtener imagen válida (excluye URLs de Azure CDN que no existen)
+const getValidImageUrl = (url: string | null | undefined): string => {
+    if (!url || url.includes('midcar.azureedge.net')) {
+        return '/placeholder-car.svg'
+    }
+    return url
+}
+
 interface VehicleCardProps {
     vehicle: Vehicle
     showCreator?: boolean // Para mostrar quién creó el vehículo
@@ -34,6 +42,8 @@ export const VehicleCard = memo(function VehicleCard({ vehicle, showCreator = tr
         })
     }, [vehicle.created_at])
 
+    const imageUrl = getValidImageUrl(vehicle.imagen_principal)
+
     return (
         <Link href={`/inventario/${vehicle.id}`}>
             <Card className="group overflow-hidden bg-surface-100 border-0 hover:bg-surface-200 transition-all cursor-pointer">
@@ -41,7 +51,7 @@ export const VehicleCard = memo(function VehicleCard({ vehicle, showCreator = tr
                 <div className="relative aspect-[4/3] overflow-hidden">
                     <div
                         className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
-                        style={{ backgroundImage: `url(${vehicle.imagen_principal || '/placeholder-car.svg'})` }}
+                        style={{ backgroundImage: `url(${imageUrl})` }}
                     />
 
                     {/* Gradient overlay */}

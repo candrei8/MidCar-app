@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -31,6 +31,8 @@ export function ProformaForm({
   onChange,
   suggestedPrice = 0
 }: ProformaFormProps) {
+  const initializedRef = useRef(false);
+
   // Inicializar valores por defecto
   const data: Partial<ProformaData> = {
     vehiculo: vehicle,
@@ -67,6 +69,16 @@ export function ProformaForm({
     importeReserva: formData.importeReserva || Math.round(suggestedPrice * 0.1),
     ...formData
   };
+
+  // Propagar valores por defecto al padre al montar el componente
+  useEffect(() => {
+    if (!initializedRef.current) {
+      initializedRef.current = true;
+      if (!formData.condiciones?.totalConIva) {
+        onChange(data);
+      }
+    }
+  }, []);
 
   const handleCondicionChange = (field: keyof EconomicConditions, value: number | string) => {
     const newCondiciones = { ...data.condiciones } as EconomicConditions;

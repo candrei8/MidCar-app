@@ -34,6 +34,14 @@ function formatTrend(value: number): { text: string; isPositive: boolean } {
     }
 }
 
+// Helper para obtener imagen válida (excluye URLs de Azure CDN que no existen)
+function getValidImageUrl(url: string | null | undefined): string {
+    if (!url || url.includes('midcar.azureedge.net')) {
+        return '/placeholder-car.svg'
+    }
+    return url
+}
+
 // Local type definitions for dashboard
 interface CriticalAlert {
     id: string
@@ -494,7 +502,7 @@ export default function DashboardPage() {
                                         className="flex items-center gap-3 p-3 bg-white rounded-xl border border-amber-100 hover:border-amber-300 transition-colors"
                                     >
                                         <img
-                                            src={vehicle.imagen_principal}
+                                            src={getValidImageUrl(vehicle.imagen_principal)}
                                             alt={`${vehicle.marca} ${vehicle.modelo}`}
                                             className="w-16 h-12 object-cover rounded-lg"
                                         />

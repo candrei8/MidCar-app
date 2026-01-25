@@ -26,6 +26,13 @@ import {
     getEmpresasActivas,
     initDefaultEmpresas,
 } from "@/lib/empresas"
+
+// Helper para verificar si una URL de imagen es válida (excluye Azure CDN que no existe)
+const isValidImageUrl = (url: string | null | undefined): boolean => {
+    if (!url) return false
+    return !url.includes('midcar.azureedge.net')
+}
+
 import {
     createInvoice,
     generateInvoiceNumber,
@@ -149,20 +156,13 @@ export function InvoiceGeneratorModal({ vehicle, open, onOpenChange, onSuccess }
         }
     }, [fechaFactura])
 
-    // Validación
+    // Validación - Solo empresa es requerida, los demás campos son opcionales
     const validateForm = (): boolean => {
-        if (!clienteNombre || !clienteNif) {
-            alert('Por favor, complete los datos fiscales del cliente (nombre y NIF/CIF)')
-            return false
-        }
         if (!selectedEmpresaId) {
             alert('Por favor, seleccione una empresa emisora')
             return false
         }
-        if (baseImponible <= 0) {
-            alert('Por favor, introduzca un importe válido')
-            return false
-        }
+        // Los demás campos son opcionales - se pueden generar documentos sin datos del cliente
         return true
     }
 
@@ -418,9 +418,9 @@ export function InvoiceGeneratorModal({ vehicle, open, onOpenChange, onSuccess }
                     {/* Resumen Vehículo */}
                     <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-slate-50 rounded-xl">
                         <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-slate-200 overflow-hidden shrink-0">
-                            {vehicle.imagen_principal ? (
+                            {isValidImageUrl(vehicle.imagen_principal) ? (
                                 <img
-                                    src={vehicle.imagen_principal}
+                                    src={vehicle.imagen_principal!}
                                     alt={vehicle.marca}
                                     className="h-full w-full object-cover"
                                 />

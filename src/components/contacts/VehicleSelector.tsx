@@ -21,6 +21,14 @@ import {
 import { formatCurrency } from "@/lib/utils"
 import { useFilteredData } from "@/hooks/useFilteredData"
 
+// Helper para obtener imagen válida (excluye URLs de Azure CDN que no existen)
+const getValidImageUrl = (url: string | null | undefined): string => {
+    if (!url || url.includes('midcar.azureedge.net')) {
+        return '/placeholder-car.svg'
+    }
+    return url
+}
+
 interface VehicleSelectorProps {
     open: boolean
     onClose: () => void
@@ -137,7 +145,7 @@ export function VehicleSelector({ open, onClose, onSelect, excludeIds = [] }: Ve
                                     />
                                     <div
                                         className="w-16 h-16 rounded-lg bg-cover bg-center flex-shrink-0"
-                                        style={{ backgroundImage: `url(${vehicle.imagen_principal})` }}
+                                        style={{ backgroundImage: `url(${getValidImageUrl(vehicle.imagen_principal)})` }}
                                     />
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-start justify-between gap-2">

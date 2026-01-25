@@ -56,6 +56,13 @@ export function CustomerSelector({
   const [manualCustomer, setManualCustomer] = useState<CustomerData>(selectedCustomer || emptyCustomer);
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
 
+  // Si se monta sin customer previo, notificar al padre con un customer vacío para permitir continuar
+  useEffect(() => {
+    if (!selectedCustomer) {
+      onSelect(emptyCustomer, true);
+    }
+  }, []);
+
   // Filtrar contactos por búsqueda
   const filteredContacts = contacts.filter(contact => {
     const fullName = `${contact.nombre || ''} ${contact.apellidos || ''}`.toLowerCase();
@@ -90,11 +97,8 @@ export function CustomerSelector({
   const handleManualChange = (field: keyof CustomerData, value: string | boolean) => {
     const updated = { ...manualCustomer, [field]: value };
     setManualCustomer(updated);
-
-    // Solo enviar si hay datos mínimos
-    if (updated.nombre && updated.dni) {
-      onSelect(updated, true);
-    }
+    // Siempre notificar los cambios al padre - sin requerir campos obligatorios
+    onSelect(updated, true);
   };
 
   return (

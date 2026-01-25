@@ -27,6 +27,13 @@ import {
     getEmpresasActivas,
     initDefaultEmpresas,
 } from "@/lib/empresas"
+
+// Helper para verificar si una URL de imagen es válida (excluye Azure CDN que no existe)
+const isValidImageUrl = (url: string | null | undefined): boolean => {
+    if (!url) return false
+    return !url.includes('midcar.azureedge.net')
+}
+
 import {
     createContract,
     generateContractNumber,
@@ -348,11 +355,7 @@ export function ContractGeneratorModal({ vehicle, open, onOpenChange, onSuccess 
 
     // Handle generate
     const handleGenerarContrato = async () => {
-        if (!comprador.nombre || !comprador.dni_nie) {
-            alert('Completa los datos del comprador (nombre y DNI/NIE son obligatorios)')
-            return
-        }
-
+        // Permitir generar sin datos obligatorios - se pueden rellenar después
         try {
             // Generate contract number from Supabase
             const numeroContrato = await generateContractNumber()
@@ -434,9 +437,9 @@ export function ContractGeneratorModal({ vehicle, open, onOpenChange, onSuccess 
                     {/* Vehicle Summary */}
                     <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-slate-50 rounded-xl">
                         <div className="h-10 w-10 sm:h-14 sm:w-14 rounded-lg bg-slate-200 overflow-hidden shrink-0">
-                            {vehicle.imagen_principal ? (
+                            {isValidImageUrl(vehicle.imagen_principal) ? (
                                 <img
-                                    src={vehicle.imagen_principal}
+                                    src={vehicle.imagen_principal!}
                                     alt={vehicle.marca}
                                     className="h-full w-full object-cover"
                                 />

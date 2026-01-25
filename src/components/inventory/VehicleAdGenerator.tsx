@@ -4,6 +4,14 @@ import { useState, useRef } from "react"
 import type { Vehicle } from "@/types"
 import { formatCurrency, cn } from "@/lib/utils"
 
+// Helper para obtener imagen válida (excluye URLs de Azure CDN que no existen)
+const getValidImageUrl = (url: string | null | undefined): string | null => {
+    if (!url || url.includes('midcar.azureedge.net')) {
+        return null
+    }
+    return url
+}
+
 interface FlyerGeneratorProps {
     vehicle: Vehicle
     open: boolean
@@ -19,8 +27,10 @@ export function VehicleAdGenerator({ vehicle, open, onClose }: FlyerGeneratorPro
 
     if (!open) return null
 
-    const imageUrl = vehicle.imagen_principal || vehicle.imagenes?.[0]?.url ||
-        'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&h=600&fit=crop'
+    // Usar placeholder si no hay imagen válida
+    const vehicleImage = getValidImageUrl(vehicle.imagen_principal) ||
+        getValidImageUrl(vehicle.imagenes?.[0]?.url)
+    const imageUrl = vehicleImage || '/placeholder-car.svg'
 
     // Fuel type display
     const fuelDisplay: Record<string, string> = {

@@ -16,7 +16,7 @@ interface EditVehicleClientProps {
 
 export function EditVehicleClient({ id }: EditVehicleClientProps) {
     const router = useRouter()
-    const { user } = useAuth()
+    const { user, isFullView } = useAuth()
 
     const [vehicle, setVehicle] = useState<Vehicle | null>(null)
     const [isLoading, setIsLoading] = useState(true)
@@ -75,7 +75,8 @@ export function EditVehicleClient({ id }: EditVehicleClientProps) {
     }
 
     // Verificar si el usuario actual puede editar este vehículo
-    const canEdit = vehicle.created_by === user?.id
+    // Puede editar si es el creador O si tiene acceso a la vista completa (isFullView)
+    const canEdit = vehicle.created_by === user?.id || isFullView
 
     // Si el usuario no puede editar, mostrar mensaje de acceso denegado
     if (!canEdit) {

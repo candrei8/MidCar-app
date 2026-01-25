@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -24,6 +24,8 @@ export function SenalForm({
   onChange,
   suggestedPrice = 0
 }: SenalFormProps) {
+  const initializedRef = useRef(false);
+
   // Calcular fecha límite por defecto (15 días)
   const defaultLimitDate = new Date();
   defaultLimitDate.setDate(defaultLimitDate.getDate() + 15);
@@ -54,6 +56,16 @@ export function SenalForm({
     fechaLimiteVenta: formData.fechaLimiteVenta || defaultLimitDate.toISOString().split('T')[0],
     ...formData
   };
+
+  // Propagar valores por defecto al padre al montar el componente
+  useEffect(() => {
+    if (!initializedRef.current) {
+      initializedRef.current = true;
+      if (!formData.precioTotal) {
+        onChange(data);
+      }
+    }
+  }, []);
 
   // Opciones de porcentaje de señal
   const senalOptions = [

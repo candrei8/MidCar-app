@@ -7,6 +7,14 @@ import { MARCAS, COMBUSTIBLES } from "@/lib/constants"
 import type { Vehicle } from "@/types"
 import { useFilteredData } from "@/hooks/useFilteredData"
 
+// Helper para obtener imagen válida (excluye URLs de Azure CDN que no existen)
+const getValidImageUrl = (url: string | null | undefined): string => {
+    if (!url || url.includes('midcar.azureedge.net')) {
+        return '/placeholder-car.svg'
+    }
+    return url
+}
+
 type StatusFilterType = 'todos' | 'disponible' | 'reservado' | 'vendido'
 type PriceRangeType = 'todos' | 'bajo' | 'medio' | 'alto' | 'premium'
 type YearRangeType = 'todos' | 'nuevo' | 'reciente' | 'medio' | 'antiguo'
@@ -372,7 +380,9 @@ const VehicleCard = memo(function VehicleCard({
                         className="h-full w-full object-cover"
                         loading="lazy"
                         decoding="async"
-                        src={vehicle.imagen_principal || vehicle.imagenes?.[0]?.url || '/placeholder-car.svg'}
+                        src={getValidImageUrl(vehicle.imagen_principal) !== '/placeholder-car.svg'
+                            ? getValidImageUrl(vehicle.imagen_principal)
+                            : getValidImageUrl(vehicle.imagenes?.[0]?.url)}
                         alt={`${vehicle.marca} ${vehicle.modelo}`}
                     />
                     {/* Status Badge */}

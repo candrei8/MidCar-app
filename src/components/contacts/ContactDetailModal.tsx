@@ -24,6 +24,20 @@ import { AssignCommercialModal } from "./AssignCommercialModal"
 import { DocumentModal } from "./DocumentModal"
 import { EditContactModal } from "./EditContactModal"
 
+// Helper para verificar si una URL de imagen es válida (excluye Azure CDN que no existe)
+const isValidImageUrl = (url: string | null | undefined): boolean => {
+    if (!url) return false
+    return !url.includes('midcar.azureedge.net')
+}
+
+// Helper para obtener imagen válida
+const getValidImageUrl = (url: string | null | undefined): string => {
+    if (!url || url.includes('midcar.azureedge.net')) {
+        return '/placeholder-car.svg'
+    }
+    return url
+}
+
 interface ContactDetailModalProps {
     contact: Contact
     open: boolean
@@ -326,8 +340,8 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
                                                     <h4 className="text-base font-bold text-black dark:text-white">Vehículo de interés</h4>
                                                 </div>
                                                 <div className="flex gap-3 items-center bg-gray-50 dark:bg-gray-800/50 p-2 rounded-lg border border-gray-100 dark:border-gray-700">
-                                                    <div className="w-12 h-12 rounded-md bg-cover bg-center bg-gray-200" style={{ backgroundImage: selectedVehicleFromContact(contactVehicles)?.imagen_principal ? `url(${selectedVehicleFromContact(contactVehicles)?.imagen_principal})` : 'none' }}>
-                                                        {!selectedVehicleFromContact(contactVehicles)?.imagen_principal && (
+                                                    <div className="w-12 h-12 rounded-md bg-cover bg-center bg-gray-200" style={{ backgroundImage: isValidImageUrl(selectedVehicleFromContact(contactVehicles)?.imagen_principal) ? `url(${selectedVehicleFromContact(contactVehicles)?.imagen_principal})` : 'none' }}>
+                                                        {!isValidImageUrl(selectedVehicleFromContact(contactVehicles)?.imagen_principal) && (
                                                             <div className="w-full h-full flex items-center justify-center">
                                                                 <span className="material-symbols-outlined text-gray-400">directions_car</span>
                                                             </div>
@@ -359,7 +373,7 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
                                     <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
                                         {contactVehicles.length > 0 ? contactVehicles.map(vehicle => (
                                             <div key={vehicle.id} className="w-64 flex-shrink-0 bg-white dark:bg-[#1c1c1e] rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden group">
-                                                <div className="h-32 bg-cover bg-center relative" style={{ backgroundImage: `url(${vehicle.imagen_principal})` }}>
+                                                <div className="h-32 bg-cover bg-center relative" style={{ backgroundImage: `url(${getValidImageUrl(vehicle.imagen_principal)})` }}>
                                                     <div className="absolute top-2 right-2 bg-black/50 text-white text-[10px] font-bold px-2 py-0.5 rounded backdrop-blur-sm uppercase">{vehicle.estado}</div>
                                                 </div>
                                                 <div className="p-3">
@@ -387,7 +401,7 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
                                             <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
                                                 {vehicles.filter(v => v.estado === 'disponible').slice(0, 3).map(vehicle => (
                                                     <div key={vehicle.id} className="w-64 flex-shrink-0 bg-white dark:bg-[#1c1c1e] rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden group">
-                                                        <div className="h-32 bg-cover bg-center relative" style={{ backgroundImage: `url(${vehicle.imagen_principal || '/placeholder-car.svg'})` }}>
+                                                        <div className="h-32 bg-cover bg-center relative" style={{ backgroundImage: `url(${getValidImageUrl(vehicle.imagen_principal)})` }}>
                                                         </div>
                                                         <div className="p-3">
                                                             <h4 className="font-bold text-black dark:text-white">{vehicle.marca} {vehicle.modelo}</h4>

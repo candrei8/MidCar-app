@@ -17,6 +17,12 @@ import { createSale } from "@/lib/sales-service"
 import { deleteLead } from "@/lib/supabase-service"
 import { useToast } from "@/components/ui/toast"
 
+// Helper para verificar si una URL de imagen es válida (excluye Azure CDN que no existe)
+const isValidImageUrl = (url: string | null | undefined): boolean => {
+    if (!url) return false
+    return !url.includes('midcar.azureedge.net')
+}
+
 interface LeadDetailModalProps {
     lead: Lead
     open: boolean
@@ -410,9 +416,9 @@ export function LeadDetailModal({ lead, open, onClose, onStatusChange, onDelete 
                                                         <div className="flex gap-3 items-center bg-gray-50 dark:bg-gray-800/50 p-2 rounded-lg border border-gray-100 dark:border-gray-700 mt-3">
                                                             <div
                                                                 className="w-12 h-12 rounded-md bg-cover bg-center bg-gray-200"
-                                                                style={{ backgroundImage: event.vehicle.imagen_principal ? `url(${event.vehicle.imagen_principal})` : 'none' }}
+                                                                style={{ backgroundImage: isValidImageUrl(event.vehicle.imagen_principal) ? `url(${event.vehicle.imagen_principal})` : 'none' }}
                                                             >
-                                                                {!event.vehicle.imagen_principal && (
+                                                                {!isValidImageUrl(event.vehicle.imagen_principal) && (
                                                                     <div className="w-full h-full flex items-center justify-center">
                                                                         <span className="material-symbols-outlined text-gray-400">directions_car</span>
                                                                     </div>
@@ -439,9 +445,9 @@ export function LeadDetailModal({ lead, open, onClose, onStatusChange, onDelete 
                                     <div className="bg-white dark:bg-[#1c1c1e] rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
                                         <div
                                             className="h-40 bg-cover bg-center relative bg-gray-200"
-                                            style={{ backgroundImage: lead.vehiculo.imagen_principal ? `url(${lead.vehiculo.imagen_principal})` : 'none' }}
+                                            style={{ backgroundImage: isValidImageUrl(lead.vehiculo.imagen_principal) ? `url(${lead.vehiculo.imagen_principal})` : 'none' }}
                                         >
-                                            {!lead.vehiculo.imagen_principal && (
+                                            {!isValidImageUrl(lead.vehiculo.imagen_principal) && (
                                                 <div className="w-full h-full flex items-center justify-center">
                                                     <span className="material-symbols-outlined text-6xl text-gray-300">directions_car</span>
                                                 </div>

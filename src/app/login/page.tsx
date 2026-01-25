@@ -112,7 +112,7 @@ export default function LoginPage() {
                                 required
                                 autoComplete="off"
                                 data-form-type="other"
-                                className="w-full px-4 py-3 bg-emerald-500/5 border border-emerald-500/30 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
+                                className="w-full px-4 py-3 bg-emerald-500/5 border border-emerald-500/30 rounded-xl text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
                             />
                         </div>
 
@@ -130,7 +130,7 @@ export default function LoginPage() {
                                     required
                                     autoComplete="off"
                                     data-form-type="other"
-                                    className="w-full px-4 py-3 bg-emerald-500/5 border border-emerald-500/30 rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all pr-12"
+                                    className="w-full px-4 py-3 bg-emerald-500/5 border border-emerald-500/30 rounded-xl text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all pr-12"
                                 />
                                 <button
                                     type="button"

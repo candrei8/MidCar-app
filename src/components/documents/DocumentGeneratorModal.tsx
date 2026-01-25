@@ -166,53 +166,21 @@ export function DocumentGeneratorModal({
       case 2:
         return selectedEmpresa !== null;
       case 3:
-        return customer !== null && customer.nombre !== '' && customer.dni !== '';
+        // Permitir avanzar aunque no haya todos los datos del cliente
+        // Los campos se pueden dejar vacíos y rellenar en el documento
+        return customer !== null;
       case 4:
-        return validateFormData();
+        // Siempre permitir avanzar - los valores por defecto ya están establecidos
+        return true;
       default:
         return true;
     }
   };
 
   const validateFormData = (): boolean => {
-    if (!documentType) return false;
-
-    switch (documentType) {
-      case 'compraventa': {
-        const data = formData as Partial<CompraventaData>;
-        return !!(
-          data.condiciones?.totalConIva &&
-          data.fechaContrato &&
-          data.fechaEntrega
-        );
-      }
-      case 'senal': {
-        const data = formData as Partial<SenalData>;
-        return !!(
-          data.precioTotal &&
-          data.importeSenal &&
-          data.fechaLimiteVenta
-        );
-      }
-      case 'factura': {
-        const data = formData as Partial<FacturaData>;
-        return !!(
-          data.condiciones?.totalConIva &&
-          data.numeroFactura &&
-          data.fechaFactura
-        );
-      }
-      case 'proforma': {
-        const data = formData as Partial<ProformaData>;
-        return !!(
-          data.condiciones?.totalConIva &&
-          data.numeroProforma &&
-          data.fechaProforma
-        );
-      }
-      default:
-        return false;
-    }
+    // Siempre permitir continuar - los valores por defecto se aplicarán
+    // Los campos no son obligatorios para la generación
+    return true;
   };
 
   const handleNext = () => {
@@ -308,6 +276,16 @@ export function DocumentGeneratorModal({
         setSaveError(result.error.message);
       } else {
         setSaveSuccess(true);
+        // Notificar a otras partes de la app que se ha guardado un documento
+        const eventTypeMap: Record<DocumentType, string> = {
+          'compraventa': 'contracts',
+          'senal': 'contracts',
+          'factura': 'invoices',
+          'proforma': 'invoices'
+        };
+        window.dispatchEvent(new CustomEvent('midcar-data-updated', {
+          detail: { type: eventTypeMap[documentType] }
+        }));
         if (onDocumentGenerated) {
           onDocumentGenerated(documentType, data);
         }

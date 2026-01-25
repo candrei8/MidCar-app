@@ -29,6 +29,14 @@ import {
     Trash2,
     Car
 } from "lucide-react"
+
+// Helper para obtener imagen válida (excluye URLs de Azure CDN que no existen)
+const getValidImageUrl = (url: string | null | undefined): string => {
+    if (!url || url.includes('midcar.azureedge.net')) {
+        return '/placeholder-car.svg'
+    }
+    return url
+}
 import { cn, formatCurrency } from "@/lib/utils"
 import type { Contact, Vehicle } from "@/types"
 import { useFilteredData } from "@/hooks/useFilteredData"
@@ -217,7 +225,7 @@ export function DocumentModal({
                             <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 flex items-center gap-3">
                                 <div
                                     className="w-16 h-12 rounded bg-cover bg-center flex-shrink-0"
-                                    style={{ backgroundImage: `url(${vehicle.imagen_principal})` }}
+                                    style={{ backgroundImage: `url(${getValidImageUrl(vehicle.imagen_principal)})` }}
                                 />
                                 <div className="flex-1">
                                     <p className="text-sm font-medium text-white/80">{vehicle.marca} {vehicle.modelo}</p>

@@ -19,6 +19,12 @@ import { Textarea } from "@/components/ui/textarea"
 import { formatCurrency, cn } from "@/lib/utils"
 import type { Lead, Vehicle } from "@/types"
 
+// Helper para verificar si una URL de imagen es válida (excluye Azure CDN que no existe)
+const isValidImageUrl = (url: string | null | undefined): boolean => {
+    if (!url) return false
+    return !url.includes('midcar.azureedge.net')
+}
+
 interface SaleConfirmationModalProps {
     open: boolean
     onClose: () => void
@@ -168,7 +174,7 @@ export function SaleConfirmationModal({
                     <div className="flex gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl mb-5">
                         <div
                             className="w-16 h-12 rounded-lg bg-cover bg-center bg-gray-200 shrink-0"
-                            style={{ backgroundImage: vehicle.imagen_principal ? `url(${vehicle.imagen_principal})` : 'none' }}
+                            style={{ backgroundImage: isValidImageUrl(vehicle.imagen_principal) ? `url(${vehicle.imagen_principal})` : 'none' }}
                         />
                         <div className="flex-1 min-w-0">
                             <p className="font-bold text-sm truncate">{vehicle.marca} {vehicle.modelo}</p>

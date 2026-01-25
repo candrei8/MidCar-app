@@ -23,6 +23,15 @@ import {
     Clock,
     ShieldX,
 } from "lucide-react"
+
+// Helper para obtener imagen válida (excluye URLs de Azure CDN que no existen)
+const getValidImageUrl = (url: string | null | undefined): string => {
+    if (!url || url.includes('midcar.azureedge.net')) {
+        return '/placeholder-car.svg'
+    }
+    return url
+}
+
 import {
     getPolicies,
     createPolicy,
@@ -644,7 +653,7 @@ export default function SeguroPage() {
                                                     </TableCell>
                                                     <TableCell>
                                                         <div className="flex items-center gap-3">
-                                                            <div className="h-8 w-12 rounded bg-cover bg-center bg-gray-100" style={{ backgroundImage: `url(${item.vehicle.imagen_principal})` }} />
+                                                            <div className="h-8 w-12 rounded bg-cover bg-center bg-gray-100" style={{ backgroundImage: `url(${getValidImageUrl(item.vehicle.imagen_principal)})` }} />
                                                             <div>
                                                                 <p className="font-bold text-xs text-gray-900 dark:text-white">{item.vehicle.marca} {item.vehicle.modelo}</p>
                                                             </div>
@@ -688,7 +697,7 @@ export default function SeguroPage() {
                                             onClick={() => item.policy ? handleViewPolicy(item.vehicle, item.policy) : handleAddPolicy(item.vehicle)}
                                         >
                                             <div className="h-14 w-14 md:h-16 md:w-16 rounded-lg bg-gray-200 overflow-hidden shrink-0 relative">
-                                                <div className="h-full w-full bg-cover bg-center" style={{ backgroundImage: `url(${item.vehicle.imagen_principal})` }}></div>
+                                                <div className="h-full w-full bg-cover bg-center" style={{ backgroundImage: `url(${getValidImageUrl(item.vehicle.imagen_principal)})` }}></div>
                                             </div>
                                             <div className="flex-1 flex flex-col justify-center min-w-0 gap-1">
                                                 <div className="flex justify-between items-start">

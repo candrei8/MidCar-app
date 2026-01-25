@@ -37,6 +37,14 @@ import { VehicleAdGenerator } from "./VehicleAdGenerator"
 import { WebLinkModal } from "./WebLinkModal"
 import { useToast } from "@/components/ui/toast"
 
+// Helper para obtener imagen válida (excluye URLs de Azure CDN que no existen)
+const getValidImageUrl = (url: string | null | undefined): string => {
+    if (!url || url.includes('midcar.azureedge.net')) {
+        return '/placeholder-car.svg'
+    }
+    return url
+}
+
 interface VehicleTableProps {
     vehicles: Vehicle[]
 }
@@ -105,7 +113,7 @@ export function VehicleTable({ vehicles }: VehicleTableProps) {
                                 <TableCell>
                                     <div
                                         className="w-16 h-12 rounded bg-cover bg-center"
-                                        style={{ backgroundImage: `url(${vehicle.imagen_principal})` }}
+                                        style={{ backgroundImage: `url(${getValidImageUrl(vehicle.imagen_principal)})` }}
                                     />
                                 </TableCell>
                                 <TableCell>

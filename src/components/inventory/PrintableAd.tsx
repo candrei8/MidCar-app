@@ -4,6 +4,14 @@ import { QRCodeSVG } from 'qrcode.react'
 import { formatCurrency } from "@/lib/utils"
 import type { Vehicle } from "@/types"
 
+// Helper para obtener imagen válida (excluye URLs de Azure CDN que no existen)
+const getValidImageUrl = (url: string | null | undefined): string => {
+    if (!url || url.includes('midcar.azureedge.net')) {
+        return '/placeholder-car.svg'
+    }
+    return url
+}
+
 interface PrintableAdProps {
     vehicle: Vehicle
     webUrl?: string
@@ -50,7 +58,7 @@ export function PrintableAd({
             <div
                 className="w-full h-[200mm] bg-cover bg-center rounded-lg mb-6"
                 style={{
-                    backgroundImage: `url(${vehicle.imagen_principal})`,
+                    backgroundImage: `url(${getValidImageUrl(vehicle.imagen_principal)})`,
                     backgroundColor: '#f3f4f6'
                 }}
             />

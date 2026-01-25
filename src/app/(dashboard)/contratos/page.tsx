@@ -24,6 +24,13 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import jsPDF from "jspdf"
+
+// Helper para verificar si una URL de imagen es válida (excluye Azure CDN que no existe)
+const isValidImageUrl = (url: string | null | undefined): boolean => {
+    if (!url) return false
+    return !url.includes('midcar.azureedge.net')
+}
+
 import {
     getEmpresasActivas,
     getEmpresaById,
@@ -664,9 +671,9 @@ export default function ContratosPage() {
                         <div className="px-4 pb-3">
                             <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
                                 <div className="h-14 w-14 rounded-lg bg-slate-200 overflow-hidden shrink-0">
-                                    {selectedVehicle.imagen_principal ? (
+                                    {isValidImageUrl(selectedVehicle.imagen_principal) ? (
                                         <img
-                                            src={selectedVehicle.imagen_principal}
+                                            src={selectedVehicle.imagen_principal!}
                                             alt={selectedVehicle.marca}
                                             className="h-full w-full object-cover"
                                         />
@@ -741,9 +748,9 @@ export default function ContratosPage() {
                                 >
                                     <div className="flex items-center p-3 gap-3">
                                         <div className="h-16 w-16 rounded-lg bg-slate-100 overflow-hidden shrink-0">
-                                            {vehicle.imagen_principal ? (
+                                            {isValidImageUrl(vehicle.imagen_principal) ? (
                                                 <img
-                                                    src={vehicle.imagen_principal}
+                                                    src={vehicle.imagen_principal!}
                                                     alt={vehicle.marca}
                                                     className="h-full w-full object-cover"
                                                 />
@@ -1234,9 +1241,9 @@ export default function ContratosPage() {
                             >
                                 <div className="flex items-center gap-3">
                                     <div className="h-12 w-12 rounded-lg bg-slate-100 overflow-hidden shrink-0">
-                                        {vehicle.imagen_principal ? (
+                                        {isValidImageUrl(vehicle.imagen_principal) ? (
                                             <img
-                                                src={vehicle.imagen_principal}
+                                                src={vehicle.imagen_principal!}
                                                 alt={vehicle.marca}
                                                 className="h-full w-full object-cover"
                                             />
@@ -1316,9 +1323,9 @@ export default function ContratosPage() {
                                     <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
                                         <div className="flex items-center gap-4">
                                             <div className="h-20 w-20 rounded-xl bg-slate-100 overflow-hidden shrink-0">
-                                                {selectedVehicle.imagen_principal ? (
+                                                {isValidImageUrl(selectedVehicle.imagen_principal) ? (
                                                     <img
-                                                        src={selectedVehicle.imagen_principal}
+                                                        src={selectedVehicle.imagen_principal!}
                                                         alt={selectedVehicle.marca}
                                                         className="h-full w-full object-cover"
                                                     />

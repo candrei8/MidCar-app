@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -25,6 +25,8 @@ export function CompraventaForm({
   onChange,
   suggestedPrice = 0
 }: CompraventaFormProps) {
+  const initializedRef = useRef(false);
+
   // Inicializar valores por defecto
   const data: Partial<CompraventaData> = {
     vehiculo: vehicle,
@@ -77,6 +79,17 @@ export function CompraventaForm({
     lugarEntrega: formData.lugarEntrega || `${EMPRESA_DATOS.direccion}, ${EMPRESA_DATOS.localidad}`,
     ...formData
   };
+
+  // Propagar valores por defecto al padre al montar el componente
+  useEffect(() => {
+    if (!initializedRef.current) {
+      initializedRef.current = true;
+      // Solo propagar si no hay datos ya establecidos
+      if (!formData.condiciones?.totalConIva) {
+        onChange(data);
+      }
+    }
+  }, []);
 
   const handleCondicionChange = (field: keyof EconomicConditions, value: number | string) => {
     const newCondiciones = { ...data.condiciones } as EconomicConditions;

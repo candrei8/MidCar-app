@@ -5,6 +5,14 @@ import { Vehicle } from "@/types"
 import { formatCurrency } from "@/lib/utils"
 import { jsPDF } from "jspdf"
 
+// Helper para obtener imagen válida (excluye URLs de Azure CDN que no existen)
+const getValidImageUrl = (url: string | null | undefined): string => {
+    if (!url || url.includes('midcar.azureedge.net')) {
+        return '/placeholder-car.svg'
+    }
+    return url
+}
+
 interface ShareModalProps {
     vehicle: Vehicle
     open: boolean
@@ -16,8 +24,11 @@ export function ShareModal({ vehicle, open, onClose }: ShareModalProps) {
 
     if (!open) return null
 
-    const imageUrl = vehicle.imagen_principal || vehicle.imagenes?.[0]?.url ||
-        'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=300&fit=crop'
+    // Usar placeholder si no hay imagen válida
+    const vehicleImage = getValidImageUrl(vehicle.imagen_principal) !== '/placeholder-car.svg'
+        ? vehicle.imagen_principal
+        : getValidImageUrl(vehicle.imagenes?.[0]?.url)
+    const imageUrl = vehicleImage !== '/placeholder-car.svg' ? vehicleImage : '/placeholder-car.svg'
 
     // Generar PDF profesional tipo ficha de vehículo
     const handleGeneratePDF = async () => {

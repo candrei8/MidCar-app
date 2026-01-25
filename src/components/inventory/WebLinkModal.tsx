@@ -24,6 +24,20 @@ import {
 } from "lucide-react"
 import type { Vehicle } from "@/types"
 
+// Helper para verificar si una URL de imagen es válida (excluye Azure CDN que no existe)
+const isValidImageUrl = (url: string | null | undefined): boolean => {
+    if (!url) return false
+    return !url.includes('midcar.azureedge.net')
+}
+
+// Helper para obtener imagen válida
+const getValidImageUrl = (url: string | null | undefined): string => {
+    if (!url || url.includes('midcar.azureedge.net')) {
+        return '/placeholder-car.svg'
+    }
+    return url
+}
+
 interface WebLinkModalProps {
     vehicle: Vehicle
     open: boolean
@@ -54,7 +68,7 @@ export function WebLinkModal({ vehicle, open, onClose, onSave }: WebLinkModalPro
         if (!vehicle.combustible) missing.push({ field: 'combustible', label: 'Combustible' })
         if (!vehicle.transmision) missing.push({ field: 'transmision', label: 'Transmisión' })
         if (!vehicle.precio_venta) missing.push({ field: 'precio_venta', label: 'Precio de venta' })
-        if (!vehicle.imagen_principal) missing.push({ field: 'imagen_principal', label: 'Imagen principal' })
+        if (!isValidImageUrl(vehicle.imagen_principal)) missing.push({ field: 'imagen_principal', label: 'Imagen principal' })
         if (!vehicle.potencia_cv) missing.push({ field: 'potencia_cv', label: 'Potencia (CV)' })
         if (!vehicle.color_exterior) missing.push({ field: 'color_exterior', label: 'Color exterior' })
         if (!vehicle.etiqueta_dgt || vehicle.etiqueta_dgt === 'SIN') missing.push({ field: 'etiqueta_dgt', label: 'Etiqueta DGT' })
@@ -80,7 +94,7 @@ export function WebLinkModal({ vehicle, open, onClose, onSave }: WebLinkModalPro
 
             // Simulate finding an image
             // In real implementation: fetch the URL, parse HTML, find og:image or main vehicle image
-            setImportedImage(vehicle.imagen_principal) // Use existing image as placeholder
+            setImportedImage(getValidImageUrl(vehicle.imagen_principal)) // Use existing image as placeholder
 
         } catch (err) {
             setError('No se pudo importar la imagen. Verifica la URL.')
@@ -226,7 +240,7 @@ export function WebLinkModal({ vehicle, open, onClose, onSave }: WebLinkModalPro
                         <div className="flex items-center gap-4">
                             <div
                                 className="h-16 w-24 rounded bg-cover bg-center flex-shrink-0"
-                                style={{ backgroundImage: `url(${vehicle.imagen_principal})` }}
+                                style={{ backgroundImage: `url(${getValidImageUrl(vehicle.imagen_principal)})` }}
                             />
                             <div>
                                 <p className="font-medium">{vehicle.marca} {vehicle.modelo}</p>

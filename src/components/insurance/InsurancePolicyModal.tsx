@@ -23,6 +23,15 @@ import {
     Upload,
     X
 } from "lucide-react"
+
+// Helper para obtener imagen válida (excluye URLs de Azure CDN que no existen)
+const getValidImageUrl = (url: string | null | undefined): string => {
+    if (!url || url.includes('midcar.azureedge.net')) {
+        return '/placeholder-car.svg'
+    }
+    return url
+}
+
 import {
     PolizaSeguro,
     Vehicle,
@@ -131,7 +140,7 @@ export function InsurancePolicyModal({
                     {/* Vehicle Info (readonly) */}
                     <div className="card-luxury p-4">
                         <div className="flex items-center gap-3">
-                            <div className="h-12 w-16 rounded-lg bg-cover bg-center" style={{ backgroundImage: `url(${vehicle.imagen_principal})` }} />
+                            <div className="h-12 w-16 rounded-lg bg-cover bg-center" style={{ backgroundImage: `url(${getValidImageUrl(vehicle.imagen_principal)})` }} />
                             <div>
                                 <p className="text-sm font-medium text-white/80">{vehicle.marca} {vehicle.modelo}</p>
                                 <div className="flex items-center gap-3 text-xs text-white/40">

@@ -104,7 +104,7 @@ export function FullViewModal({ open, onClose }: FullViewModalProps) {
                                 data-lpignore="true"
                                 data-1p-ignore="true"
                                 data-form-type="other"
-                                className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white text-center tracking-[0.3em] font-mono placeholder:text-white/20 placeholder:tracking-normal focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all pr-12"
+                                className="w-full px-4 py-3 bg-white/[0.03] border border-white/[0.08] rounded-xl text-white text-center tracking-[0.3em] font-mono placeholder:text-gray-400 placeholder:tracking-normal focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all pr-12"
                             />
                             <button
                                 type="button"

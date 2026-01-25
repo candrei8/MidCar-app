@@ -9,11 +9,304 @@ import { ShareModal } from "@/components/inventory/ShareModal"
 import { ContractGeneratorModal } from "@/components/inventory/ContractGeneratorModal"
 import { InvoiceGeneratorModal } from "@/components/inventory/InvoiceGeneratorModal"
 import { DocumentGeneratorModal } from "@/components/documents"
-import { getVehicleById } from "@/lib/supabase-service"
+import { getVehicleById, getContractsByVehicle, getInvoicesByVehicle, type ContractDB, type InvoiceDB } from "@/lib/supabase-service"
 import { getContacts } from "@/lib/db/contacts"
 import { useToast } from "@/components/ui/toast"
 import { useAuth } from "@/lib/auth-context"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import jsPDF from "jspdf"
 import type { Vehicle, Contact } from "@/types"
+
+// Función para regenerar PDF de contrato desde datos guardados
+const generateContractPDF = (contract: ContractDB, vehicle: Vehicle) => {
+    const doc = new jsPDF()
+    const pageWidth = doc.internal.pageSize.getWidth()
+    const margin = 20
+    let y = 20
+
+    // Helper
+    const formatDate = (dateStr: string) => {
+        const date = new Date(dateStr)
+        return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    }
+
+    // ===== CABECERA =====
+    doc.setFontSize(18)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(19, 91, 236)
+    doc.text('CONTRATO DE COMPRAVENTA', pageWidth / 2, y, { align: 'center' })
+
+    y += 10
+    doc.setFontSize(12)
+    doc.setTextColor(100)
+    doc.text(`Nº ${contract.numero_contrato}`, pageWidth / 2, y, { align: 'center' })
+
+    // ===== DATOS EMPRESA VENDEDORA =====
+    y += 15
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(0)
+    doc.text('VENDEDOR:', margin, y)
+    y += 6
+    doc.setFont('helvetica', 'normal')
+    doc.text(contract.empresa_nombre || 'Empresa no especificada', margin, y)
+    y += 5
+    doc.text(`CIF: ${contract.empresa_cif || '-'}`, margin, y)
+    y += 5
+    doc.text(contract.empresa_direccion || '', margin, y)
+
+    // ===== DATOS COMPRADOR =====
+    y += 12
+    doc.setFont('helvetica', 'bold')
+    doc.text('COMPRADOR:', margin, y)
+    y += 6
+    doc.setFont('helvetica', 'normal')
+    doc.text(`${contract.comprador_nombre || ''} ${contract.comprador_apellidos || ''}`.trim() || 'No especificado', margin, y)
+    y += 5
+    doc.text(`${contract.comprador_documento_tipo || 'DNI'}: ${contract.comprador_documento || '-'}`, margin, y)
+    y += 5
+    const direccionComprador = [contract.comprador_direccion, contract.comprador_cp, contract.comprador_localidad, contract.comprador_provincia].filter(Boolean).join(', ')
+    if (direccionComprador) doc.text(direccionComprador, margin, y)
+    y += 5
+    if (contract.comprador_telefono) doc.text(`Tel: ${contract.comprador_telefono}`, margin, y)
+    if (contract.comprador_email) {
+        y += 5
+        doc.text(`Email: ${contract.comprador_email}`, margin, y)
+    }
+
+    // ===== DATOS VEHÍCULO =====
+    y += 12
+    doc.setFont('helvetica', 'bold')
+    doc.text('VEHÍCULO:', margin, y)
+    y += 6
+    doc.setFont('helvetica', 'normal')
+    doc.text(`${contract.vehiculo_marca || vehicle.marca} ${contract.vehiculo_modelo || vehicle.modelo}`, margin, y)
+    y += 5
+    doc.text(`Matrícula: ${contract.vehiculo_matricula || vehicle.matricula}`, margin, y)
+    y += 5
+    doc.text(`Bastidor: ${contract.vehiculo_vin || vehicle.vin}`, margin, y)
+    y += 5
+    doc.text(`Kilómetros: ${(contract.vehiculo_km || vehicle.kilometraje).toLocaleString('es-ES')} km`, margin, y)
+
+    // ===== CONDICIONES ECONÓMICAS =====
+    y += 12
+    doc.setFont('helvetica', 'bold')
+    doc.text('CONDICIONES ECONÓMICAS:', margin, y)
+    y += 6
+    doc.setFont('helvetica', 'normal')
+    doc.text(`Precio de venta: ${formatCurrency(contract.precio_venta)}`, margin, y)
+    y += 5
+    if (contract.forma_pago) doc.text(`Forma de pago: ${contract.forma_pago}`, margin, y)
+
+    // ===== GARANTÍA =====
+    if (contract.garantia_meses) {
+        y += 12
+        doc.setFont('helvetica', 'bold')
+        doc.text('GARANTÍA:', margin, y)
+        y += 6
+        doc.setFont('helvetica', 'normal')
+        doc.text(`${contract.garantia_meses} meses${contract.garantia_km ? ` / ${contract.garantia_km.toLocaleString()} km` : ''}`, margin, y)
+        if (contract.garantia_tipo) {
+            y += 5
+            doc.text(`Tipo: ${contract.garantia_tipo}`, margin, y)
+        }
+    }
+
+    // ===== CLÁUSULAS =====
+    if (contract.clausulas_adicionales) {
+        y += 12
+        doc.setFont('helvetica', 'bold')
+        doc.text('CLÁUSULAS ADICIONALES:', margin, y)
+        y += 6
+        doc.setFont('helvetica', 'normal')
+        const splitText = doc.splitTextToSize(contract.clausulas_adicionales, pageWidth - 2 * margin)
+        doc.text(splitText, margin, y)
+    }
+
+    // ===== FIRMAS =====
+    y = doc.internal.pageSize.getHeight() - 50
+    doc.setDrawColor(200)
+    doc.line(margin, y, margin + 60, y)
+    doc.line(pageWidth - margin - 60, y, pageWidth - margin, y)
+    y += 5
+    doc.setFontSize(9)
+    doc.text('Firma del Vendedor', margin + 30, y, { align: 'center' })
+    doc.text('Firma del Comprador', pageWidth - margin - 30, y, { align: 'center' })
+
+    // ===== PIE =====
+    y += 15
+    doc.setFontSize(8)
+    doc.setTextColor(150)
+    doc.text(`Fecha: ${contract.fecha_firma ? formatDate(contract.fecha_firma) : formatDate(contract.created_at)}`, margin, y)
+    doc.text(`Generado: ${formatDate(new Date().toISOString())}`, pageWidth - margin, y, { align: 'right' })
+
+    // Guardar
+    doc.save(`Contrato_${contract.numero_contrato}_${contract.vehiculo_matricula || vehicle.matricula}.pdf`)
+}
+
+// Función para regenerar PDF de factura desde datos guardados
+const generateInvoicePDF = (invoice: InvoiceDB, vehicle: Vehicle) => {
+    const doc = new jsPDF()
+    const pageWidth = doc.internal.pageSize.getWidth()
+    const margin = 20
+    let y = 20
+
+    const formatDate = (dateStr: string) => {
+        const date = new Date(dateStr)
+        return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    }
+
+    // ===== CABECERA EMPRESA =====
+    doc.setFontSize(12)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(0)
+    doc.text(invoice.empresa_nombre || 'Empresa', margin, y)
+    y += 5
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(80)
+    doc.text(`CIF: ${invoice.empresa_cif || '-'}`, margin, y)
+    y += 4
+    doc.text(invoice.empresa_direccion || '', margin, y)
+
+    // ===== TÍTULO FACTURA =====
+    y += 12
+    doc.setFontSize(22)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(19, 91, 236)
+    doc.text('FACTURA', pageWidth - margin, y, { align: 'right' })
+
+    y += 8
+    doc.setFontSize(10)
+    doc.setTextColor(60)
+    doc.setFont('helvetica', 'normal')
+    doc.text(`Nº: ${invoice.numero_factura}`, pageWidth - margin, y, { align: 'right' })
+    y += 5
+    doc.text(`Fecha: ${formatDate(invoice.fecha_factura)}`, pageWidth - margin, y, { align: 'right' })
+    if (invoice.fecha_vencimiento) {
+        y += 5
+        doc.text(`Vencimiento: ${formatDate(invoice.fecha_vencimiento)}`, pageWidth - margin, y, { align: 'right' })
+    }
+
+    // ===== LÍNEA SEPARADORA =====
+    y += 8
+    doc.setDrawColor(200)
+    doc.line(margin, y, pageWidth - margin, y)
+
+    // ===== DATOS CLIENTE =====
+    y += 10
+    doc.setFontSize(9)
+    doc.setTextColor(100)
+    doc.text('FACTURAR A:', margin, y)
+    y += 6
+    doc.setFontSize(11)
+    doc.setTextColor(0)
+    doc.setFont('helvetica', 'bold')
+    doc.text(invoice.cliente_nombre || 'Cliente no especificado', margin, y)
+    y += 5
+    doc.setFont('helvetica', 'normal')
+    doc.text(`${invoice.cliente_documento_tipo || 'NIF'}: ${invoice.cliente_documento || '-'}`, margin, y)
+    if (invoice.cliente_direccion) {
+        y += 5
+        doc.text(invoice.cliente_direccion, margin, y)
+    }
+
+    // ===== DATOS VEHÍCULO =====
+    y += 10
+    doc.setFontSize(9)
+    doc.setTextColor(100)
+    doc.text('DATOS DEL VEHÍCULO:', margin, y)
+    y += 6
+    doc.setFontSize(10)
+    doc.setTextColor(0)
+    doc.text(invoice.vehiculo_descripcion || `${vehicle.marca} ${vehicle.modelo} - ${vehicle.matricula}`, margin, y)
+
+    // ===== CONCEPTO =====
+    y += 15
+    doc.setFillColor(245, 247, 250)
+    doc.rect(margin, y - 5, pageWidth - 2 * margin, 10, 'F')
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(60)
+    doc.text('CONCEPTO', margin + 5, y)
+    doc.text('IMPORTE', pageWidth - margin - 5, y, { align: 'right' })
+
+    y += 12
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(10)
+    doc.setTextColor(0)
+    doc.text(`Venta de vehículo - ${invoice.vehiculo_descripcion || vehicle.matricula}`, margin + 5, y)
+    doc.text(formatCurrency(invoice.base_imponible), pageWidth - margin - 5, y, { align: 'right' })
+
+    // ===== RESUMEN FISCAL =====
+    y += 20
+    doc.setDrawColor(220)
+    doc.line(pageWidth - 90, y, pageWidth - margin, y)
+
+    y += 8
+    doc.setFontSize(10)
+    doc.setTextColor(80)
+    doc.text('Base imponible:', pageWidth - 90, y)
+    doc.setTextColor(0)
+    doc.text(formatCurrency(invoice.base_imponible), pageWidth - margin - 5, y, { align: 'right' })
+
+    y += 7
+    doc.setTextColor(80)
+    doc.text(`IVA (${invoice.tipo_iva}%):`, pageWidth - 90, y)
+    doc.setTextColor(0)
+    doc.text(formatCurrency(invoice.iva), pageWidth - margin - 5, y, { align: 'right' })
+
+    y += 3
+    doc.line(pageWidth - 90, y, pageWidth - margin, y)
+
+    y += 10
+    doc.setFontSize(12)
+    doc.setFont('helvetica', 'bold')
+    doc.text('TOTAL:', pageWidth - 90, y)
+    doc.setTextColor(19, 91, 236)
+    doc.text(formatCurrency(invoice.total), pageWidth - margin - 5, y, { align: 'right' })
+
+    // ===== FORMA DE PAGO =====
+    if (invoice.forma_pago) {
+        y += 20
+        doc.setFontSize(9)
+        doc.setFont('helvetica', 'normal')
+        doc.setTextColor(100)
+        doc.text('FORMA DE PAGO:', margin, y)
+        y += 5
+        doc.setTextColor(0)
+        doc.setFontSize(10)
+        doc.text(invoice.forma_pago, margin, y)
+    }
+
+    // ===== NOTAS =====
+    if (invoice.notas) {
+        y += 15
+        doc.setFontSize(9)
+        doc.setTextColor(100)
+        doc.text('OBSERVACIONES:', margin, y)
+        y += 5
+        doc.setTextColor(60)
+        const splitNotas = doc.splitTextToSize(invoice.notas, pageWidth - 2 * margin)
+        doc.text(splitNotas, margin, y)
+    }
+
+    // ===== PIE =====
+    const footerY = doc.internal.pageSize.getHeight() - 15
+    doc.setFontSize(8)
+    doc.setTextColor(150)
+    doc.text(`${invoice.empresa_nombre} - CIF: ${invoice.empresa_cif}`, pageWidth / 2, footerY, { align: 'center' })
+
+    // Guardar
+    doc.save(`Factura_${invoice.numero_factura}_${vehicle.matricula}.pdf`)
+}
+
+// Helper para verificar si una URL de imagen es válida (excluye Azure CDN que no existe)
+const isValidImageUrl = (url: string | null | undefined): boolean => {
+    if (!url) return false
+    return !url.includes('midcar.azureedge.net')
+}
 
 interface VehicleDetailClientProps {
     id: string
@@ -46,7 +339,7 @@ const DGT_COLORS: Record<string, string> = {
 
 export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
     const router = useRouter()
-    const { user } = useAuth()
+    const { user, isFullView } = useAuth()
     const { addToast } = useToast()
 
     const [vehicle, setVehicle] = useState<Vehicle | null>(null)
@@ -58,6 +351,14 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
     const [showInvoiceModal, setShowInvoiceModal] = useState(false)
     const [showDocumentModal, setShowDocumentModal] = useState(false)
     const [contacts, setContacts] = useState<Contact[]>([])
+
+    // Document history
+    const [vehicleContracts, setVehicleContracts] = useState<ContractDB[]>([])
+    const [vehicleInvoices, setVehicleInvoices] = useState<InvoiceDB[]>([])
+    const [showDocumentHistory, setShowDocumentHistory] = useState(false)
+
+    // Document detail modal
+    const [selectedDocument, setSelectedDocument] = useState<{ type: 'contract' | 'invoice', data: ContractDB | InvoiceDB } | null>(null)
 
     // Load vehicle from Supabase
     useEffect(() => {
@@ -82,6 +383,33 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
         }
         loadContacts()
     }, [])
+
+    // Load document history for this vehicle
+    useEffect(() => {
+        const loadDocuments = async () => {
+            if (!id) return
+            try {
+                const [contracts, invoices] = await Promise.all([
+                    getContractsByVehicle(id),
+                    getInvoicesByVehicle(id)
+                ])
+                setVehicleContracts(contracts)
+                setVehicleInvoices(invoices)
+            } catch (error) {
+                console.error('Error loading document history:', error)
+            }
+        }
+        loadDocuments()
+
+        // Listen for document updates
+        const handleDataUpdate = (event: CustomEvent) => {
+            if (event.detail?.type === 'contracts' || event.detail?.type === 'invoices') {
+                loadDocuments()
+            }
+        }
+        window.addEventListener('midcar-data-updated', handleDataUpdate as EventListener)
+        return () => window.removeEventListener('midcar-data-updated', handleDataUpdate as EventListener)
+    }, [id])
 
     // Show loading state
     if (isLoading) {
@@ -111,7 +439,8 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
     }
 
     // Verificar si el usuario puede editar este vehículo
-    const canEdit = vehicle.created_by === user?.id
+    // Puede editar si es el creador O si tiene acceso a la vista completa (isFullView)
+    const canEdit = vehicle.created_by === user?.id || isFullView
 
     // Get all equipment for this vehicle
     const vehicleEquipment = Object.entries(EQUIPAMIENTO_VEHICULO).flatMap(([_, category]) =>
@@ -119,13 +448,16 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
     ).slice(0, showAllEquipment ? undefined : 4)
 
     // Use actual vehicle images if available, otherwise just show main image
+    // Filter out Azure CDN images that don't exist
     const galleryImages = vehicle.imagenes && vehicle.imagenes.length > 0
-        ? vehicle.imagenes.map((img, idx) => ({
-            url: img.url,
-            label: img.tipo ? img.tipo.charAt(0).toUpperCase() + img.tipo.slice(1) : `Foto ${idx + 1}`
-        }))
-        : vehicle.imagen_principal
-            ? [{ url: vehicle.imagen_principal, label: 'Principal' }]
+        ? vehicle.imagenes
+            .filter(img => isValidImageUrl(img.url))
+            .map((img, idx) => ({
+                url: img.url,
+                label: img.tipo ? img.tipo.charAt(0).toUpperCase() + img.tipo.slice(1) : `Foto ${idx + 1}`
+            }))
+        : isValidImageUrl(vehicle.imagen_principal)
+            ? [{ url: vehicle.imagen_principal!, label: 'Principal' }]
             : []
 
     // Calculate price with discount
@@ -226,6 +558,9 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
                         onGenerateContract={() => setShowContractModal(true)}
                         onGenerateInvoice={() => setShowInvoiceModal(true)}
                         onGenerateDocument={() => setShowDocumentModal(true)}
+                        vehicleContracts={vehicleContracts}
+                        vehicleInvoices={vehicleInvoices}
+                        onSelectDocument={setSelectedDocument}
                     />
                 </div>
 
@@ -583,6 +918,101 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
                             </div>
                         </div>
 
+                        {/* Document History */}
+                        <div className="bg-white dark:bg-surface-dark rounded-xl border border-gray-100 dark:border-gray-800 p-6 shadow-sm">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-[18px] text-primary">history</span>
+                                    Historial de Documentos
+                                </h3>
+                                {(vehicleContracts.length > 0 || vehicleInvoices.length > 0) && (
+                                    <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
+                                        {vehicleContracts.length + vehicleInvoices.length}
+                                    </span>
+                                )}
+                            </div>
+
+                            {vehicleContracts.length === 0 && vehicleInvoices.length === 0 ? (
+                                <div className="text-center py-6 text-gray-400">
+                                    <span className="material-symbols-outlined text-4xl mb-2 block">folder_off</span>
+                                    <p className="text-sm">No hay documentos generados</p>
+                                    <p className="text-xs mt-1">Los contratos y facturas aparecerán aquí</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                                    {/* Contracts */}
+                                    {vehicleContracts.map((contract) => (
+                                        <div
+                                            key={contract.id}
+                                            onClick={() => setSelectedDocument({ type: 'contract', data: contract })}
+                                            className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors cursor-pointer group border border-transparent hover:border-blue-200"
+                                        >
+                                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600">
+                                                <span className="material-symbols-outlined text-[18px]">description</span>
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-semibold truncate">
+                                                    Contrato {contract.numero_contrato}
+                                                </p>
+                                                <p className="text-xs text-gray-500">
+                                                    {contract.comprador_nombre || 'Sin comprador'} • {new Date(contract.created_at).toLocaleDateString('es-ES')}
+                                                </p>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className={cn(
+                                                    "text-[10px] font-bold px-2 py-0.5 rounded-full uppercase",
+                                                    contract.estado === 'firmado' ? "bg-green-100 text-green-700" :
+                                                    contract.estado === 'pendiente' ? "bg-yellow-100 text-yellow-700" :
+                                                    "bg-gray-100 text-gray-600"
+                                                )}>
+                                                    {contract.estado}
+                                                </span>
+                                                <span className="text-sm font-bold text-primary">
+                                                    {formatCurrency(contract.precio_venta)}
+                                                </span>
+                                                <span className="material-symbols-outlined text-gray-400 group-hover:text-primary text-[18px]">chevron_right</span>
+                                            </div>
+                                        </div>
+                                    ))}
+
+                                    {/* Invoices */}
+                                    {vehicleInvoices.map((invoice) => (
+                                        <div
+                                            key={invoice.id}
+                                            onClick={() => setSelectedDocument({ type: 'invoice', data: invoice })}
+                                            className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors cursor-pointer group border border-transparent hover:border-green-200"
+                                        >
+                                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/30 text-green-600">
+                                                <span className="material-symbols-outlined text-[18px]">receipt</span>
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-semibold truncate">
+                                                    Factura {invoice.numero_factura}
+                                                </p>
+                                                <p className="text-xs text-gray-500">
+                                                    {invoice.cliente_nombre || 'Sin cliente'} • {new Date(invoice.created_at).toLocaleDateString('es-ES')}
+                                                </p>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className={cn(
+                                                    "text-[10px] font-bold px-2 py-0.5 rounded-full uppercase",
+                                                    invoice.estado === 'pagada' ? "bg-green-100 text-green-700" :
+                                                    invoice.estado === 'pendiente' ? "bg-yellow-100 text-yellow-700" :
+                                                    "bg-gray-100 text-gray-600"
+                                                )}>
+                                                    {invoice.estado}
+                                                </span>
+                                                <span className="text-sm font-bold text-primary">
+                                                    {formatCurrency(invoice.total)}
+                                                </span>
+                                                <span className="material-symbols-outlined text-gray-400 group-hover:text-primary text-[18px]">chevron_right</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -620,6 +1050,226 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
                     addToast(`Documento ${type} generado correctamente`, 'success')
                 }}
             />
+
+            {/* Document Detail Modal */}
+            {selectedDocument && (
+                <Dialog open={!!selectedDocument} onOpenChange={() => setSelectedDocument(null)}>
+                    <DialogContent className="w-[95vw] max-w-[500px] max-h-[90vh] overflow-y-auto">
+                        <DialogHeader>
+                            <DialogTitle className="flex items-center gap-3">
+                                <div className={cn(
+                                    "flex h-10 w-10 items-center justify-center rounded-lg",
+                                    selectedDocument.type === 'contract' ? "bg-blue-100 text-blue-600" : "bg-green-100 text-green-600"
+                                )}>
+                                    <span className="material-symbols-outlined">
+                                        {selectedDocument.type === 'contract' ? 'description' : 'receipt'}
+                                    </span>
+                                </div>
+                                <div>
+                                    <p className="text-lg font-bold">
+                                        {selectedDocument.type === 'contract'
+                                            ? `Contrato ${(selectedDocument.data as ContractDB).numero_contrato}`
+                                            : `Factura ${(selectedDocument.data as InvoiceDB).numero_factura}`
+                                        }
+                                    </p>
+                                    <p className="text-sm text-gray-500 font-normal">
+                                        {new Date(selectedDocument.data.created_at).toLocaleDateString('es-ES', {
+                                            day: '2-digit',
+                                            month: 'long',
+                                            year: 'numeric'
+                                        })}
+                                    </p>
+                                </div>
+                            </DialogTitle>
+                        </DialogHeader>
+
+                        <div className="space-y-4 mt-4">
+                            {/* Estado */}
+                            <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                <span className="text-sm text-gray-600">Estado</span>
+                                <span className={cn(
+                                    "text-xs font-bold px-3 py-1 rounded-full uppercase",
+                                    selectedDocument.data.estado === 'firmado' || selectedDocument.data.estado === 'pagada'
+                                        ? "bg-green-100 text-green-700"
+                                        : selectedDocument.data.estado === 'pendiente'
+                                            ? "bg-yellow-100 text-yellow-700"
+                                            : "bg-gray-100 text-gray-600"
+                                )}>
+                                    {selectedDocument.data.estado}
+                                </span>
+                            </div>
+
+                            {/* Detalles según tipo */}
+                            {selectedDocument.type === 'contract' ? (
+                                <>
+                                    <div className="space-y-3">
+                                        <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Datos del Comprador</h4>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                                <p className="text-xs text-gray-500">Nombre</p>
+                                                <p className="text-sm font-medium">{(selectedDocument.data as ContractDB).comprador_nombre || '-'}</p>
+                                            </div>
+                                            <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                                <p className="text-xs text-gray-500">Documento</p>
+                                                <p className="text-sm font-medium">{(selectedDocument.data as ContractDB).comprador_documento || '-'}</p>
+                                            </div>
+                                            <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                                <p className="text-xs text-gray-500">Teléfono</p>
+                                                <p className="text-sm font-medium">{(selectedDocument.data as ContractDB).comprador_telefono || '-'}</p>
+                                            </div>
+                                            <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                                <p className="text-xs text-gray-500">Email</p>
+                                                <p className="text-sm font-medium truncate">{(selectedDocument.data as ContractDB).comprador_email || '-'}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Datos Económicos</h4>
+                                        <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-gray-600">Precio de venta</span>
+                                                <span className="text-2xl font-bold text-primary">
+                                                    {formatCurrency((selectedDocument.data as ContractDB).precio_venta)}
+                                                </span>
+                                            </div>
+                                            {(selectedDocument.data as ContractDB).forma_pago && (
+                                                <p className="text-sm text-gray-500 mt-2">
+                                                    Forma de pago: <span className="font-medium">{(selectedDocument.data as ContractDB).forma_pago}</span>
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {(selectedDocument.data as ContractDB).garantia_meses && (
+                                        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center gap-3">
+                                            <span className="material-symbols-outlined text-blue-600">verified_user</span>
+                                            <div>
+                                                <p className="text-sm font-medium text-blue-800">Garantía incluida</p>
+                                                <p className="text-xs text-blue-600">
+                                                    {(selectedDocument.data as ContractDB).garantia_meses} meses
+                                                    {(selectedDocument.data as ContractDB).garantia_km && ` / ${(selectedDocument.data as ContractDB).garantia_km?.toLocaleString()} km`}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
+                            ) : (
+                                <>
+                                    <div className="space-y-3">
+                                        <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Datos del Cliente</h4>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                                <p className="text-xs text-gray-500">Nombre</p>
+                                                <p className="text-sm font-medium">{(selectedDocument.data as InvoiceDB).cliente_nombre || '-'}</p>
+                                            </div>
+                                            <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                                <p className="text-xs text-gray-500">NIF/CIF</p>
+                                                <p className="text-sm font-medium">{(selectedDocument.data as InvoiceDB).cliente_documento || '-'}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Desglose</h4>
+                                        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-2">
+                                            <div className="flex justify-between text-sm">
+                                                <span className="text-gray-500">Base imponible</span>
+                                                <span>{formatCurrency((selectedDocument.data as InvoiceDB).base_imponible)}</span>
+                                            </div>
+                                            <div className="flex justify-between text-sm">
+                                                <span className="text-gray-500">IVA ({(selectedDocument.data as InvoiceDB).tipo_iva}%)</span>
+                                                <span>{formatCurrency((selectedDocument.data as InvoiceDB).iva)}</span>
+                                            </div>
+                                            <div className="border-t pt-2 flex justify-between">
+                                                <span className="font-semibold">Total</span>
+                                                <span className="text-xl font-bold text-primary">
+                                                    {formatCurrency((selectedDocument.data as InvoiceDB).total)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {(selectedDocument.data as InvoiceDB).fecha_vencimiento && (
+                                        <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg flex items-center gap-3">
+                                            <span className="material-symbols-outlined text-yellow-600">event</span>
+                                            <div>
+                                                <p className="text-sm font-medium text-yellow-800">Fecha de vencimiento</p>
+                                                <p className="text-xs text-yellow-600">
+                                                    {new Date((selectedDocument.data as InvoiceDB).fecha_vencimiento!).toLocaleDateString('es-ES')}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
+                            )}
+
+                            {/* Notas */}
+                            {selectedDocument.data.notas && (
+                                <div className="space-y-2">
+                                    <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Notas</h4>
+                                    <p className="text-sm text-gray-600 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                        {selectedDocument.data.notas}
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Creado por */}
+                            {selectedDocument.data.created_by_name && (
+                                <div className="flex items-center gap-2 text-xs text-gray-400 pt-2 border-t">
+                                    <span className="material-symbols-outlined text-[14px]">person</span>
+                                    Creado por {selectedDocument.data.created_by_name}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Acciones */}
+                        <div className="space-y-3 mt-6 pt-4 border-t">
+                            {/* Botón principal - Descargar PDF */}
+                            <Button
+                                className="w-full bg-primary hover:bg-primary/90 h-12"
+                                onClick={() => {
+                                    if (selectedDocument.type === 'contract') {
+                                        generateContractPDF(selectedDocument.data as ContractDB, vehicle)
+                                    } else {
+                                        generateInvoicePDF(selectedDocument.data as InvoiceDB, vehicle)
+                                    }
+                                    addToast('PDF descargado correctamente', 'success')
+                                }}
+                            >
+                                <span className="material-symbols-outlined mr-2 text-[20px]">download</span>
+                                Descargar PDF
+                            </Button>
+
+                            {/* Botones secundarios */}
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    className="flex-1"
+                                    onClick={() => setSelectedDocument(null)}
+                                >
+                                    Cerrar
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    className="flex-1"
+                                    onClick={() => {
+                                        if (selectedDocument.type === 'contract') {
+                                            router.push('/contratos')
+                                        } else {
+                                            router.push('/facturacion')
+                                        }
+                                        setSelectedDocument(null)
+                                    }}
+                                >
+                                    <span className="material-symbols-outlined mr-1 text-[16px]">open_in_new</span>
+                                    Ir a {selectedDocument.type === 'contract' ? 'Contratos' : 'Facturas'}
+                                </Button>
+                            </div>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+            )}
         </div>
     )
 }
@@ -638,7 +1288,10 @@ function MobileContent({
     setShowAllEquipment,
     onGenerateContract,
     onGenerateInvoice,
-    onGenerateDocument
+    onGenerateDocument,
+    vehicleContracts,
+    vehicleInvoices,
+    onSelectDocument
 }: any) {
     const DGT_COLORS: Record<string, string> = {
         '0': 'bg-blue-500 text-white',
@@ -879,6 +1532,105 @@ function MobileContent({
                         </button>
                     </div>
                 </div>
+            </div>
+
+            {/* Document History (Mobile) */}
+            <div className="px-5 pb-8">
+                <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold flex items-center gap-2">
+                        <span className="material-symbols-outlined text-primary">history</span>
+                        Historial
+                    </h3>
+                    {(vehicleContracts?.length > 0 || vehicleInvoices?.length > 0) && (
+                        <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
+                            {(vehicleContracts?.length || 0) + (vehicleInvoices?.length || 0)}
+                        </span>
+                    )}
+                </div>
+
+                {(!vehicleContracts || vehicleContracts.length === 0) && (!vehicleInvoices || vehicleInvoices.length === 0) ? (
+                    <div className="text-center py-6 bg-white rounded-xl border border-gray-100">
+                        <span className="material-symbols-outlined text-4xl mb-2 text-gray-300 block">folder_off</span>
+                        <p className="text-sm text-gray-400">No hay documentos generados</p>
+                        <p className="text-xs text-gray-300 mt-1">Los contratos y facturas aparecerán aquí</p>
+                    </div>
+                ) : (
+                    <div className="space-y-2">
+                        {/* Contracts */}
+                        {vehicleContracts?.map((contract: any) => (
+                            <div
+                                key={contract.id}
+                                onClick={() => onSelectDocument?.({ type: 'contract', data: contract })}
+                                className="flex items-center gap-3 p-4 rounded-xl bg-white border border-gray-100 shadow-sm active:bg-blue-50 active:border-blue-200 cursor-pointer transition-colors"
+                            >
+                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
+                                    <span className="material-symbols-outlined text-[20px]">description</span>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-semibold truncate">
+                                        {contract.numero_contrato}
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                        {contract.comprador_nombre || 'Sin comprador'} • {new Date(contract.created_at).toLocaleDateString('es-ES')}
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="text-right">
+                                        <span className="text-sm font-bold text-primary block">
+                                            {formatCurrency(contract.precio_venta)}
+                                        </span>
+                                        <span className={cn(
+                                            "text-[10px] font-bold px-2 py-0.5 rounded-full uppercase",
+                                            contract.estado === 'firmado' ? "bg-green-100 text-green-700" :
+                                            contract.estado === 'pendiente' ? "bg-yellow-100 text-yellow-700" :
+                                            "bg-gray-100 text-gray-600"
+                                        )}>
+                                            {contract.estado}
+                                        </span>
+                                    </div>
+                                    <span className="material-symbols-outlined text-gray-400 text-[20px]">chevron_right</span>
+                                </div>
+                            </div>
+                        ))}
+
+                        {/* Invoices */}
+                        {vehicleInvoices?.map((invoice: any) => (
+                            <div
+                                key={invoice.id}
+                                onClick={() => onSelectDocument?.({ type: 'invoice', data: invoice })}
+                                className="flex items-center gap-3 p-4 rounded-xl bg-white border border-gray-100 shadow-sm active:bg-green-50 active:border-green-200 cursor-pointer transition-colors"
+                            >
+                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 text-green-600">
+                                    <span className="material-symbols-outlined text-[20px]">receipt</span>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-semibold truncate">
+                                        {invoice.numero_factura}
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                        {invoice.cliente_nombre || 'Sin cliente'} • {new Date(invoice.created_at).toLocaleDateString('es-ES')}
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="text-right">
+                                        <span className="text-sm font-bold text-primary block">
+                                            {formatCurrency(invoice.total)}
+                                        </span>
+                                        <span className={cn(
+                                            "text-[10px] font-bold px-2 py-0.5 rounded-full uppercase",
+                                            invoice.estado === 'pagada' ? "bg-green-100 text-green-700" :
+                                            invoice.estado === 'pendiente' ? "bg-yellow-100 text-yellow-700" :
+                                            "bg-gray-100 text-gray-600"
+                                        )}>
+                                            {invoice.estado}
+                                        </span>
+                                    </div>
+                                    <span className="material-symbols-outlined text-gray-400 text-[20px]">chevron_right</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
 
             <div className="h-20" />

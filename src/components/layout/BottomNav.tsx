@@ -35,6 +35,11 @@ const moreItems = [
         icon: 'shield'
     },
     {
+        href: '/gestion-web',
+        label: 'Gestión Web',
+        icon: 'language'
+    },
+    {
         href: '/configuracion',
         label: 'Configuración',
         icon: 'settings'
