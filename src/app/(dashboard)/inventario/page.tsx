@@ -121,7 +121,7 @@ export default function InventarioPage() {
     return (
         <div className="min-h-screen bg-[#f6f6f8] flex flex-col">
             {/* Sticky Header */}
-            <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
+            <header className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
                 {/* Top App Bar */}
                 <div className="flex items-center justify-between px-6 py-4">
                     <div className="flex items-center">

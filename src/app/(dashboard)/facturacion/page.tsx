@@ -97,9 +97,12 @@ export default function FacturacionPage() {
     const [formaPago, setFormaPago] = useState('contado')
     const [fechaPago, setFechaPago] = useState('')
     const [notas, setNotas] = useState('')
+    const [clausulasAdicionales, setClausulasAdicionales] = useState('')
+    const [aplicaIva, setAplicaIva] = useState(true)
 
-    // Calculos
-    const ivaImporte = useMemo(() => (baseImponible * ivaPorcentaje) / 100, [baseImponible, ivaPorcentaje])
+    // Calculos - manejar IVA opcional (value -1 = sin IVA)
+    const ivaEfectivo = useMemo(() => aplicaIva && ivaPorcentaje >= 0 ? ivaPorcentaje : 0, [aplicaIva, ivaPorcentaje])
+    const ivaImporte = useMemo(() => (baseImponible * ivaEfectivo) / 100, [baseImponible, ivaEfectivo])
     const totalFactura = useMemo(() => baseImponible + ivaImporte, [baseImponible, ivaImporte])
 
     // Empresa seleccionada
@@ -285,8 +288,15 @@ export default function FacturacionPage() {
         addText(formatCurrency(baseImponible), pageWidth - margin - 5, y, { align: 'right' })
 
         y += 8
-        addText(`IVA (${ivaPorcentaje}%)`, margin + 5, y)
-        addText(formatCurrency(ivaImporte), pageWidth - margin - 5, y, { align: 'right' })
+        if (aplicaIva && ivaPorcentaje >= 0) {
+            addText(`IVA (${ivaPorcentaje}%)`, margin + 5, y)
+            addText(formatCurrency(ivaImporte), pageWidth - margin - 5, y, { align: 'right' })
+        } else {
+            doc.setTextColor(100)
+            addText('IVA no aplicable', margin + 5, y)
+            addText('-', pageWidth - margin - 5, y, { align: 'right' })
+            doc.setTextColor(0)
+        }
 
         // Linea
         y += 5
@@ -309,6 +319,20 @@ export default function FacturacionPage() {
         doc.setTextColor(0)
         doc.setFontSize(11)
         addText(formaPago.charAt(0).toUpperCase() + formaPago.slice(1), margin, y)
+
+        // Clausulas adicionales
+        if (clausulasAdicionales) {
+            y += 15
+            doc.setFontSize(10)
+            doc.setTextColor(100)
+            addText('CLAUSULAS Y CONDICIONES ADICIONALES', margin, y)
+            y += 6
+            doc.setTextColor(0)
+            doc.setFontSize(10)
+            const splitClausulas = doc.splitTextToSize(clausulasAdicionales, pageWidth - 2 * margin)
+            doc.text(splitClausulas, margin, y)
+            y += splitClausulas.length * 4
+        }
 
         // Notas
         if (notas) {
@@ -397,6 +421,9 @@ export default function FacturacionPage() {
         setBaseImponible(0)
         setConcepto('Venta de vehiculo')
         setNotas('')
+        setClausulasAdicionales('')
+        setIvaPorcentaje(21)
+        setAplicaIva(true)
         setMobileStep('list')
     }
 
@@ -658,7 +685,11 @@ export default function FacturacionPage() {
                                                     <Label className="text-xs text-slate-500">IVA</Label>
                                                     <Select
                                                         value={String(ivaPorcentaje)}
-                                                        onValueChange={(v) => setIvaPorcentaje(parseInt(v))}
+                                                        onValueChange={(v) => {
+                                                            const val = parseInt(v)
+                                                            setIvaPorcentaje(val)
+                                                            setAplicaIva(val >= 0)
+                                                        }}
                                                     >
                                                         <SelectTrigger>
                                                             <SelectValue />
@@ -676,10 +707,17 @@ export default function FacturacionPage() {
                                                     <span className="text-slate-600">Base imponible:</span>
                                                     <span>{formatCurrency(baseImponible)}</span>
                                                 </div>
-                                                <div className="flex justify-between text-sm">
-                                                    <span className="text-slate-600">IVA ({ivaPorcentaje}%):</span>
-                                                    <span>{formatCurrency(ivaImporte)}</span>
-                                                </div>
+                                                {aplicaIva && ivaPorcentaje >= 0 ? (
+                                                    <div className="flex justify-between text-sm">
+                                                        <span className="text-slate-600">IVA ({ivaPorcentaje}%):</span>
+                                                        <span>{formatCurrency(ivaImporte)}</span>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex justify-between text-sm">
+                                                        <span className="text-slate-500 italic">Sin IVA aplicable</span>
+                                                        <span className="text-slate-500">-</span>
+                                                    </div>
+                                                )}
                                                 <div className="border-t pt-2 flex justify-between font-bold">
                                                     <span>TOTAL:</span>
                                                     <span className="text-[#135bec]">{formatCurrency(totalFactura)}</span>
@@ -736,6 +774,23 @@ export default function FacturacionPage() {
                                         </div>
                                     </div>
 
+                                    {/* Clausulas Adicionales */}
+                                    <div className="bg-white rounded-xl p-4 border border-slate-100 shadow-sm">
+                                        <h3 className="text-xs font-bold uppercase tracking-wider text-[#135bec] mb-3 flex items-center gap-2">
+                                            <span className="material-symbols-outlined text-[16px]">gavel</span>
+                                            Clausulas y Añadidos
+                                        </h3>
+                                        <Textarea
+                                            value={clausulasAdicionales}
+                                            onChange={(e) => setClausulasAdicionales(e.target.value)}
+                                            placeholder="Clausulas adicionales, condiciones especiales, acuerdos personalizados..."
+                                            className="min-h-[100px]"
+                                        />
+                                        <p className="text-xs text-slate-400 mt-2">
+                                            Incluye aqui cualquier clausula especial, condicion adicional o informacion personalizada para el comprador.
+                                        </p>
+                                    </div>
+
                                     {/* Notas */}
                                     <div className="bg-white rounded-xl p-4 border border-slate-100 shadow-sm">
                                         <h3 className="text-xs font-bold uppercase tracking-wider text-[#135bec] mb-3 flex items-center gap-2">
@@ -771,7 +826,7 @@ export default function FacturacionPage() {
             {/* Mobile Layout */}
             <div className="lg:hidden">
                 {/* Header */}
-                <header className="sticky top-0 z-30 bg-white border-b border-slate-200 px-4 py-3">
+                <header className="sticky top-0 z-10 bg-white border-b border-slate-200 px-4 py-3">
                     <div className="flex items-center justify-between">
                         <h1 className="text-xl font-bold text-slate-900">Facturacion</h1>
                         <div className="flex gap-2">

@@ -453,7 +453,7 @@ export default function SeguroPage() {
             <div className="relative flex flex-col h-full min-h-screen w-full md:max-w-7xl md:mx-auto bg-white dark:bg-[#1A202C] shadow-xl md:shadow-none overflow-hidden md:bg-transparent md:dark:bg-transparent">
 
                 {/* Header */}
-                <div className="flex items-center bg-white dark:bg-[#1A202C] p-4 pb-2 justify-between sticky md:relative top-0 z-50 border-b border-gray-100 dark:border-gray-800 md:bg-transparent md:dark:bg-transparent md:border-b-0 md:mb-6">
+                <div className="flex items-center bg-white dark:bg-[#1A202C] p-4 pb-2 justify-between sticky md:relative top-0 z-10 border-b border-gray-100 dark:border-gray-800 md:bg-transparent md:dark:bg-transparent md:border-b-0 md:mb-6">
                     <h2 className="text-[#111318] dark:text-white text-xl md:text-3xl font-bold leading-tight tracking-[-0.015em] flex-1">Seguros</h2>
                 </div>
 

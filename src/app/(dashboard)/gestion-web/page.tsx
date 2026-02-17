@@ -7,6 +7,14 @@ import { cn } from "@/lib/utils"
 // Section cards data
 const sections = [
   {
+    id: 'blog',
+    title: 'Blog',
+    description: 'Artículos, noticias y guías para atraer tráfico SEO',
+    icon: 'rss_feed',
+    href: '/gestion-web/blog',
+    color: 'bg-orange-500',
+  },
+  {
     id: 'hero',
     title: 'Hero / Banner Principal',
     description: 'Título, subtítulo, botones de acción y estadísticas de la página principal',
@@ -76,7 +84,7 @@ export default function GestionWebPage() {
   return (
     <div className="min-h-screen bg-[#f6f6f8]">
       {/* Header */}
-      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
+      <header className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
         <div className="flex items-center justify-between px-4 md:px-6 py-4">
           <div>
             <h1 className="text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2">
@@ -160,7 +168,7 @@ export default function GestionWebPage() {
                 <span className="material-symbols-outlined text-blue-600" style={{ fontSize: '20px' }}>article</span>
               </div>
               <div>
-                <p className="text-2xl font-bold text-slate-900">8</p>
+                <p className="text-2xl font-bold text-slate-900">9</p>
                 <p className="text-xs text-slate-500">Secciones</p>
               </div>
             </div>

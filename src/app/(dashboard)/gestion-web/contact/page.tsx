@@ -93,7 +93,7 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen bg-[#f6f6f8]">
       {/* Header */}
-      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
+      <header className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
         <div className="flex items-center justify-between px-4 md:px-6 py-4">
           <div className="flex items-center gap-4">
             <Link

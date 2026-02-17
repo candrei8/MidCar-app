@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect, useCallback } from "react"
+import { useState, useMemo, useEffect, useCallback, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -24,7 +24,11 @@ import {
     Check,
     X,
     Wrench,
+    Camera,
+    Upload,
+    FileText,
 } from "lucide-react"
+import { Textarea } from "@/components/ui/textarea"
 import { MARCAS, COMBUSTIBLES, TRANSMISIONES, CARROCERIAS, ETIQUETAS_DGT, EQUIPAMIENTO_VEHICULO } from "@/lib/constants"
 import { formatCurrency, cn } from "@/lib/utils"
 import { getVehicleById, updateVehicle } from "@/lib/supabase-service"
@@ -187,6 +191,8 @@ export function QuickEditForm({ vehicleId, onSave, onCancel }: QuickEditFormProp
     const [isSaving, setIsSaving] = useState(false)
     const [showSaveSuccess, setShowSaveSuccess] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
+    const [photoPreview, setPhotoPreview] = useState<string | null>(null)
+    const fileInputRef = useRef<HTMLInputElement>(null)
 
     // Load vehicle from Supabase
     useEffect(() => {
@@ -277,6 +283,40 @@ export function QuickEditForm({ vehicleId, onSave, onCancel }: QuickEditFormProp
         return (formData?.equipamiento || []).length
     }, [formData?.equipamiento])
 
+    // Handle photo change
+    const handlePhotoChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0]
+        if (!file) return
+
+        // Validate file type
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+            alert('Por favor selecciona una imagen válida (JPG, PNG o WEBP)')
+            return
+        }
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('La imagen no puede superar los 5MB')
+            return
+        }
+
+        // Create preview and convert to base64
+        const reader = new FileReader()
+        reader.onloadend = () => {
+            const base64String = reader.result as string
+            setPhotoPreview(base64String)
+            updateField('imagen_principal', base64String)
+        }
+        reader.readAsDataURL(file)
+    }, [updateField])
+
+    // Reset photo preview when form resets
+    useEffect(() => {
+        if (formData && originalVehicle && JSON.stringify(formData) === JSON.stringify(originalVehicle)) {
+            setPhotoPreview(null)
+        }
+    }, [formData, originalVehicle])
+
     if (isLoading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] p-8">
@@ -365,6 +405,75 @@ export function QuickEditForm({ vehicleId, onSave, onCancel }: QuickEditFormProp
 
             {/* Form Content */}
             <div className="space-y-4 pt-4">
+                {/* Foto Principal */}
+                <Section title="Foto Principal" icon={Camera}>
+                    <div className="space-y-4">
+                        {/* Current photo preview */}
+                        <div className="relative aspect-video bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden">
+                            <img
+                                src={photoPreview || formData.imagen_principal || '/placeholder-car.svg'}
+                                alt={`${formData.marca} ${formData.modelo}`}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                    e.currentTarget.src = '/placeholder-car.svg'
+                                }}
+                            />
+                            {/* Overlay with change button */}
+                            <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <Button
+                                    variant="secondary"
+                                    size="lg"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="gap-2"
+                                >
+                                    <Upload className="h-5 w-5" />
+                                    Cambiar foto
+                                </Button>
+                            </div>
+                        </div>
+
+                        {/* Hidden file input */}
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            onChange={handlePhotoChange}
+                            className="hidden"
+                        />
+
+                        {/* Action buttons */}
+                        <div className="flex gap-3">
+                            <Button
+                                variant="outline"
+                                onClick={() => fileInputRef.current?.click()}
+                                className="flex-1 h-12 gap-2"
+                            >
+                                <Upload className="h-4 w-4" />
+                                Seleccionar nueva foto
+                            </Button>
+                            {photoPreview && (
+                                <Button
+                                    variant="ghost"
+                                    onClick={() => {
+                                        setPhotoPreview(null)
+                                        updateField('imagen_principal', originalVehicle?.imagen_principal || '')
+                                        if (fileInputRef.current) {
+                                            fileInputRef.current.value = ''
+                                        }
+                                    }}
+                                    className="h-12 px-4"
+                                >
+                                    <X className="h-4 w-4" />
+                                </Button>
+                            )}
+                        </div>
+
+                        <p className="text-xs text-muted-foreground text-center">
+                            Formatos: JPG, PNG, WEBP. Tamaño máximo: 5MB
+                        </p>
+                    </div>
+                </Section>
+
                 {/* Datos Básicos */}
                 <Section title="Datos Básicos" icon={Car}>
                     <div className="space-y-4">
@@ -655,6 +764,25 @@ export function QuickEditForm({ vehicleId, onSave, onCancel }: QuickEditFormProp
                                 onToggle={toggleEquipment}
                             />
                         ))}
+                    </div>
+                </Section>
+
+                {/* Descripcion para la Web */}
+                <Section title="Descripcion Web" icon={FileText} defaultOpen={false}>
+                    <div className="space-y-4">
+                        <p className="text-sm text-muted-foreground">
+                            Texto adicional que se mostrara en la pagina web del vehiculo.
+                            Puedes incluir informacion extra, caracteristicas destacadas o cualquier comentario para el comprador.
+                        </p>
+                        <Textarea
+                            value={formData.descripcion || ''}
+                            onChange={(e) => updateField('descripcion', e.target.value)}
+                            placeholder="Ej: Vehiculo en perfecto estado, unico propietario, siempre en garaje. Revision completa recien realizada..."
+                            className="min-h-[120px] text-base"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                            Este texto aparecera en la ficha del vehiculo en la web publica.
+                        </p>
                     </div>
                 </Section>
 

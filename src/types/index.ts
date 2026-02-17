@@ -75,6 +75,9 @@ export interface Vehicle {
     // Equipment (array of equipment IDs)
     equipamiento?: string[]
 
+    // Description - texto adicional para la web
+    descripcion?: string
+
     // Timestamps
     created_at: string
     updated_at: string

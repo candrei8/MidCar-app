@@ -160,6 +160,7 @@ function transformVehicleFromDB(dbVehicle: Record<string, unknown>): Vehicle {
         datos_sincronizados: dbVehicle.datos_sincronizados as boolean | undefined,
         ultima_sincronizacion: dbVehicle.ultima_sincronizacion as string | undefined,
         equipamiento: (dbVehicle.equipamiento as string[]) || [],
+        descripcion: (dbVehicle.descripcion as string) || undefined,
         created_at: dbVehicle.created_at as string,
         updated_at: dbVehicle.updated_at as string,
         created_by: dbVehicle.created_by as string | undefined,
@@ -217,6 +218,7 @@ function transformVehicleToDB(vehicle: Partial<Vehicle>): Record<string, unknown
     if (vehicle.datos_sincronizados !== undefined) dbVehicle.datos_sincronizados = vehicle.datos_sincronizados
     if (vehicle.ultima_sincronizacion !== undefined) dbVehicle.ultima_sincronizacion = vehicle.ultima_sincronizacion || null
     if (vehicle.equipamiento !== undefined) dbVehicle.equipamiento = vehicle.equipamiento || []
+    if (vehicle.descripcion !== undefined) dbVehicle.descripcion = vehicle.descripcion || null
     if (vehicle.created_by !== undefined) dbVehicle.created_by = vehicle.created_by
     if (vehicle.created_by_name !== undefined) dbVehicle.created_by_name = vehicle.created_by_name
 

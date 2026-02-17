@@ -9,12 +9,15 @@ import { ShareModal } from "@/components/inventory/ShareModal"
 import { ContractGeneratorModal } from "@/components/inventory/ContractGeneratorModal"
 import { InvoiceGeneratorModal } from "@/components/inventory/InvoiceGeneratorModal"
 import { DocumentGeneratorModal } from "@/components/documents"
-import { getVehicleById, getContractsByVehicle, getInvoicesByVehicle, type ContractDB, type InvoiceDB } from "@/lib/supabase-service"
+import { getVehicleById, getContractsByVehicle, getInvoicesByVehicle, updateContract, updateInvoice, type ContractDB, type InvoiceDB } from "@/lib/supabase-service"
 import { getContacts } from "@/lib/db/contacts"
 import { useToast } from "@/components/ui/toast"
 import { useAuth } from "@/lib/auth-context"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import jsPDF from "jspdf"
 import type { Vehicle, Contact } from "@/types"
 
@@ -25,10 +28,21 @@ const generateContractPDF = (contract: ContractDB, vehicle: Vehicle) => {
     const margin = 20
     let y = 20
 
-    // Helper
+    // Helper para formatear fecha
     const formatDate = (dateStr: string) => {
         const date = new Date(dateStr)
         return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    }
+
+    // Helper para dibujar casilla vacía
+    const drawCheckbox = (x: number, yPos: number, label: string) => {
+        doc.setDrawColor(100)
+        doc.setLineWidth(0.3)
+        doc.rect(x, yPos - 3, 4, 4) // Casilla vacía
+        doc.setFont('helvetica', 'normal')
+        doc.setFontSize(9)
+        doc.setTextColor(0)
+        doc.text(label, x + 6, yPos)
     }
 
     // ===== CABECERA =====
@@ -113,29 +127,107 @@ const generateContractPDF = (contract: ContractDB, vehicle: Vehicle) => {
         }
     }
 
+    // ===== DOCUMENTACIÓN ENTREGADA (casillas vacías) =====
+    y += 12
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(10)
+    doc.text('DOCUMENTACIÓN ENTREGADA:', margin, y)
+    y += 8
+
+    const col1X = margin
+    const col2X = margin + 55
+    const col3X = margin + 110
+
+    drawCheckbox(col1X, y, 'Ficha técnica')
+    drawCheckbox(col2X, y, 'Permiso circulación')
+    drawCheckbox(col3X, y, 'Último recibo ITV')
+    y += 8
+    drawCheckbox(col1X, y, 'Contrato compraventa')
+    drawCheckbox(col2X, y, 'Justificante de pago')
+    drawCheckbox(col3X, y, 'Informe DGT')
+    y += 8
+    drawCheckbox(col1X, y, 'Libro de mantenimiento')
+    drawCheckbox(col2X, y, 'Manual del vehículo')
+    drawCheckbox(col3X, y, 'Garantía')
+
+    // ===== ACCESORIOS INCLUIDOS (casillas vacías) =====
+    y += 12
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(10)
+    doc.text('ACCESORIOS INCLUIDOS:', margin, y)
+    y += 8
+
+    drawCheckbox(col1X, y, 'Rueda de repuesto')
+    drawCheckbox(col2X, y, 'Gato')
+    drawCheckbox(col3X, y, 'Triángulos')
+    y += 8
+    drawCheckbox(col1X, y, 'Llaves de repuesto')
+    drawCheckbox(col2X, y, 'Chaleco reflectante')
+    drawCheckbox(col3X, y, 'Kit antipinchazos')
+    y += 8
+    drawCheckbox(col1X, y, 'Alfombrillas')
+    drawCheckbox(col2X, y, 'Antena')
+    drawCheckbox(col3X, y, 'Mando garaje')
+
+    // ===== ESTADO DEL VEHÍCULO (casillas vacías) =====
+    y += 12
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(10)
+    doc.text('ESTADO DEL VEHÍCULO:', margin, y)
+    y += 8
+
+    drawCheckbox(col1X, y, 'Sin golpes visibles')
+    drawCheckbox(col2X, y, 'Pintura correcta')
+    drawCheckbox(col3X, y, 'Interior correcto')
+    y += 8
+    drawCheckbox(col1X, y, 'Neumáticos OK')
+    drawCheckbox(col2X, y, 'Luces OK')
+    drawCheckbox(col3X, y, 'Frenos OK')
+    y += 8
+    drawCheckbox(col1X, y, 'Aire acond. OK')
+    drawCheckbox(col2X, y, 'Motor OK')
+    drawCheckbox(col3X, y, 'Cambio OK')
+
+    // ===== OBSERVACIONES (líneas para escribir) =====
+    y += 12
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(10)
+    doc.text('OBSERVACIONES:', margin, y)
+    y += 8
+    doc.setDrawColor(180)
+    doc.setLineWidth(0.2)
+    for (let i = 0; i < 3; i++) {
+        doc.line(margin, y, pageWidth - margin, y)
+        y += 6
+    }
+
     // ===== CLÁUSULAS =====
     if (contract.clausulas_adicionales) {
-        y += 12
+        y += 6
         doc.setFont('helvetica', 'bold')
+        doc.setFontSize(10)
         doc.text('CLÁUSULAS ADICIONALES:', margin, y)
         y += 6
         doc.setFont('helvetica', 'normal')
+        doc.setFontSize(9)
         const splitText = doc.splitTextToSize(contract.clausulas_adicionales, pageWidth - 2 * margin)
         doc.text(splitText, margin, y)
     }
 
     // ===== FIRMAS =====
-    y = doc.internal.pageSize.getHeight() - 50
+    y = doc.internal.pageSize.getHeight() - 45
     doc.setDrawColor(200)
+    doc.setLineWidth(0.3)
     doc.line(margin, y, margin + 60, y)
     doc.line(pageWidth - margin - 60, y, pageWidth - margin, y)
     y += 5
     doc.setFontSize(9)
+    doc.setTextColor(0)
     doc.text('Firma del Vendedor', margin + 30, y, { align: 'center' })
     doc.text('Firma del Comprador', pageWidth - margin - 30, y, { align: 'center' })
 
     // ===== PIE =====
-    y += 15
+    y += 12
     doc.setFontSize(8)
     doc.setTextColor(150)
     doc.text(`Fecha: ${contract.fecha_firma ? formatDate(contract.fecha_firma) : formatDate(contract.created_at)}`, margin, y)
@@ -359,6 +451,9 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
 
     // Document detail modal
     const [selectedDocument, setSelectedDocument] = useState<{ type: 'contract' | 'invoice', data: ContractDB | InvoiceDB } | null>(null)
+    const [isEditingDocument, setIsEditingDocument] = useState(false)
+    const [editedDocument, setEditedDocument] = useState<Partial<ContractDB | InvoiceDB>>({})
+    const [isSavingDocument, setIsSavingDocument] = useState(false)
 
     // Load vehicle from Supabase
     useEffect(() => {
@@ -1053,220 +1148,573 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
 
             {/* Document Detail Modal */}
             {selectedDocument && (
-                <Dialog open={!!selectedDocument} onOpenChange={() => setSelectedDocument(null)}>
-                    <DialogContent className="w-[95vw] max-w-[500px] max-h-[90vh] overflow-y-auto">
+                <Dialog open={!!selectedDocument} onOpenChange={() => {
+                    setSelectedDocument(null)
+                    setIsEditingDocument(false)
+                    setEditedDocument({})
+                }}>
+                    <DialogContent className="w-[95vw] max-w-[550px] max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
-                            <DialogTitle className="flex items-center gap-3">
-                                <div className={cn(
-                                    "flex h-10 w-10 items-center justify-center rounded-lg",
-                                    selectedDocument.type === 'contract' ? "bg-blue-100 text-blue-600" : "bg-green-100 text-green-600"
-                                )}>
-                                    <span className="material-symbols-outlined">
-                                        {selectedDocument.type === 'contract' ? 'description' : 'receipt'}
-                                    </span>
+                            <DialogTitle className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className={cn(
+                                        "flex h-10 w-10 items-center justify-center rounded-lg",
+                                        selectedDocument.type === 'contract' ? "bg-blue-100 text-blue-600" : "bg-green-100 text-green-600"
+                                    )}>
+                                        <span className="material-symbols-outlined">
+                                            {selectedDocument.type === 'contract' ? 'description' : 'receipt'}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <p className="text-lg font-bold">
+                                            {selectedDocument.type === 'contract'
+                                                ? `Contrato ${(selectedDocument.data as ContractDB).numero_contrato}`
+                                                : `Factura ${(selectedDocument.data as InvoiceDB).numero_factura}`
+                                            }
+                                        </p>
+                                        <p className="text-sm text-gray-500 font-normal">
+                                            {new Date(selectedDocument.data.created_at).toLocaleDateString('es-ES', {
+                                                day: '2-digit',
+                                                month: 'long',
+                                                year: 'numeric'
+                                            })}
+                                        </p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="text-lg font-bold">
-                                        {selectedDocument.type === 'contract'
-                                            ? `Contrato ${(selectedDocument.data as ContractDB).numero_contrato}`
-                                            : `Factura ${(selectedDocument.data as InvoiceDB).numero_factura}`
-                                        }
-                                    </p>
-                                    <p className="text-sm text-gray-500 font-normal">
-                                        {new Date(selectedDocument.data.created_at).toLocaleDateString('es-ES', {
-                                            day: '2-digit',
-                                            month: 'long',
-                                            year: 'numeric'
-                                        })}
-                                    </p>
-                                </div>
+                                {!isEditingDocument && (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => {
+                                            setIsEditingDocument(true)
+                                            setEditedDocument(selectedDocument.data)
+                                        }}
+                                        className="text-primary hover:bg-primary/10"
+                                    >
+                                        <span className="material-symbols-outlined mr-1 text-[18px]">edit</span>
+                                        Editar
+                                    </Button>
+                                )}
                             </DialogTitle>
                         </DialogHeader>
 
-                        <div className="space-y-4 mt-4">
-                            {/* Estado */}
-                            <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                                <span className="text-sm text-gray-600">Estado</span>
-                                <span className={cn(
-                                    "text-xs font-bold px-3 py-1 rounded-full uppercase",
-                                    selectedDocument.data.estado === 'firmado' || selectedDocument.data.estado === 'pagada'
-                                        ? "bg-green-100 text-green-700"
-                                        : selectedDocument.data.estado === 'pendiente'
-                                            ? "bg-yellow-100 text-yellow-700"
-                                            : "bg-gray-100 text-gray-600"
-                                )}>
-                                    {selectedDocument.data.estado}
-                                </span>
-                            </div>
-
-                            {/* Detalles según tipo */}
-                            {selectedDocument.type === 'contract' ? (
-                                <>
-                                    <div className="space-y-3">
-                                        <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Datos del Comprador</h4>
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                                                <p className="text-xs text-gray-500">Nombre</p>
-                                                <p className="text-sm font-medium">{(selectedDocument.data as ContractDB).comprador_nombre || '-'}</p>
-                                            </div>
-                                            <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                                                <p className="text-xs text-gray-500">Documento</p>
-                                                <p className="text-sm font-medium">{(selectedDocument.data as ContractDB).comprador_documento || '-'}</p>
-                                            </div>
-                                            <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                                                <p className="text-xs text-gray-500">Teléfono</p>
-                                                <p className="text-sm font-medium">{(selectedDocument.data as ContractDB).comprador_telefono || '-'}</p>
-                                            </div>
-                                            <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                                                <p className="text-xs text-gray-500">Email</p>
-                                                <p className="text-sm font-medium truncate">{(selectedDocument.data as ContractDB).comprador_email || '-'}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-3">
-                                        <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Datos Económicos</h4>
-                                        <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-gray-600">Precio de venta</span>
-                                                <span className="text-2xl font-bold text-primary">
-                                                    {formatCurrency((selectedDocument.data as ContractDB).precio_venta)}
-                                                </span>
-                                            </div>
-                                            {(selectedDocument.data as ContractDB).forma_pago && (
-                                                <p className="text-sm text-gray-500 mt-2">
-                                                    Forma de pago: <span className="font-medium">{(selectedDocument.data as ContractDB).forma_pago}</span>
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {(selectedDocument.data as ContractDB).garantia_meses && (
-                                        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center gap-3">
-                                            <span className="material-symbols-outlined text-blue-600">verified_user</span>
-                                            <div>
-                                                <p className="text-sm font-medium text-blue-800">Garantía incluida</p>
-                                                <p className="text-xs text-blue-600">
-                                                    {(selectedDocument.data as ContractDB).garantia_meses} meses
-                                                    {(selectedDocument.data as ContractDB).garantia_km && ` / ${(selectedDocument.data as ContractDB).garantia_km?.toLocaleString()} km`}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    )}
-                                </>
-                            ) : (
-                                <>
-                                    <div className="space-y-3">
-                                        <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Datos del Cliente</h4>
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                                                <p className="text-xs text-gray-500">Nombre</p>
-                                                <p className="text-sm font-medium">{(selectedDocument.data as InvoiceDB).cliente_nombre || '-'}</p>
-                                            </div>
-                                            <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                                                <p className="text-xs text-gray-500">NIF/CIF</p>
-                                                <p className="text-sm font-medium">{(selectedDocument.data as InvoiceDB).cliente_documento || '-'}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-3">
-                                        <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Desglose</h4>
-                                        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-2">
-                                            <div className="flex justify-between text-sm">
-                                                <span className="text-gray-500">Base imponible</span>
-                                                <span>{formatCurrency((selectedDocument.data as InvoiceDB).base_imponible)}</span>
-                                            </div>
-                                            <div className="flex justify-between text-sm">
-                                                <span className="text-gray-500">IVA ({(selectedDocument.data as InvoiceDB).tipo_iva}%)</span>
-                                                <span>{formatCurrency((selectedDocument.data as InvoiceDB).iva)}</span>
-                                            </div>
-                                            <div className="border-t pt-2 flex justify-between">
-                                                <span className="font-semibold">Total</span>
-                                                <span className="text-xl font-bold text-primary">
-                                                    {formatCurrency((selectedDocument.data as InvoiceDB).total)}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {(selectedDocument.data as InvoiceDB).fecha_vencimiento && (
-                                        <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg flex items-center gap-3">
-                                            <span className="material-symbols-outlined text-yellow-600">event</span>
-                                            <div>
-                                                <p className="text-sm font-medium text-yellow-800">Fecha de vencimiento</p>
-                                                <p className="text-xs text-yellow-600">
-                                                    {new Date((selectedDocument.data as InvoiceDB).fecha_vencimiento!).toLocaleDateString('es-ES')}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    )}
-                                </>
-                            )}
-
-                            {/* Notas */}
-                            {selectedDocument.data.notas && (
+                        {isEditingDocument ? (
+                            /* ===== MODO EDICIÓN ===== */
+                            <div className="space-y-4 mt-4">
+                                {/* Estado */}
                                 <div className="space-y-2">
-                                    <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Notas</h4>
-                                    <p className="text-sm text-gray-600 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                                        {selectedDocument.data.notas}
-                                    </p>
+                                    <label className="text-sm font-medium text-gray-700">Estado</label>
+                                    <Select
+                                        value={(editedDocument as any).estado || selectedDocument.data.estado}
+                                        onValueChange={(value) => setEditedDocument({ ...editedDocument, estado: value })}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {selectedDocument.type === 'contract' ? (
+                                                <>
+                                                    <SelectItem value="pendiente">Pendiente</SelectItem>
+                                                    <SelectItem value="firmado">Firmado</SelectItem>
+                                                    <SelectItem value="cancelado">Cancelado</SelectItem>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <SelectItem value="pendiente">Pendiente</SelectItem>
+                                                    <SelectItem value="pagada">Pagada</SelectItem>
+                                                    <SelectItem value="cancelada">Cancelada</SelectItem>
+                                                </>
+                                            )}
+                                        </SelectContent>
+                                    </Select>
                                 </div>
-                            )}
 
-                            {/* Creado por */}
-                            {selectedDocument.data.created_by_name && (
-                                <div className="flex items-center gap-2 text-xs text-gray-400 pt-2 border-t">
-                                    <span className="material-symbols-outlined text-[14px]">person</span>
-                                    Creado por {selectedDocument.data.created_by_name}
-                                </div>
-                            )}
-                        </div>
+                                {/* Campos editables según tipo */}
+                                {selectedDocument.type === 'contract' ? (
+                                    <>
+                                        <div className="space-y-3">
+                                            <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Datos del Comprador</h4>
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div className="space-y-1">
+                                                    <label className="text-xs text-gray-500">Nombre</label>
+                                                    <Input
+                                                        value={(editedDocument as ContractDB).comprador_nombre || ''}
+                                                        onChange={(e) => setEditedDocument({ ...editedDocument, comprador_nombre: e.target.value })}
+                                                        placeholder="Nombre del comprador"
+                                                    />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-xs text-gray-500">Apellidos</label>
+                                                    <Input
+                                                        value={(editedDocument as ContractDB).comprador_apellidos || ''}
+                                                        onChange={(e) => setEditedDocument({ ...editedDocument, comprador_apellidos: e.target.value })}
+                                                        placeholder="Apellidos"
+                                                    />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-xs text-gray-500">DNI/NIE</label>
+                                                    <Input
+                                                        value={(editedDocument as ContractDB).comprador_documento || ''}
+                                                        onChange={(e) => setEditedDocument({ ...editedDocument, comprador_documento: e.target.value })}
+                                                        placeholder="DNI/NIE"
+                                                    />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-xs text-gray-500">Teléfono</label>
+                                                    <Input
+                                                        value={(editedDocument as ContractDB).comprador_telefono || ''}
+                                                        onChange={(e) => setEditedDocument({ ...editedDocument, comprador_telefono: e.target.value })}
+                                                        placeholder="Teléfono"
+                                                    />
+                                                </div>
+                                                <div className="space-y-1 col-span-2">
+                                                    <label className="text-xs text-gray-500">Email</label>
+                                                    <Input
+                                                        value={(editedDocument as ContractDB).comprador_email || ''}
+                                                        onChange={(e) => setEditedDocument({ ...editedDocument, comprador_email: e.target.value })}
+                                                        placeholder="Email"
+                                                    />
+                                                </div>
+                                                <div className="space-y-1 col-span-2">
+                                                    <label className="text-xs text-gray-500">Dirección</label>
+                                                    <Input
+                                                        value={(editedDocument as ContractDB).comprador_direccion || ''}
+                                                        onChange={(e) => setEditedDocument({ ...editedDocument, comprador_direccion: e.target.value })}
+                                                        placeholder="Dirección completa"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
 
-                        {/* Acciones */}
-                        <div className="space-y-3 mt-6 pt-4 border-t">
-                            {/* Botón principal - Descargar PDF */}
-                            <Button
-                                className="w-full bg-primary hover:bg-primary/90 h-12"
-                                onClick={() => {
-                                    if (selectedDocument.type === 'contract') {
-                                        generateContractPDF(selectedDocument.data as ContractDB, vehicle)
-                                    } else {
-                                        generateInvoicePDF(selectedDocument.data as InvoiceDB, vehicle)
-                                    }
-                                    addToast('PDF descargado correctamente', 'success')
-                                }}
-                            >
-                                <span className="material-symbols-outlined mr-2 text-[20px]">download</span>
-                                Descargar PDF
-                            </Button>
+                                        <div className="space-y-3">
+                                            <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Datos Económicos</h4>
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div className="space-y-1">
+                                                    <label className="text-xs text-gray-500">Precio de venta (€)</label>
+                                                    <Input
+                                                        type="number"
+                                                        value={(editedDocument as ContractDB).precio_venta || 0}
+                                                        onChange={(e) => setEditedDocument({ ...editedDocument, precio_venta: parseFloat(e.target.value) || 0 })}
+                                                    />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-xs text-gray-500">Forma de pago</label>
+                                                    <Select
+                                                        value={(editedDocument as ContractDB).forma_pago || ''}
+                                                        onValueChange={(value) => setEditedDocument({ ...editedDocument, forma_pago: value })}
+                                                    >
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Seleccionar" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="contado">Contado</SelectItem>
+                                                            <SelectItem value="transferencia">Transferencia</SelectItem>
+                                                            <SelectItem value="financiacion">Financiación</SelectItem>
+                                                            <SelectItem value="mixto">Mixto</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                            </div>
+                                        </div>
 
-                            {/* Botones secundarios */}
-                            <div className="flex gap-2">
-                                <Button
-                                    variant="outline"
-                                    className="flex-1"
-                                    onClick={() => setSelectedDocument(null)}
-                                >
-                                    Cerrar
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    className="flex-1"
-                                    onClick={() => {
-                                        if (selectedDocument.type === 'contract') {
-                                            router.push('/contratos')
-                                        } else {
-                                            router.push('/facturacion')
+                                        <div className="space-y-3">
+                                            <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Garantía</h4>
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div className="space-y-1">
+                                                    <label className="text-xs text-gray-500">Meses</label>
+                                                    <Input
+                                                        type="number"
+                                                        value={(editedDocument as ContractDB).garantia_meses || 0}
+                                                        onChange={(e) => setEditedDocument({ ...editedDocument, garantia_meses: parseInt(e.target.value) || 0 })}
+                                                    />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-xs text-gray-500">Kilómetros</label>
+                                                    <Input
+                                                        type="number"
+                                                        value={(editedDocument as ContractDB).garantia_km || 0}
+                                                        onChange={(e) => setEditedDocument({ ...editedDocument, garantia_km: parseInt(e.target.value) || 0 })}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="space-y-3">
+                                            <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Datos del Cliente</h4>
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div className="space-y-1">
+                                                    <label className="text-xs text-gray-500">Nombre</label>
+                                                    <Input
+                                                        value={(editedDocument as InvoiceDB).cliente_nombre || ''}
+                                                        onChange={(e) => setEditedDocument({ ...editedDocument, cliente_nombre: e.target.value })}
+                                                        placeholder="Nombre del cliente"
+                                                    />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-xs text-gray-500">NIF/CIF</label>
+                                                    <Input
+                                                        value={(editedDocument as InvoiceDB).cliente_documento || ''}
+                                                        onChange={(e) => setEditedDocument({ ...editedDocument, cliente_documento: e.target.value })}
+                                                        placeholder="NIF/CIF"
+                                                    />
+                                                </div>
+                                                <div className="space-y-1 col-span-2">
+                                                    <label className="text-xs text-gray-500">Dirección</label>
+                                                    <Input
+                                                        value={(editedDocument as InvoiceDB).cliente_direccion || ''}
+                                                        onChange={(e) => setEditedDocument({ ...editedDocument, cliente_direccion: e.target.value })}
+                                                        placeholder="Dirección"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Importes</h4>
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div className="space-y-1">
+                                                    <label className="text-xs text-gray-500">Base imponible (€)</label>
+                                                    <Input
+                                                        type="number"
+                                                        value={(editedDocument as InvoiceDB).base_imponible || 0}
+                                                        onChange={(e) => {
+                                                            const base = parseFloat(e.target.value) || 0
+                                                            const tipoIva = (editedDocument as InvoiceDB).tipo_iva || 21
+                                                            const iva = (base * tipoIva) / 100
+                                                            setEditedDocument({
+                                                                ...editedDocument,
+                                                                base_imponible: base,
+                                                                iva: iva,
+                                                                total: base + iva
+                                                            })
+                                                        }}
+                                                    />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-xs text-gray-500">% IVA</label>
+                                                    <Select
+                                                        value={String((editedDocument as InvoiceDB).tipo_iva || 21)}
+                                                        onValueChange={(value) => {
+                                                            const tipoIva = parseInt(value)
+                                                            const base = (editedDocument as InvoiceDB).base_imponible || 0
+                                                            const iva = (base * tipoIva) / 100
+                                                            setEditedDocument({
+                                                                ...editedDocument,
+                                                                tipo_iva: tipoIva,
+                                                                iva: iva,
+                                                                total: base + iva
+                                                            })
+                                                        }}
+                                                    >
+                                                        <SelectTrigger>
+                                                            <SelectValue />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="21">21%</SelectItem>
+                                                            <SelectItem value="10">10%</SelectItem>
+                                                            <SelectItem value="4">4%</SelectItem>
+                                                            <SelectItem value="0">0%</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                            </div>
+                                            <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-gray-600">Total calculado</span>
+                                                    <span className="text-xl font-bold text-primary">
+                                                        {formatCurrency((editedDocument as InvoiceDB).total || 0)}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+
+                                {/* Notas/Cláusulas */}
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-gray-700">
+                                        {selectedDocument.type === 'contract' ? 'Cláusulas adicionales' : 'Notas'}
+                                    </label>
+                                    <Textarea
+                                        value={selectedDocument.type === 'contract'
+                                            ? (editedDocument as ContractDB).clausulas_adicionales || ''
+                                            : (editedDocument as InvoiceDB).notas || ''
                                         }
-                                        setSelectedDocument(null)
-                                    }}
-                                >
-                                    <span className="material-symbols-outlined mr-1 text-[16px]">open_in_new</span>
-                                    Ir a {selectedDocument.type === 'contract' ? 'Contratos' : 'Facturas'}
-                                </Button>
+                                        onChange={(e) => setEditedDocument({
+                                            ...editedDocument,
+                                            [selectedDocument.type === 'contract' ? 'clausulas_adicionales' : 'notas']: e.target.value
+                                        })}
+                                        placeholder={selectedDocument.type === 'contract' ? 'Añadir cláusulas adicionales...' : 'Añadir notas...'}
+                                        rows={3}
+                                    />
+                                </div>
+
+                                {/* Botones de edición */}
+                                <div className="flex gap-2 pt-4 border-t">
+                                    <Button
+                                        variant="outline"
+                                        className="flex-1"
+                                        onClick={() => {
+                                            setIsEditingDocument(false)
+                                            setEditedDocument({})
+                                        }}
+                                        disabled={isSavingDocument}
+                                    >
+                                        Cancelar
+                                    </Button>
+                                    <Button
+                                        className="flex-1 bg-primary hover:bg-primary/90"
+                                        onClick={async () => {
+                                            setIsSavingDocument(true)
+                                            try {
+                                                let result
+                                                if (selectedDocument.type === 'contract') {
+                                                    result = await updateContract(selectedDocument.data.id, editedDocument as Partial<ContractDB>)
+                                                } else {
+                                                    result = await updateInvoice(selectedDocument.data.id, editedDocument as Partial<InvoiceDB>)
+                                                }
+                                                if (result) {
+                                                    // Actualizar el documento seleccionado con los nuevos datos
+                                                    setSelectedDocument({ ...selectedDocument, data: result as ContractDB | InvoiceDB })
+                                                    // Actualizar la lista de documentos
+                                                    if (selectedDocument.type === 'contract') {
+                                                        setVehicleContracts(prev => prev.map(c => c.id === result!.id ? result as ContractDB : c))
+                                                    } else {
+                                                        setVehicleInvoices(prev => prev.map(i => i.id === result!.id ? result as InvoiceDB : i))
+                                                    }
+                                                    setIsEditingDocument(false)
+                                                    setEditedDocument({})
+                                                    addToast('Documento actualizado correctamente', 'success')
+                                                    // Notificar a otras partes de la app
+                                                    window.dispatchEvent(new CustomEvent('midcar-data-updated', {
+                                                        detail: { type: selectedDocument.type === 'contract' ? 'contracts' : 'invoices' }
+                                                    }))
+                                                } else {
+                                                    addToast('Error al actualizar el documento', 'error')
+                                                }
+                                            } catch (error) {
+                                                console.error('Error updating document:', error)
+                                                addToast('Error al actualizar el documento', 'error')
+                                            } finally {
+                                                setIsSavingDocument(false)
+                                            }
+                                        }}
+                                        disabled={isSavingDocument}
+                                    >
+                                        {isSavingDocument ? (
+                                            <>
+                                                <span className="animate-spin material-symbols-outlined mr-2 text-[18px]">progress_activity</span>
+                                                Guardando...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span className="material-symbols-outlined mr-2 text-[18px]">save</span>
+                                                Guardar cambios
+                                            </>
+                                        )}
+                                    </Button>
+                                </div>
                             </div>
-                        </div>
+                        ) : (
+                            /* ===== MODO VISUALIZACIÓN ===== */
+                            <>
+                                <div className="space-y-4 mt-4">
+                                    {/* Estado */}
+                                    <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                        <span className="text-sm text-gray-600">Estado</span>
+                                        <span className={cn(
+                                            "text-xs font-bold px-3 py-1 rounded-full uppercase",
+                                            selectedDocument.data.estado === 'firmado' || selectedDocument.data.estado === 'pagada'
+                                                ? "bg-green-100 text-green-700"
+                                                : selectedDocument.data.estado === 'pendiente'
+                                                    ? "bg-yellow-100 text-yellow-700"
+                                                    : "bg-gray-100 text-gray-600"
+                                        )}>
+                                            {selectedDocument.data.estado}
+                                        </span>
+                                    </div>
+
+                                    {/* Detalles según tipo */}
+                                    {selectedDocument.type === 'contract' ? (
+                                        <>
+                                            <div className="space-y-3">
+                                                <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Datos del Comprador</h4>
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                                        <p className="text-xs text-gray-500">Nombre</p>
+                                                        <p className="text-sm font-medium">{(selectedDocument.data as ContractDB).comprador_nombre || '-'}</p>
+                                                    </div>
+                                                    <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                                        <p className="text-xs text-gray-500">Documento</p>
+                                                        <p className="text-sm font-medium">{(selectedDocument.data as ContractDB).comprador_documento || '-'}</p>
+                                                    </div>
+                                                    <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                                        <p className="text-xs text-gray-500">Teléfono</p>
+                                                        <p className="text-sm font-medium">{(selectedDocument.data as ContractDB).comprador_telefono || '-'}</p>
+                                                    </div>
+                                                    <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                                        <p className="text-xs text-gray-500">Email</p>
+                                                        <p className="text-sm font-medium truncate">{(selectedDocument.data as ContractDB).comprador_email || '-'}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-3">
+                                                <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Datos Económicos</h4>
+                                                <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="text-gray-600">Precio de venta</span>
+                                                        <span className="text-2xl font-bold text-primary">
+                                                            {formatCurrency((selectedDocument.data as ContractDB).precio_venta)}
+                                                        </span>
+                                                    </div>
+                                                    {(selectedDocument.data as ContractDB).forma_pago && (
+                                                        <p className="text-sm text-gray-500 mt-2">
+                                                            Forma de pago: <span className="font-medium">{(selectedDocument.data as ContractDB).forma_pago}</span>
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {(selectedDocument.data as ContractDB).garantia_meses && (
+                                                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center gap-3">
+                                                    <span className="material-symbols-outlined text-blue-600">verified_user</span>
+                                                    <div>
+                                                        <p className="text-sm font-medium text-blue-800">Garantía incluida</p>
+                                                        <p className="text-xs text-blue-600">
+                                                            {(selectedDocument.data as ContractDB).garantia_meses} meses
+                                                            {(selectedDocument.data as ContractDB).garantia_km && ` / ${(selectedDocument.data as ContractDB).garantia_km?.toLocaleString()} km`}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div className="space-y-3">
+                                                <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Datos del Cliente</h4>
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                                        <p className="text-xs text-gray-500">Nombre</p>
+                                                        <p className="text-sm font-medium">{(selectedDocument.data as InvoiceDB).cliente_nombre || '-'}</p>
+                                                    </div>
+                                                    <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                                        <p className="text-xs text-gray-500">NIF/CIF</p>
+                                                        <p className="text-sm font-medium">{(selectedDocument.data as InvoiceDB).cliente_documento || '-'}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-3">
+                                                <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Desglose</h4>
+                                                <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-2">
+                                                    <div className="flex justify-between text-sm">
+                                                        <span className="text-gray-500">Base imponible</span>
+                                                        <span>{formatCurrency((selectedDocument.data as InvoiceDB).base_imponible)}</span>
+                                                    </div>
+                                                    <div className="flex justify-between text-sm">
+                                                        <span className="text-gray-500">IVA ({(selectedDocument.data as InvoiceDB).tipo_iva}%)</span>
+                                                        <span>{formatCurrency((selectedDocument.data as InvoiceDB).iva)}</span>
+                                                    </div>
+                                                    <div className="border-t pt-2 flex justify-between">
+                                                        <span className="font-semibold">Total</span>
+                                                        <span className="text-xl font-bold text-primary">
+                                                            {formatCurrency((selectedDocument.data as InvoiceDB).total)}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {(selectedDocument.data as InvoiceDB).fecha_vencimiento && (
+                                                <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg flex items-center gap-3">
+                                                    <span className="material-symbols-outlined text-yellow-600">event</span>
+                                                    <div>
+                                                        <p className="text-sm font-medium text-yellow-800">Fecha de vencimiento</p>
+                                                        <p className="text-xs text-yellow-600">
+                                                            {new Date((selectedDocument.data as InvoiceDB).fecha_vencimiento!).toLocaleDateString('es-ES')}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+
+                                    {/* Notas/Cláusulas */}
+                                    {(selectedDocument.data.notas || (selectedDocument.data as ContractDB).clausulas_adicionales) && (
+                                        <div className="space-y-2">
+                                            <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                                                {selectedDocument.type === 'contract' ? 'Cláusulas adicionales' : 'Notas'}
+                                            </h4>
+                                            <p className="text-sm text-gray-600 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg whitespace-pre-wrap">
+                                                {selectedDocument.type === 'contract'
+                                                    ? (selectedDocument.data as ContractDB).clausulas_adicionales
+                                                    : selectedDocument.data.notas
+                                                }
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {/* Creado por */}
+                                    {selectedDocument.data.created_by_name && (
+                                        <div className="flex items-center gap-2 text-xs text-gray-400 pt-2 border-t">
+                                            <span className="material-symbols-outlined text-[14px]">person</span>
+                                            Creado por {selectedDocument.data.created_by_name}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Acciones */}
+                                <div className="space-y-3 mt-6 pt-4 border-t">
+                                    {/* Botón principal - Descargar PDF */}
+                                    <Button
+                                        className="w-full bg-primary hover:bg-primary/90 h-12"
+                                        onClick={() => {
+                                            if (selectedDocument.type === 'contract') {
+                                                generateContractPDF(selectedDocument.data as ContractDB, vehicle)
+                                            } else {
+                                                generateInvoicePDF(selectedDocument.data as InvoiceDB, vehicle)
+                                            }
+                                            addToast('PDF descargado correctamente', 'success')
+                                        }}
+                                    >
+                                        <span className="material-symbols-outlined mr-2 text-[20px]">download</span>
+                                        Descargar PDF
+                                    </Button>
+
+                                    {/* Botones secundarios */}
+                                    <div className="flex gap-2">
+                                        <Button
+                                            variant="outline"
+                                            className="flex-1"
+                                            onClick={() => {
+                                                setSelectedDocument(null)
+                                                setIsEditingDocument(false)
+                                                setEditedDocument({})
+                                            }}
+                                        >
+                                            Cerrar
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            className="flex-1"
+                                            onClick={() => {
+                                                if (selectedDocument.type === 'contract') {
+                                                    router.push('/contratos')
+                                                } else {
+                                                    router.push('/facturacion')
+                                                }
+                                                setSelectedDocument(null)
+                                            }}
+                                        >
+                                            <span className="material-symbols-outlined mr-1 text-[16px]">open_in_new</span>
+                                            Ir a {selectedDocument.type === 'contract' ? 'Contratos' : 'Facturas'}
+                                        </Button>
+                                    </div>
+                                </div>
+                            </>
+                        )}
                     </DialogContent>
                 </Dialog>
             )}

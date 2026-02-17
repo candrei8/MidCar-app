@@ -356,6 +356,7 @@ export const TIPOS_IVA = [
     { value: 10, label: '10% (Reducido)' },
     { value: 4, label: '4% (Superreducido)' },
     { value: 0, label: '0% (Exento)' },
+    { value: -1, label: 'Sin IVA (Particular a particular)' },
 ] as const
 
 // Provincias de España

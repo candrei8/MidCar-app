@@ -55,7 +55,7 @@ export default function WarrantyPage() {
 
   return (
     <div className="min-h-screen bg-[#f6f6f8]">
-      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
+      <header className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
         <div className="flex items-center px-4 md:px-6 py-4">
           <Link href="/gestion-web" className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
             <span className="material-symbols-outlined text-slate-600">arrow_back</span>
