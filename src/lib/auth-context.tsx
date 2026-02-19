@@ -97,47 +97,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return
         }
 
-        // Get initial session - use getUser() to validate against Supabase server
-        // SECURITY: getSession() only reads from local cache and does NOT validate the token.
-        // A stale/expired cookie would bypass the auth check and show the dashboard with
-        // a generic "Usuario" profile. getUser() sends the token to Supabase's server for
-        // real validation, so expired sessions are correctly rejected.
-        const initAuth = async () => {
-            try {
-                const { data: { user: currentUser }, error } = await supabase.auth.getUser()
-
-                if (error) {
-                    // Token is invalid or expired - clear state and force re-login
-                    setUser(null)
-                    setSession(null)
-                    setProfile(null)
-                    return
-                }
-
-                if (currentUser) {
-                    // Also grab session for token refresh purposes
-                    const { data: { session: currentSession } } = await supabase.auth.getSession()
-                    setSession(currentSession)
-                    setUser(currentUser)
-                    // Profile fetch has timeout since it's a network request
-                    const userProfile = await fetchProfile(currentUser.id)
-                    setProfile(userProfile)
-                } else {
-                    setUser(null)
-                    setSession(null)
-                }
-            } catch (error) {
-                console.error('Error initializing auth:', error)
-                setUser(null)
-                setSession(null)
-            } finally {
-                setLoading(false)
-            }
-        }
-
-        initAuth()
-
-        // Listen for auth changes
+        // onAuthStateChange is the single source of truth for auth state.
+        // It fires immediately with the current session from the stored cookie,
+        // which sets up the initial state and transitions loading → false.
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
             async (event, newSession) => {
                 setSession(newSession)
@@ -148,16 +110,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     setProfile(userProfile)
                 } else {
                     setProfile(null)
-                    setIsFullView(false) // Resetear a vista personal al cerrar sesión
+                    setIsFullView(false)
                 }
 
                 setLoading(false)
             }
         )
 
+        // SECURITY: After the listener sets the initial state from the local cookie,
+        // do a one-time server-side validation. If the token is expired/invalid,
+        // silently sign the user out — the listener above will handle the state reset.
+        // This avoids racing setState calls and the infinite re-render (React error #185).
+        supabase.auth.getUser().then(({ error }) => {
+            if (error) {
+                // Token is invalid — sign out to clear stale cookies.
+                // onAuthStateChange will fire with null session and redirect to login.
+                supabase.auth.signOut()
+            }
+        })
+
         return () => {
             subscription.unsubscribe()
         }
+
     }, [])
 
     const signIn = useCallback(async (email: string, password: string) => {
