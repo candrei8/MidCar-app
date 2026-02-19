@@ -237,6 +237,7 @@ function calculateDaysInStock(fechaEntrada: string | null): number {
 // CONTACTS
 // ============================================================================
 
+// Returns only first page (50 records) — used for dashboard stats
 export async function getContacts(): Promise<Contact[]> {
     if (!isSupabaseConfigured) return []
 
@@ -244,6 +245,7 @@ export async function getContacts(): Promise<Contact[]> {
         .from('contacts')
         .select('*')
         .order('created_at', { ascending: false })
+        .range(0, 49)
 
     if (error) {
         console.error('Error fetching contacts:', error)
@@ -251,6 +253,84 @@ export async function getContacts(): Promise<Contact[]> {
     }
 
     return (data || []).map(transformContactFromDB)
+}
+
+// Server-side paginated search for the contacts page
+export async function getContactsPage({
+    page = 0,
+    pageSize = 50,
+    search = '',
+    estado = '',
+}: {
+    page?: number
+    pageSize?: number
+    search?: string
+    estado?: string
+}): Promise<{ data: Contact[]; total: number }> {
+    if (!isSupabaseConfigured) return { data: [], total: 0 }
+
+    let query = supabase
+        .from('contacts')
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(page * pageSize, page * pageSize + pageSize - 1)
+
+    if (search && search.length >= 2) {
+        query = query.or(
+            `nombre.ilike.%${search}%,apellidos.ilike.%${search}%,telefono.ilike.%${search}%,email.ilike.%${search}%`
+        )
+    }
+
+    if (estado && estado !== 'todos') {
+        // Map filter group to actual estados
+        const groupMap: Record<string, string[]> = {
+            nuevos: ['pendiente'],
+            enProceso: ['comunicado', 'tramite', 'reservado', 'postventa', 'busqueda'],
+            cerrados: ['cerrado'],
+        }
+        const estados = groupMap[estado]
+        if (estados) {
+            query = query.in('estado', estados)
+        }
+    }
+
+    const { data, error, count } = await query
+
+    if (error) {
+        console.error('Error fetching contacts page:', error)
+        return { data: [], total: 0 }
+    }
+
+    return {
+        data: (data || []).map(transformContactFromDB),
+        total: count ?? 0,
+    }
+}
+
+// Get contacts counts by estado (for dashboard stats) — no bulk load
+export async function getContactsStats(): Promise<{
+    total: number
+    pendiente: number
+    comunicado: number
+    tramite: number
+    reservado: number
+    postventa: number
+    busqueda: number
+    cerrado: number
+}> {
+    if (!isSupabaseConfigured) return { total: 0, pendiente: 0, comunicado: 0, tramite: 0, reservado: 0, postventa: 0, busqueda: 0, cerrado: 0 }
+
+    const { data, error } = await supabase
+        .from('contacts')
+        .select('estado')
+
+    if (error || !data) return { total: 0, pendiente: 0, comunicado: 0, tramite: 0, reservado: 0, postventa: 0, busqueda: 0, cerrado: 0 }
+
+    const counts = { total: data.length, pendiente: 0, comunicado: 0, tramite: 0, reservado: 0, postventa: 0, busqueda: 0, cerrado: 0 }
+    for (const c of data) {
+        if (c.estado in counts) counts[c.estado as keyof typeof counts]++
+    }
+    return counts
 }
 
 export async function getContactById(id: string): Promise<Contact | null> {
@@ -405,6 +485,7 @@ function transformContactToDB(contact: Partial<Contact>): Record<string, unknown
 // LEADS
 // ============================================================================
 
+// Returns only first page (50 records) — used for dashboard stats
 export async function getLeads(): Promise<Lead[]> {
     if (!isSupabaseConfigured) return []
 
@@ -412,6 +493,7 @@ export async function getLeads(): Promise<Lead[]> {
         .from('leads')
         .select('*')
         .order('created_at', { ascending: false })
+        .range(0, 49)
 
     if (error) {
         console.error('Error fetching leads:', error)
@@ -419,6 +501,94 @@ export async function getLeads(): Promise<Lead[]> {
     }
 
     return (data || []).map(transformLeadFromDB)
+}
+
+// Server-side paginated search for the CRM page
+export async function getLeadsPage({
+    page = 0,
+    pageSize = 50,
+    search = '',
+    statusFilter = 'todos',
+}: {
+    page?: number
+    pageSize?: number
+    search?: string
+    statusFilter?: string
+}): Promise<{ data: Lead[]; total: number }> {
+    if (!isSupabaseConfigured) return { data: [], total: 0 }
+
+    const FILTER_GROUPS: Record<string, string[]> = {
+        nuevos: ['nuevo'],
+        enProceso: ['contactado', 'negociacion', 'visita_agendada', 'prueba_programada', 'prueba_conduccion', 'propuesta_enviada', 'financiacion', 'oferta_enviada'],
+        vendidos: ['vendido'],
+        perdidos: ['perdido'],
+    }
+
+    let query = supabase
+        .from('leads')
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(page * pageSize, page * pageSize + pageSize - 1)
+
+    if (search && search.length >= 2) {
+        query = query.or(
+            `cliente_nombre.ilike.%${search}%,cliente_apellidos.ilike.%${search}%,cliente_telefono.ilike.%${search}%`
+        )
+    }
+
+    if (statusFilter !== 'todos') {
+        const estados = FILTER_GROUPS[statusFilter]
+        if (estados) {
+            query = query.in('estado', estados)
+        }
+    }
+
+    const { data, error, count } = await query
+
+    if (error) {
+        console.error('Error fetching leads page:', error)
+        return { data: [], total: 0 }
+    }
+
+    return {
+        data: (data || []).map(transformLeadFromDB),
+        total: count ?? 0,
+    }
+}
+
+// Get lead counts by estado (for dashboard stats) — fetches only estado column
+export async function getLeadsStats(): Promise<{
+    total: number
+    nuevo: number
+    contactado: number
+    visita_agendada: number
+    prueba_programada: number
+    propuesta_enviada: number
+    negociacion: number
+    vendido: number
+    perdido: number
+    valorPipeline: number
+    tasaConversion: number
+}> {
+    const empty = { total: 0, nuevo: 0, contactado: 0, visita_agendada: 0, prueba_programada: 0, propuesta_enviada: 0, negociacion: 0, vendido: 0, perdido: 0, valorPipeline: 0, tasaConversion: 0 }
+    if (!isSupabaseConfigured) return empty
+
+    const { data, error } = await supabase
+        .from('leads')
+        .select('estado, probabilidad, presupuesto_cliente')
+
+    if (error || !data) return empty
+
+    const counts = { ...empty, total: data.length }
+    for (const l of data) {
+        const estado = l.estado as string
+        if (estado in counts) (counts as Record<string, number>)[estado]++
+        if (estado !== 'vendido' && estado !== 'perdido') {
+            counts.valorPipeline += ((l.presupuesto_cliente || 0) * (l.probabilidad || 0) / 100)
+        }
+    }
+    counts.tasaConversion = counts.total > 0 ? (counts.vendido / counts.total) * 100 : 0
+    return counts
 }
 
 export async function getLeadById(id: string): Promise<Lead | null> {

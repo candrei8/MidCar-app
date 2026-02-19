@@ -62,7 +62,7 @@ const formatDate = (dateStr: string) => {
 
 export default function ContratosPage() {
     const { user, profile } = useAuth()
-    const { vehicles: allVehicles, contacts } = useFilteredData()
+    const { vehicles: allVehicles } = useFilteredData()
 
     // Mobile view state - wizard steps
     const [mobileStep, setMobileStep] = useState<'list' | 'form'>('list')
@@ -212,24 +212,6 @@ export default function ContratosPage() {
             ...prev,
             precio_venta: vehicle.precio_venta,
         }))
-
-        // Buscar contacto asociado (si hay)
-        const contactoAsociado = contacts.find(c =>
-            c.vehiculos_interes?.includes(vehicle.id)
-        )
-        if (contactoAsociado) {
-            setComprador({
-                nombre: contactoAsociado.nombre || '',
-                apellidos: contactoAsociado.apellidos || '',
-                dni_nie: contactoAsociado.dni_cif || '',
-                direccion: contactoAsociado.direccion || '',
-                codigo_postal: contactoAsociado.codigo_postal || '',
-                municipio: contactoAsociado.municipio || '',
-                provincia: contactoAsociado.provincia || '',
-                telefono: contactoAsociado.telefono || '',
-                email: contactoAsociado.email || '',
-            })
-        }
 
         // Move to form on mobile
         setMobileStep('form')

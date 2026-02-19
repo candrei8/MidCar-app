@@ -9,7 +9,7 @@ import { ShareModal } from "@/components/inventory/ShareModal"
 import { ContractGeneratorModal } from "@/components/inventory/ContractGeneratorModal"
 import { InvoiceGeneratorModal } from "@/components/inventory/InvoiceGeneratorModal"
 import { DocumentGeneratorModal } from "@/components/documents"
-import { getVehicleById, getContractsByVehicle, getInvoicesByVehicle, updateContract, updateInvoice, type ContractDB, type InvoiceDB } from "@/lib/supabase-service"
+import { getVehicleById, getContractsByVehicle, getInvoicesByVehicle, updateContract, updateInvoice, deleteVehicle, type ContractDB, type InvoiceDB } from "@/lib/supabase-service"
 import { getContacts } from "@/lib/db/contacts"
 import { useToast } from "@/components/ui/toast"
 import { useAuth } from "@/lib/auth-context"
@@ -455,6 +455,24 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
     const [editedDocument, setEditedDocument] = useState<Partial<ContractDB | InvoiceDB>>({})
     const [isSavingDocument, setIsSavingDocument] = useState(false)
 
+    // Delete vehicle
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+    const [isDeleting, setIsDeleting] = useState(false)
+
+    const handleDeleteVehicle = async () => {
+        if (!vehicle) return
+        setIsDeleting(true)
+        const success = await deleteVehicle(vehicle.id)
+        if (success) {
+            addToast('Vehículo eliminado correctamente', 'success')
+            router.push('/inventario')
+        } else {
+            addToast('Error al eliminar el vehículo', 'error')
+            setIsDeleting(false)
+            setShowDeleteConfirm(false)
+        }
+    }
+
     // Load vehicle from Supabase
     useEffect(() => {
         const loadVehicle = async () => {
@@ -595,11 +613,19 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
                             <span className="material-symbols-outlined">share</span>
                         </button>
                         {canEdit && (
-                            <Link href={`/inventario/${vehicle.id}/editar`}>
-                                <button className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-md text-white hover:bg-white/30 transition-colors">
-                                    <span className="material-symbols-outlined">edit</span>
+                            <>
+                                <Link href={`/inventario/${vehicle.id}/editar`}>
+                                    <button className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-md text-white hover:bg-white/30 transition-colors">
+                                        <span className="material-symbols-outlined">edit</span>
+                                    </button>
+                                </Link>
+                                <button
+                                    onClick={() => setShowDeleteConfirm(true)}
+                                    className="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/80 backdrop-blur-md text-white hover:bg-red-600/90 transition-colors"
+                                >
+                                    <span className="material-symbols-outlined">delete</span>
                                 </button>
-                            </Link>
+                            </>
                         )}
                     </div>
                 </div>
@@ -683,12 +709,21 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
                             Compartir
                         </button>
                         {canEdit && (
-                            <Link href={`/inventario/${vehicle.id}/editar`}>
-                                <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors text-sm font-medium">
-                                    <span className="material-symbols-outlined text-[18px]">edit</span>
-                                    Editar
+                            <>
+                                <Link href={`/inventario/${vehicle.id}/editar`}>
+                                    <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors text-sm font-medium">
+                                        <span className="material-symbols-outlined text-[18px]">edit</span>
+                                        Editar
+                                    </button>
+                                </Link>
+                                <button
+                                    onClick={() => setShowDeleteConfirm(true)}
+                                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors text-sm font-medium"
+                                >
+                                    <span className="material-symbols-outlined text-[18px]">delete</span>
+                                    Eliminar
                                 </button>
-                            </Link>
+                            </>
                         )}
                     </div>
                 </div>
@@ -1118,6 +1153,35 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
                 open={showShareModal}
                 onClose={() => setShowShareModal(false)}
             />
+
+            {/* Delete Confirmation Dialog */}
+            <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="text-red-600">Eliminar vehículo</DialogTitle>
+                    </DialogHeader>
+                    <p className="text-sm text-gray-600">
+                        ¿Estás seguro de que quieres eliminar <strong>{vehicle.marca} {vehicle.modelo}</strong> ({vehicle.matricula})?
+                        Esta acción no se puede deshacer.
+                    </p>
+                    <div className="flex justify-end gap-3 mt-4">
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowDeleteConfirm(false)}
+                            disabled={isDeleting}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            onClick={handleDeleteVehicle}
+                            disabled={isDeleting}
+                            className="bg-red-500 hover:bg-red-600 text-white"
+                        >
+                            {isDeleting ? 'Eliminando...' : 'Eliminar'}
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
 
             {/* Contract Generator Modal */}
             <ContractGeneratorModal

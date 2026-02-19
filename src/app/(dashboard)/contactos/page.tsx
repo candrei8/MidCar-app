@@ -1,12 +1,11 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
-import { formatDate, cn } from "@/lib/utils"
-import { ORIGENES_CONTACTO, ESTADOS_BACKOFFICE } from "@/lib/constants"
+import { useState, useEffect, useCallback, useRef } from "react"
+import { cn } from "@/lib/utils"
 import type { Contact } from "@/types"
 import { NewContactModal } from "@/components/contacts/NewContactModal"
 import { ContactDetailModal } from "@/components/contacts/ContactDetailModal"
-import { useFilteredData } from "@/hooks/useFilteredData"
+import { getContactsPage } from "@/lib/supabase-service"
 import { deleteContact as deleteContactFromDB } from "@/lib/supabase-service"
 import {
     DropdownMenu,
@@ -15,124 +14,87 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { MoreVertical, Trash2, Eye, Phone, MessageCircle, Mail } from "lucide-react"
+import { MoreVertical, Trash2, Eye, Phone, MessageCircle, Mail, ChevronLeft, ChevronRight } from "lucide-react"
+
+const PAGE_SIZE = 50
 
 type FilterType = 'todos' | 'nuevos' | 'enProceso' | 'cerrados'
 
-// Estados que pertenecen a cada categoría de filtro
-const FILTER_GROUPS = {
-    nuevos: ['pendiente'],
-    enProceso: ['comunicado', 'tramite', 'reservado', 'postventa', 'busqueda'],
-    cerrados: ['cerrado'],
-}
-
 export default function ContactosPage() {
+    const [contacts, setContacts] = useState<Contact[]>([])
+    const [total, setTotal] = useState(0)
+    const [page, setPage] = useState(0)
+    const [isLoading, setIsLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState("")
     const [estadoFilter, setEstadoFilter] = useState<FilterType>("todos")
-    const [origenFilter, setOrigenFilter] = useState<string>("todos")
     const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
     const [isNewContactOpen, setIsNewContactOpen] = useState(false)
+    const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const [debouncedSearch, setDebouncedSearch] = useState("")
 
-    // Obtener contactos y vehículos filtrados por usuario (Mi Vista / Visión Completa)
-    const { contacts: userFilteredContacts, vehicles: allVehicles, isFullView, isLoading } = useFilteredData()
+    const loadContacts = useCallback(async (p: number, search: string, estado: string) => {
+        setIsLoading(true)
+        try {
+            const result = await getContactsPage({ page: p, pageSize: PAGE_SIZE, search, estado })
+            setContacts(result.data)
+            setTotal(result.total)
+        } catch (e) {
+            console.error(e)
+        } finally {
+            setIsLoading(false)
+        }
+    }, [])
 
-    // Estado local para gestionar contactos (permite modificar estados)
-    const [contacts, setContacts] = useState<Contact[]>(userFilteredContacts)
-
-    // Sincronizar cuando cambie la vista (Mi Vista / Visión Completa)
+    // Debounce search input
     useEffect(() => {
-        setContacts(userFilteredContacts)
-    }, [userFilteredContacts])
+        if (searchTimerRef.current) clearTimeout(searchTimerRef.current)
+        searchTimerRef.current = setTimeout(() => {
+            setDebouncedSearch(searchQuery)
+            setPage(0)
+        }, 400)
+        return () => { if (searchTimerRef.current) clearTimeout(searchTimerRef.current) }
+    }, [searchQuery])
 
-    // Handler para actualizar el estado de un contacto
+    // Reload when filters/page change
+    useEffect(() => {
+        loadContacts(page, debouncedSearch, estadoFilter)
+    }, [page, debouncedSearch, estadoFilter, loadContacts])
+
+    const handleFilterChange = (f: FilterType) => {
+        setEstadoFilter(f)
+        setPage(0)
+    }
+
+    const handleDeleteContact = async (contactId: string) => {
+        const success = await deleteContactFromDB(contactId)
+        if (success) {
+            setContacts(prev => prev.filter(c => c.id !== contactId))
+            setTotal(prev => prev - 1)
+            if (selectedContact?.id === contactId) setSelectedContact(null)
+        }
+    }
+
     const handleStatusChange = (contactId: string, newStatus: string) => {
         setContacts(prev => prev.map(c =>
-            c.id === contactId
-                ? { ...c, estado: newStatus as Contact['estado'], updated_at: new Date().toISOString() }
-                : c
+            c.id === contactId ? { ...c, estado: newStatus as Contact['estado'] } : c
         ))
-        // También actualizar el contacto seleccionado si es el mismo
         if (selectedContact?.id === contactId) {
             setSelectedContact(prev => prev ? { ...prev, estado: newStatus as Contact['estado'] } : null)
         }
     }
 
-    // Handler para eliminar un contacto
-    const handleDeleteContact = (contactId: string) => {
-        setContacts(prev => prev.filter(c => c.id !== contactId))
-        if (selectedContact?.id === contactId) {
-            setSelectedContact(null)
-        }
-    }
-
-    // Enrich contacts with vehicle data
-    const enrichedContacts = contacts.map(contact => ({
-        ...contact,
-        vehiculos: contact.vehiculos_interes
-            .map(id => allVehicles.find(v => v.id === id))
-            .filter(Boolean)
-    }))
-
-    // Filter contacts - usando los grupos de estados
-    const filteredContacts = useMemo(() => {
-        return enrichedContacts.filter(contact => {
-            const searchLower = searchQuery.toLowerCase()
-            const matchesSearch =
-                contact.telefono?.toLowerCase().includes(searchLower) ||
-                contact.email?.toLowerCase().includes(searchLower) ||
-                contact.nombre?.toLowerCase().includes(searchLower) ||
-                contact.apellidos?.toLowerCase().includes(searchLower)
-
-            const matchesOrigen = origenFilter === "todos" || contact.origen === origenFilter
-
-            // Filtrar por grupo de estados
-            let matchesEstado = true
-            if (estadoFilter !== "todos") {
-                const allowedStates = FILTER_GROUPS[estadoFilter as keyof typeof FILTER_GROUPS] || []
-                matchesEstado = allowedStates.includes(contact.estado)
-            }
-
-            return matchesSearch && matchesOrigen && matchesEstado
-        })
-    }, [enrichedContacts, searchQuery, origenFilter, estadoFilter])
-
-    // Stats - usando los grupos correctos
-    const stats = {
-        total: contacts.length,
-        nuevos: contacts.filter(c => FILTER_GROUPS.nuevos.includes(c.estado)).length,
-        enProceso: contacts.filter(c => FILTER_GROUPS.enProceso.includes(c.estado)).length,
-        cerrados: contacts.filter(c => FILTER_GROUPS.cerrados.includes(c.estado)).length,
-    }
-
-    // Group by date
-    const todayContacts = filteredContacts.filter(c => {
-        const date = new Date(c.fecha_ultimo_contacto || c.fecha_registro)
-        const today = new Date()
-        return date.toDateString() === today.toDateString()
-    })
-
-    const olderContacts = filteredContacts.filter(c => {
-        const date = new Date(c.fecha_ultimo_contacto || c.fecha_registro)
-        const today = new Date()
-        return date.toDateString() !== today.toDateString()
-    })
+    const totalPages = Math.ceil(total / PAGE_SIZE)
 
     const getContactName = (contact: Contact) => {
-        if (contact.nombre && contact.apellidos) {
-            return `${contact.nombre} ${contact.apellidos}`
-        }
-        if (contact.nombre) {
-            return contact.nombre
-        }
+        if (contact.nombre && contact.apellidos) return `${contact.nombre} ${contact.apellidos}`
+        if (contact.nombre) return contact.nombre
         return contact.email?.split('@')[0] || 'Sin nombre'
     }
 
     const getInitials = (contact: Contact) => {
         const name = getContactName(contact)
         const parts = name.split(' ')
-        if (parts.length >= 2) {
-            return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
-        }
+        if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
         return name.substring(0, 2).toUpperCase()
     }
 
@@ -142,10 +104,6 @@ export default function ContactosPage() {
             case 'telefono': return 'call'
             case 'whatsapp': return 'chat_bubble'
             case 'presencial': return 'storefront'
-            case 'coches_net':
-            case 'wallapop':
-            case 'autocasion':
-                return 'social_leaderboard'
             default: return 'person'
         }
     }
@@ -163,29 +121,15 @@ export default function ContactosPage() {
         return config[estado] || { bg: 'bg-slate-100', text: 'text-slate-600', label: estado }
     }
 
-    const handleCall = (e: React.MouseEvent, phone: string) => {
-        e.stopPropagation()
-        window.open(`tel:${phone}`, '_self')
-    }
-
-    const handleWhatsApp = (e: React.MouseEvent, phone: string) => {
-        e.stopPropagation()
-        const cleanPhone = phone.replace(/\s/g, '')
-        window.open(`https://wa.me/34${cleanPhone}`, '_blank')
-    }
-
-    const handleEmail = (e: React.MouseEvent, email: string) => {
-        e.stopPropagation()
-        window.open(`mailto:${email}`, '_self')
-    }
-
     return (
         <div className="space-y-6 p-4 lg:p-6">
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900">Contactos</h1>
-                    <p className="text-sm text-slate-500 mt-1">Gestiona todos los contactos de clientes potenciales</p>
+                    <p className="text-sm text-slate-500 mt-1">
+                        {total.toLocaleString()} contactos en total
+                    </p>
                 </div>
                 <button
                     onClick={() => setIsNewContactOpen(true)}
@@ -196,58 +140,9 @@ export default function ContactosPage() {
                 </button>
             </div>
 
-            {/* Stats Cards - Desktop */}
-            <div className="hidden md:grid md:grid-cols-4 gap-4">
-                <div className="bg-white rounded-xl p-4 border border-slate-100 shadow-sm">
-                    <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-lg bg-slate-100 flex items-center justify-center">
-                            <span className="material-symbols-outlined text-slate-500">group</span>
-                        </div>
-                        <div>
-                            <p className="text-2xl font-bold text-slate-900">{stats.total}</p>
-                            <p className="text-xs text-slate-500 uppercase tracking-wider">Total</p>
-                        </div>
-                    </div>
-                </div>
-                <div className="bg-white rounded-xl p-4 border border-slate-100 shadow-sm">
-                    <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-lg bg-green-50 flex items-center justify-center">
-                            <span className="material-symbols-outlined text-green-600">person_add</span>
-                        </div>
-                        <div>
-                            <p className="text-2xl font-bold text-green-600">{stats.nuevos}</p>
-                            <p className="text-xs text-slate-500 uppercase tracking-wider">Nuevos</p>
-                        </div>
-                    </div>
-                </div>
-                <div className="bg-white rounded-xl p-4 border border-slate-100 shadow-sm">
-                    <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-lg bg-blue-50 flex items-center justify-center">
-                            <span className="material-symbols-outlined text-[#135bec]">sync</span>
-                        </div>
-                        <div>
-                            <p className="text-2xl font-bold text-[#135bec]">{stats.enProceso}</p>
-                            <p className="text-xs text-slate-500 uppercase tracking-wider">En Proceso</p>
-                        </div>
-                    </div>
-                </div>
-                <div className="bg-white rounded-xl p-4 border border-slate-100 shadow-sm">
-                    <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-lg bg-slate-100 flex items-center justify-center">
-                            <span className="material-symbols-outlined text-slate-500">check_circle</span>
-                        </div>
-                        <div>
-                            <p className="text-2xl font-bold text-slate-700">{stats.cerrados}</p>
-                            <p className="text-xs text-slate-500 uppercase tracking-wider">Cerrados</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             {/* Search & Filters */}
             <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
                 <div className="flex flex-col lg:flex-row gap-4 p-4">
-                    {/* Search */}
                     <div className="flex-1 relative">
                         <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
                         <input
@@ -259,112 +154,107 @@ export default function ContactosPage() {
                     </div>
                 </div>
 
-                {/* Filter Chips - Scrollable */}
+                {/* Filter Chips */}
                 <div className="flex gap-2 overflow-x-auto no-scrollbar px-4 pb-4 -mt-2">
-                    <button
-                        onClick={() => setEstadoFilter("todos")}
-                        className={cn(
-                            "shrink-0 flex h-9 items-center justify-center gap-2 rounded-full px-4 text-sm font-medium transition-colors",
-                            estadoFilter === "todos"
-                                ? "bg-[#135bec] text-white"
-                                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                        )}
-                    >
-                        Todos ({stats.total})
-                    </button>
-                    <button
-                        onClick={() => setEstadoFilter("nuevos")}
-                        className={cn(
-                            "shrink-0 flex h-9 items-center justify-center gap-2 rounded-full px-4 text-sm font-medium transition-colors",
-                            estadoFilter === "nuevos"
-                                ? "bg-green-600 text-white"
-                                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                        )}
-                    >
-                        Nuevos ({stats.nuevos})
-                    </button>
-                    <button
-                        onClick={() => setEstadoFilter("enProceso")}
-                        className={cn(
-                            "shrink-0 flex h-9 items-center justify-center gap-2 rounded-full px-4 text-sm font-medium transition-colors",
-                            estadoFilter === "enProceso"
-                                ? "bg-blue-600 text-white"
-                                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                        )}
-                    >
-                        En Proceso ({stats.enProceso})
-                    </button>
-                    <button
-                        onClick={() => setEstadoFilter("cerrados")}
-                        className={cn(
-                            "shrink-0 flex h-9 items-center justify-center gap-2 rounded-full px-4 text-sm font-medium transition-colors",
-                            estadoFilter === "cerrados"
-                                ? "bg-slate-600 text-white"
-                                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                        )}
-                    >
-                        Cerrados ({stats.cerrados})
-                    </button>
-                    {/* Spacer para que el último botón no quede pegado al borde */}
-                    <div className="shrink-0 w-2"></div>
+                    {(['todos', 'nuevos', 'enProceso', 'cerrados'] as FilterType[]).map(f => (
+                        <button
+                            key={f}
+                            onClick={() => handleFilterChange(f)}
+                            className={cn(
+                                "shrink-0 flex h-9 items-center justify-center gap-2 rounded-full px-4 text-sm font-medium transition-colors",
+                                estadoFilter === f
+                                    ? "bg-[#135bec] text-white"
+                                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                            )}
+                        >
+                            {f === 'todos' ? `Todos (${total.toLocaleString()})` :
+                                f === 'nuevos' ? 'Nuevos' :
+                                    f === 'enProceso' ? 'En Proceso' : 'Cerrados'}
+                        </button>
+                    ))}
                 </div>
             </div>
+
+            {/* Loading */}
+            {isLoading && (
+                <div className="flex items-center justify-center py-16">
+                    <div className="animate-spin h-8 w-8 border-2 border-[#135bec] border-t-transparent rounded-full" />
+                </div>
+            )}
 
             {/* Contact Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                {filteredContacts.map(contact => (
-                    <ContactCard
-                        key={contact.id}
-                        contact={contact as Contact}
-                        getContactName={getContactName}
-                        getInitials={getInitials}
-                        getOrigenIcon={getOrigenIcon}
-                        getEstadoBadge={getEstadoBadge}
-                        isFullView={isFullView}
-                        onCall={handleCall}
-                        onWhatsApp={handleWhatsApp}
-                        onEmail={handleEmail}
-                        onClick={() => setSelectedContact(contact as Contact)}
-                        onDelete={handleDeleteContact}
-                    />
-                ))}
-            </div>
+            {!isLoading && (
+                <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                        {contacts.map(contact => (
+                            <ContactCard
+                                key={contact.id}
+                                contact={contact}
+                                getContactName={getContactName}
+                                getInitials={getInitials}
+                                getOrigenIcon={getOrigenIcon}
+                                getEstadoBadge={getEstadoBadge}
+                                onClick={() => setSelectedContact(contact)}
+                                onDelete={handleDeleteContact}
+                            />
+                        ))}
+                    </div>
 
-            {/* Empty State */}
-            {filteredContacts.length === 0 && (
-                <div className="bg-white rounded-xl p-12 text-center border border-slate-100 shadow-sm">
-                    <span className="material-symbols-outlined text-5xl text-slate-300 mb-4 block">person_search</span>
-                    <h3 className="text-lg font-semibold text-slate-600 mb-1">No se encontraron contactos</h3>
-                    <p className="text-sm text-slate-400">Intenta ajustar los filtros de búsqueda</p>
-                    <button
-                        onClick={() => { setSearchQuery(""); setEstadoFilter("todos"); }}
-                        className="mt-4 text-[#135bec] font-medium hover:underline"
-                    >
-                        Limpiar filtros
-                    </button>
-                </div>
+                    {contacts.length === 0 && (
+                        <div className="bg-white rounded-xl p-12 text-center border border-slate-100 shadow-sm">
+                            <span className="material-symbols-outlined text-5xl text-slate-300 mb-4 block">person_search</span>
+                            <h3 className="text-lg font-semibold text-slate-600 mb-1">No se encontraron contactos</h3>
+                            <p className="text-sm text-slate-400">Intenta ajustar los filtros de búsqueda</p>
+                            <button
+                                onClick={() => { setSearchQuery(""); setEstadoFilter("todos"); }}
+                                className="mt-4 text-[#135bec] font-medium hover:underline"
+                            >
+                                Limpiar filtros
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                        <div className="flex items-center justify-between bg-white rounded-xl border border-slate-100 shadow-sm p-4">
+                            <p className="text-sm text-slate-500">
+                                Mostrando {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)} de {total.toLocaleString()}
+                            </p>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setPage(p => Math.max(0, p - 1))}
+                                    disabled={page === 0}
+                                    className="h-9 w-9 flex items-center justify-center rounded-lg border border-slate-200 text-slate-600 disabled:opacity-40 hover:bg-slate-50 transition-colors"
+                                >
+                                    <ChevronLeft className="h-4 w-4" />
+                                </button>
+                                <span className="text-sm font-medium text-slate-700">
+                                    {page + 1} / {totalPages}
+                                </span>
+                                <button
+                                    onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                                    disabled={page >= totalPages - 1}
+                                    className="h-9 w-9 flex items-center justify-center rounded-lg border border-slate-200 text-slate-600 disabled:opacity-40 hover:bg-slate-50 transition-colors"
+                                >
+                                    <ChevronRight className="h-4 w-4" />
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </>
             )}
 
-            {/* Footer count */}
-            {filteredContacts.length > 0 && (
-                <div className="text-center">
-                    <p className="text-sm text-slate-400">
-                        Mostrando {filteredContacts.length} de {contacts.length} contactos
-                    </p>
-                </div>
-            )}
-
-            {/* New Contact Modal */}
+            {/* Modals */}
             <NewContactModal
                 open={isNewContactOpen}
                 onClose={() => setIsNewContactOpen(false)}
                 onContactCreated={(contact) => {
                     setIsNewContactOpen(false)
                     setSelectedContact(contact)
+                    loadContacts(0, debouncedSearch, estadoFilter)
                 }}
             />
 
-            {/* Contact Detail Modal */}
             {selectedContact && (
                 <ContactDetailModal
                     contact={selectedContact}
@@ -378,106 +268,50 @@ export default function ContactosPage() {
     )
 }
 
-// Formatear fecha y hora de creación
-function formatCreatedAt(dateString: string) {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffMins = Math.floor(diffMs / 60000)
-    const diffHours = Math.floor(diffMs / 3600000)
-    const diffDays = Math.floor(diffMs / 86400000)
-
-    // Formato de hora
-    const timeStr = date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
-
-    if (diffMins < 1) return 'Ahora mismo'
-    if (diffMins < 60) return `Hace ${diffMins} min`
-    if (diffHours < 24) return `Hoy ${timeStr}`
-    if (diffDays === 1) return `Ayer ${timeStr}`
-    if (diffDays < 7) return `Hace ${diffDays} días`
-
-    return date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) + ` ${timeStr}`
-}
-
-// Contact Card Component
+// Compact Contact Card Component
 function ContactCard({
     contact,
     getContactName,
     getInitials,
     getOrigenIcon,
     getEstadoBadge,
-    isFullView,
-    onCall,
-    onWhatsApp,
-    onEmail,
     onClick,
-    onDelete
+    onDelete,
 }: {
-    contact: Contact & { vehiculos?: any[] }
+    contact: Contact
     getContactName: (c: Contact) => string
     getInitials: (c: Contact) => string
     getOrigenIcon: (o: string) => string
     getEstadoBadge: (e: string) => { bg: string, text: string, label: string }
-    isFullView: boolean
-    onCall: (e: React.MouseEvent, phone: string) => void
-    onWhatsApp: (e: React.MouseEvent, phone: string) => void
-    onEmail: (e: React.MouseEvent, email: string) => void
     onClick: () => void
-    onDelete: (contactId: string) => void
+    onDelete: (id: string) => void
 }) {
     const badge = getEstadoBadge(contact.estado)
-    const vehicle = contact.vehiculos?.[0]
-    const isLost = contact.estado === 'cerrado'
-    // Usar el nombre guardado en el contacto o mostrar "Usuario"
-    const creatorName = contact.created_by_name || (contact.created_by ? 'Usuario' : null)
-    const createdAt = contact.created_at ? formatCreatedAt(contact.created_at) : null
 
     return (
         <div
-            className={cn(
-                "relative flex flex-col bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden cursor-pointer hover:shadow-md hover:border-slate-200 transition-all",
-                isLost && "opacity-70"
-            )}
+            className="relative flex flex-col bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden cursor-pointer hover:shadow-md hover:border-slate-200 transition-all"
             onClick={onClick}
         >
-            {/* Creator info - always show when there's creator data */}
-            {creatorName && (
-                <div className="bg-indigo-50/50 border-b border-indigo-100/50 px-4 py-2">
-                    <div className="flex items-center justify-between text-[11px]">
-                        <span className="inline-flex items-center gap-1.5 text-indigo-600 font-medium">
-                            <span className="material-symbols-outlined text-[14px]">person</span>
-                            {creatorName}
-                        </span>
-                        {createdAt && (
-                            <span className="inline-flex items-center gap-1 text-indigo-500">
-                                <span className="material-symbols-outlined text-[12px]">schedule</span>
-                                {createdAt}
-                            </span>
-                        )}
-                    </div>
-                </div>
-            )}
-
-            {/* Main Content */}
             <div className="p-4 pb-3">
                 <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
-                        <div className="h-12 w-12 rounded-full bg-blue-50 flex items-center justify-center text-[#135bec] font-bold text-lg">
+                        <div className="h-12 w-12 rounded-full bg-blue-50 flex items-center justify-center text-[#135bec] font-bold text-lg shrink-0">
                             {getInitials(contact)}
                         </div>
-                        <div>
-                            <h3 className="text-slate-900 text-base font-bold leading-tight">{getContactName(contact)}</h3>
+                        <div className="min-w-0">
+                            <h3 className="text-slate-900 text-base font-bold leading-tight truncate">{getContactName(contact)}</h3>
                             <div className="flex items-center gap-1.5 mt-1">
                                 <span className="material-symbols-outlined text-[14px] text-slate-400">{getOrigenIcon(contact.origen)}</span>
-                                <p className="text-slate-400 text-xs font-medium">
-                                    {formatDate(contact.fecha_ultimo_contacto || contact.fecha_registro)}
+                                <p className="text-slate-400 text-xs font-medium truncate">
+                                    {contact.telefono || contact.email || 'Sin contacto'}
                                 </p>
                             </div>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 shrink-0">
                         <span className={cn(
-                            "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold ring-1 ring-inset ring-current/10",
+                            "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold",
                             badge.bg, badge.text
                         )}>
                             {badge.label}
@@ -490,129 +324,63 @@ function ContactCard({
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-48 bg-white border-gray-200">
                                 <DropdownMenuItem onClick={onClick} className="cursor-pointer">
-                                    <Eye className="h-4 w-4 mr-2" />
-                                    Ver ficha
+                                    <Eye className="h-4 w-4 mr-2" />Ver ficha
                                 </DropdownMenuItem>
-                                <DropdownMenuItem
-                                    className="cursor-pointer"
-                                    onClick={(e) => {
-                                        e.stopPropagation()
-                                        if (contact.telefono) {
-                                            window.open(`tel:${contact.telefono}`, '_self')
-                                        }
-                                    }}
-                                >
-                                    <Phone className="h-4 w-4 mr-2" />
-                                    Llamar
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                    className="cursor-pointer"
-                                    onClick={(e) => {
-                                        e.stopPropagation()
-                                        if (contact.telefono) {
-                                            const cleanPhone = contact.telefono.replace(/\s/g, '')
-                                            window.open(`https://wa.me/34${cleanPhone}`, '_blank')
-                                        }
-                                    }}
-                                >
-                                    <MessageCircle className="h-4 w-4 mr-2" />
-                                    WhatsApp
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                    className="cursor-pointer"
-                                    onClick={(e) => {
-                                        e.stopPropagation()
-                                        if (contact.email) {
-                                            window.open(`mailto:${contact.email}`, '_self')
-                                        }
-                                    }}
-                                >
-                                    <Mail className="h-4 w-4 mr-2" />
-                                    Email
-                                </DropdownMenuItem>
+                                {contact.telefono && (
+                                    <DropdownMenuItem className="cursor-pointer" onClick={(e) => { e.stopPropagation(); window.open(`tel:${contact.telefono}`, '_self') }}>
+                                        <Phone className="h-4 w-4 mr-2" />Llamar
+                                    </DropdownMenuItem>
+                                )}
+                                {contact.telefono && (
+                                    <DropdownMenuItem className="cursor-pointer" onClick={(e) => { e.stopPropagation(); window.open(`https://wa.me/34${contact.telefono?.replace(/\s/g, '')}`, '_blank') }}>
+                                        <MessageCircle className="h-4 w-4 mr-2" />WhatsApp
+                                    </DropdownMenuItem>
+                                )}
+                                {contact.email && (
+                                    <DropdownMenuItem className="cursor-pointer" onClick={(e) => { e.stopPropagation(); window.open(`mailto:${contact.email}`, '_self') }}>
+                                        <Mail className="h-4 w-4 mr-2" />Email
+                                    </DropdownMenuItem>
+                                )}
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
                                     className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
-                                    onClick={async (e) => {
+                                    onClick={(e) => {
                                         e.stopPropagation()
-                                        if (window.confirm('¿Estás seguro de que quieres eliminar este contacto?')) {
-                                            const success = await deleteContactFromDB(contact.id)
-                                            if (success) {
-                                                onDelete(contact.id)
-                                            }
-                                        }
+                                        if (window.confirm('¿Eliminar este contacto?')) onDelete(contact.id)
                                     }}
                                 >
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    Eliminar
+                                    <Trash2 className="h-4 w-4 mr-2" />Eliminar
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
                 </div>
 
-                {/* Contact Info */}
-                <div className="space-y-1 mb-3">
-                    {contact.telefono && (
-                        <p className="text-sm text-slate-600 flex items-center gap-2">
-                            <span className="material-symbols-outlined text-[16px] text-slate-400">call</span>
-                            {contact.telefono}
-                        </p>
-                    )}
-                    {contact.email && (
-                        <p className="text-sm text-slate-500 flex items-center gap-2 truncate">
-                            <span className="material-symbols-outlined text-[16px] text-slate-400">mail</span>
-                            {contact.email}
-                        </p>
-                    )}
-                </div>
-
-                {/* Vehicle Interest */}
-                {vehicle && (
-                    <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-lg">
-                        <div className="bg-white p-1.5 rounded-md shadow-sm">
-                            <span className="material-symbols-outlined text-[#135bec] text-[20px]">directions_car</span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <p className="text-slate-900 text-sm font-semibold truncate">{vehicle.marca} {vehicle.modelo}</p>
-                            <p className="text-slate-400 text-xs">
-                                {vehicle.año_matriculacion} • {(vehicle.kilometraje / 1000).toFixed(0)}k km
-                            </p>
-                        </div>
-                    </div>
-                )}
-            </div>
-
-            {/* Action Bar */}
-            {!isLost ? (
-                <div className="grid grid-cols-3 divide-x divide-slate-100 border-t border-slate-100">
+                {/* Action Bar */}
+                <div className="grid grid-cols-3 divide-x divide-slate-100 border-t border-slate-100 -mx-4 mt-3">
                     <button
-                        onClick={(e) => contact.telefono && onCall(e, contact.telefono)}
-                        className="flex items-center justify-center gap-2 py-3 hover:bg-slate-50 transition-colors"
+                        onClick={(e) => { e.stopPropagation(); if (contact.telefono) window.open(`tel:${contact.telefono}`, '_self') }}
+                        className="flex items-center justify-center gap-1.5 py-2.5 hover:bg-slate-50 transition-colors"
                     >
-                        <span className="material-symbols-outlined text-[#135bec] text-[20px]">call</span>
+                        <span className="material-symbols-outlined text-[#135bec] text-[18px]">call</span>
                         <span className="text-xs font-semibold text-slate-700">Llamar</span>
                     </button>
                     <button
-                        onClick={(e) => contact.telefono && onWhatsApp(e, contact.telefono)}
-                        className="flex items-center justify-center gap-2 py-3 hover:bg-slate-50 transition-colors"
+                        onClick={(e) => { e.stopPropagation(); if (contact.telefono) window.open(`https://wa.me/34${contact.telefono.replace(/\s/g, '')}`, '_blank') }}
+                        className="flex items-center justify-center gap-1.5 py-2.5 hover:bg-slate-50 transition-colors"
                     >
-                        <span className="material-symbols-outlined text-green-600 text-[20px]">chat_bubble</span>
+                        <span className="material-symbols-outlined text-green-600 text-[18px]">chat_bubble</span>
                         <span className="text-xs font-semibold text-slate-700">WhatsApp</span>
                     </button>
                     <button
-                        onClick={(e) => contact.email && onEmail(e, contact.email)}
-                        className="flex items-center justify-center gap-2 py-3 hover:bg-slate-50 transition-colors"
+                        onClick={(e) => { e.stopPropagation(); if (contact.email) window.open(`mailto:${contact.email}`, '_self') }}
+                        className="flex items-center justify-center gap-1.5 py-2.5 hover:bg-slate-50 transition-colors"
                     >
-                        <span className="material-symbols-outlined text-slate-400 text-[20px]">mail</span>
+                        <span className="material-symbols-outlined text-slate-400 text-[18px]">mail</span>
                         <span className="text-xs font-semibold text-slate-700">Email</span>
                     </button>
                 </div>
-            ) : (
-                <div className="bg-slate-50 border-t border-slate-100 py-2 px-4 flex justify-center">
-                    <button className="text-xs font-medium text-[#135bec] hover:underline">Reactivar contacto</button>
-                </div>
-            )}
+            </div>
         </div>
     )
 }

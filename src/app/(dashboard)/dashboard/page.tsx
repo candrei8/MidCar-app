@@ -69,7 +69,7 @@ export default function DashboardPage() {
     const [data, setData] = useState<DashboardData | null>(null)
 
     // Obtener datos filtrados por usuario (Mi Vista / Visión Completa)
-    const { leads: userFilteredLeads, stats: filteredStats, isFullView } = useFilteredData()
+    const { stats: filteredStats, isFullView } = useFilteredData()
 
     // Load dashboard data
     useEffect(() => {
@@ -77,54 +77,20 @@ export default function DashboardPage() {
         setData(dashboardData)
     }, [])
 
-    // Recalcular métricas de leads basándose en datos filtrados
+    // Métricas de leads desde stats (count-only queries — sin cargar todos los leads)
     const filteredLeadMetrics = useMemo(() => {
-        const nuevos = userFilteredLeads.filter(l => l.estado === 'nuevo')
-        const enProceso = userFilteredLeads.filter(l =>
-            !['nuevo', 'vendido', 'perdido'].includes(l.estado)
-        )
-        const vendidos = userFilteredLeads.filter(l => l.estado === 'vendido')
-        const perdidos = userFilteredLeads.filter(l => l.estado === 'perdido')
-
-        const tasaConversion = userFilteredLeads.length > 0
-            ? (vendidos.length / userFilteredLeads.length) * 100
-            : 0
-
-        const leadsActivos = userFilteredLeads.filter(l =>
-            l.estado !== 'vendido' && l.estado !== 'perdido'
-        )
-        const valorPipeline = leadsActivos.reduce((sum, l) => {
-            const vehiclePrice = l.vehiculo?.precio_venta || 0
-            return sum + (vehiclePrice * (l.probabilidad / 100))
-        }, 0)
-
-        const leadsUrgentes = userFilteredLeads.filter(l =>
-            l.estado !== 'vendido' &&
-            l.estado !== 'perdido' &&
-            (l.prioridad === 'urgente' || l.prioridad === 'alta')
-        ).length
-
-        const today = new Date()
-        today.setHours(23, 59, 59, 999)
-        const accionesPendientes = userFilteredLeads.filter(l =>
-            l.fecha_proxima_accion &&
-            new Date(l.fecha_proxima_accion) <= today &&
-            l.estado !== 'vendido' &&
-            l.estado !== 'perdido'
-        ).length
-
         return {
-            total: userFilteredLeads.length,
-            nuevos: nuevos.length,
-            enProceso: enProceso.length,
-            vendidos: vendidos.length,
-            perdidos: perdidos.length,
-            tasaConversion,
-            valorPipeline,
-            leadsUrgentes,
-            accionesPendientes
+            total: filteredStats.totalLeads,
+            nuevos: filteredStats.leadsNuevos,
+            enProceso: filteredStats.leadsContactados + filteredStats.leadsVisita + filteredStats.leadsPrueba + filteredStats.leadsPropuesta + filteredStats.leadsNegociacion,
+            vendidos: filteredStats.leadsVendidos,
+            perdidos: filteredStats.leadsPerdidos,
+            tasaConversion: filteredStats.tasaConversion,
+            valorPipeline: filteredStats.valorPipeline,
+            leadsUrgentes: 0, // requeriría cargar datos completos
+            accionesPendientes: 0, // requeriría cargar datos completos
         }
-    }, [userFilteredLeads])
+    }, [filteredStats])
 
     // Listen for VIN scanner open event
     useEffect(() => {
