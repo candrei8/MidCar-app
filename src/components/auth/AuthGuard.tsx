@@ -62,6 +62,9 @@ export function AuthGuard({ children }: AuthGuardProps) {
         )
     }
 
+    // If loading is done and there's no user, block rendering entirely.
+    // router.push('/login') is async so there's a brief window where children
+    // could flash. Returning null prevents any protected content from showing.
     if (!user) {
         return null
     }

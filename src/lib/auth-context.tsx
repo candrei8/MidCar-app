@@ -97,26 +97,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return
         }
 
-        // Get initial session (reads from cookies - should be fast)
+        // Get initial session - use getUser() to validate against Supabase server
+        // SECURITY: getSession() only reads from local cache and does NOT validate the token.
+        // A stale/expired cookie would bypass the auth check and show the dashboard with
+        // a generic "Usuario" profile. getUser() sends the token to Supabase's server for
+        // real validation, so expired sessions are correctly rejected.
         const initAuth = async () => {
             try {
-                // getSession reads from cookies/localStorage - no timeout needed
-                const { data: { session: currentSession }, error } = await supabase.auth.getSession()
+                const { data: { user: currentUser }, error } = await supabase.auth.getUser()
 
                 if (error) {
-                    console.error('Error getting session:', error)
+                    // Token is invalid or expired - clear state and force re-login
+                    setUser(null)
+                    setSession(null)
+                    setProfile(null)
+                    return
                 }
 
-                setSession(currentSession)
-                setUser(currentSession?.user ?? null)
-
-                if (currentSession?.user) {
+                if (currentUser) {
+                    // Also grab session for token refresh purposes
+                    const { data: { session: currentSession } } = await supabase.auth.getSession()
+                    setSession(currentSession)
+                    setUser(currentUser)
                     // Profile fetch has timeout since it's a network request
-                    const userProfile = await fetchProfile(currentSession.user.id)
+                    const userProfile = await fetchProfile(currentUser.id)
                     setProfile(userProfile)
+                } else {
+                    setUser(null)
+                    setSession(null)
                 }
             } catch (error) {
                 console.error('Error initializing auth:', error)
+                setUser(null)
+                setSession(null)
             } finally {
                 setLoading(false)
             }
