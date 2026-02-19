@@ -5,6 +5,11 @@ import { useAuth } from '@/lib/auth-context'
 import { getVehicles, getLeadsStats, getContactsStats } from '@/lib/supabase-service'
 import type { Client, Vehicle } from '@/types'
 
+// Stable empty arrays — declared at module level to avoid new refs every render
+const EMPTY_CONTACTS: never[] = []
+const EMPTY_LEADS: never[] = []
+const EMPTY_CLIENTS: Client[] = []
+
 // Cache global para evitar refetches entre componentes
 const dataCache = {
     vehicles: [] as Vehicle[],
@@ -126,9 +131,9 @@ export function useFilteredData() {
     }, [isFullView, currentUserId, allVehicles])
 
     // CLIENTS - derived from vehicles (for header search - small set)
-    const contacts: never[] = [] // contacts no longer bulk-loaded; use getContactsPage()
-    const leads: never[] = []    // leads no longer bulk-loaded; use getLeadsPage()
-    const clients: Client[] = [] // clients derived from leads - no longer needed
+    const contacts = EMPTY_CONTACTS // contacts no longer bulk-loaded; use getContactsPage()
+    const leads = EMPTY_LEADS        // leads no longer bulk-loaded; use getLeadsPage()
+    const clients = EMPTY_CLIENTS    // clients derived from leads - no longer needed
 
     // Stats calculados - INCLUYE MÉTRICAS FINANCIERAS REALES (vehicles) + stats fast counts
     const stats = useMemo(() => {
@@ -233,7 +238,7 @@ export function useFilteredData() {
             valorPipeline: ls?.valorPipeline ?? 0,
             tasaConversion: ls?.tasaConversion ?? 0,
         }
-    }, [contacts, leads, vehicles, leadsStats, contactsStats])
+    }, [vehicles, leadsStats, contactsStats])
 
     return {
         contacts,
