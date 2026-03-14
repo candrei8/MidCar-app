@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MidCar Dashboard</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&amp;family=Noto+Sans:ital,wght@0,100..900;1,100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                        "surface-dark": "#1a2230",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"],
+                        "body": ["Noto Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-[#111318] dark:text-white font-display transition-colors duration-200">
+<div class="relative flex h-full min-h-screen w-full flex-col overflow-x-hidden pb-24">
+<!-- Header -->
+<header class="flex items-center justify-between p-4 bg-white dark:bg-surface-dark sticky top-0 z-20 border-b border-[#dbdfe6] dark:border-gray-800">
+<div class="flex items-center gap-3">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 ring-2 ring-primary/20" data-alt="Profile picture of the admin user" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDEw34wkBVKlmg6kBnzpAnofv2nvF18lUeGH7vfD37FnD3oZTTQfVIMKTfgvx2DuehkNIR7n82ouwvHSJdBOrtqY3TgY_paE2Lxe19CPwlc-B5PmZ0VevBdCES9bxFLo65v5tTSyn4jDcKw2Y4jk6EOQvY4CuIRp-Iiu2l_1uZZAvY9GxLcBLRT6UVORUiV6DJJEhqi05y6vqOMRATYF1ckbKvteCB2hvLfMd4uGY0Eb3HskZT_4LPOHpcMFdGwve91gLz595Curx25");'>
+</div>
+<div>
+<h2 class="text-[#111318] dark:text-white text-lg font-bold leading-tight">Hola, Admin</h2>
+<p class="text-sm text-[#616f89] dark:text-gray-400 font-medium">MidCar Madrid</p>
+</div>
+</div>
+<button class="flex items-center justify-center size-10 rounded-full bg-background-light dark:bg-gray-800 text-[#111318] dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border border-white dark:border-gray-800"></span>
+</button>
+</header>
+<!-- KPI Carousel -->
+<div class="flex flex-col gap-2 mt-4">
+<div class="px-4 flex justify-between items-end">
+<h3 class="text-[#111318] dark:text-white text-lg font-bold">Resumen del Mes</h3>
+</div>
+<!-- Horizontal Scroll Container -->
+<div class="flex overflow-x-auto gap-3 px-4 pb-2 no-scrollbar snap-x">
+<!-- KPI 1 -->
+<div class="flex min-w-[160px] snap-center flex-col gap-2 rounded-xl p-4 bg-white dark:bg-surface-dark border border-[#dbdfe6] dark:border-gray-800 shadow-sm">
+<div class="flex items-center gap-2">
+<div class="p-1.5 rounded-md bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+<span class="material-symbols-outlined text-[20px]">attach_money</span>
+</div>
+<p class="text-[#616f89] dark:text-gray-400 text-sm font-medium">Ingresos</p>
+</div>
+<p class="text-[#111318] dark:text-white text-2xl font-bold tracking-tight">€125k</p>
+<p class="text-[#07883b] text-xs font-bold bg-green-50 dark:bg-green-900/20 w-fit px-2 py-0.5 rounded-full">+15% vs mes</p>
+</div>
+<!-- KPI 2 -->
+<div class="flex min-w-[160px] snap-center flex-col gap-2 rounded-xl p-4 bg-white dark:bg-surface-dark border border-[#dbdfe6] dark:border-gray-800 shadow-sm">
+<div class="flex items-center gap-2">
+<div class="p-1.5 rounded-md bg-blue-100 dark:bg-blue-900/30 text-primary dark:text-blue-400">
+<span class="material-symbols-outlined text-[20px]">directions_car</span>
+</div>
+<p class="text-[#616f89] dark:text-gray-400 text-sm font-medium">Ventas</p>
+</div>
+<p class="text-[#111318] dark:text-white text-2xl font-bold tracking-tight">12</p>
+<p class="text-[#07883b] text-xs font-bold bg-green-50 dark:bg-green-900/20 w-fit px-2 py-0.5 rounded-full">+20% vs mes</p>
+</div>
+<!-- KPI 3 -->
+<div class="flex min-w-[160px] snap-center flex-col gap-2 rounded-xl p-4 bg-white dark:bg-surface-dark border border-[#dbdfe6] dark:border-gray-800 shadow-sm">
+<div class="flex items-center gap-2">
+<div class="p-1.5 rounded-md bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400">
+<span class="material-symbols-outlined text-[20px]">inventory_2</span>
+</div>
+<p class="text-[#616f89] dark:text-gray-400 text-sm font-medium">Stock</p>
+</div>
+<p class="text-[#111318] dark:text-white text-2xl font-bold tracking-tight">45</p>
+<p class="text-[#07883b] text-xs font-bold bg-green-50 dark:bg-green-900/20 w-fit px-2 py-0.5 rounded-full">+5 nuevas</p>
+</div>
+<!-- KPI 4 -->
+<div class="flex min-w-[160px] snap-center flex-col gap-2 rounded-xl p-4 bg-white dark:bg-surface-dark border border-[#dbdfe6] dark:border-gray-800 shadow-sm">
+<div class="flex items-center gap-2">
+<div class="p-1.5 rounded-md bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400">
+<span class="material-symbols-outlined text-[20px]">person_add</span>
+</div>
+<p class="text-[#616f89] dark:text-gray-400 text-sm font-medium">Leads</p>
+</div>
+<p class="text-[#111318] dark:text-white text-2xl font-bold tracking-tight">28</p>
+<p class="text-[#07883b] text-xs font-bold bg-green-50 dark:bg-green-900/20 w-fit px-2 py-0.5 rounded-full">+12 activos</p>
+</div>
+<!-- KPI 5 -->
+<div class="flex min-w-[160px] snap-center flex-col gap-2 rounded-xl p-4 bg-white dark:bg-surface-dark border border-[#dbdfe6] dark:border-gray-800 shadow-sm">
+<div class="flex items-center gap-2">
+<div class="p-1.5 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+<span class="material-symbols-outlined text-[20px]">calendar_clock</span>
+</div>
+<p class="text-[#616f89] dark:text-gray-400 text-sm font-medium">Días Stock</p>
+</div>
+<p class="text-[#111318] dark:text-white text-2xl font-bold tracking-tight">34</p>
+<p class="text-red-600 dark:text-red-400 text-xs font-bold bg-red-50 dark:bg-red-900/20 w-fit px-2 py-0.5 rounded-full">+2 dias avg</p>
+</div>
+</div>
+</div>
+<!-- Sales Chart Section -->
+<div class="px-4 mt-6">
+<div class="flex flex-col gap-2 bg-white dark:bg-surface-dark rounded-xl p-5 border border-[#dbdfe6] dark:border-gray-800 shadow-sm">
+<div class="flex justify-between items-start">
+<div>
+<p class="text-[#111318] dark:text-white text-base font-bold leading-normal">Rendimiento de Ventas</p>
+<p class="text-[#616f89] dark:text-gray-400 text-sm font-normal">Últimos 6 meses</p>
+</div>
+<div class="text-right">
+<p class="text-[#111318] dark:text-white text-xl font-bold leading-tight">€125.4k</p>
+<p class="text-[#07883b] text-sm font-medium">+15%</p>
+</div>
+</div>
+<div class="flex min-h-[150px] flex-col gap-4 py-4 w-full overflow-hidden">
+<svg class="overflow-visible" fill="none" height="120" preserveaspectratio="none" viewbox="0 0 478 150" width="100%" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<lineargradient gradientunits="userSpaceOnUse" id="paint0_linear_1131_5935" x1="239" x2="239" y1="0" y2="150">
+<stop stop-color="#135bec" stop-opacity="0.2"></stop>
+<stop offset="1" stop-color="#135bec" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<path d="M0 109C18.1538 109 18.1538 21 36.3077 21C54.4615 21 54.4615 41 72.6154 41C90.7692 41 90.7692 93 108.923 93C127.077 93 127.077 33 145.231 33C163.385 33 163.385 101 181.538 101C199.692 101 199.692 61 217.846 61C236 61 236 45 254.154 45C272.308 45 272.308 121 290.462 121C308.615 121 308.615 149 326.769 149C344.923 149 344.923 1 363.077 1C381.231 1 381.231 81 399.385 81C417.538 81 417.538 129 435.692 129C453.846 129 453.846 25 472 25V150H0V109Z" fill="url(#paint0_linear_1131_5935)"></path>
+<path d="M0 109C18.1538 109 18.1538 21 36.3077 21C54.4615 21 54.4615 41 72.6154 41C90.7692 41 90.7692 93 108.923 93C127.077 93 127.077 33 145.231 33C163.385 33 163.385 101 181.538 101C199.692 101 199.692 61 217.846 61C236 61 236 45 254.154 45C272.308 45 272.308 121 290.462 121C308.615 121 308.615 149 326.769 149C344.923 149 344.923 1 363.077 1C381.231 1 381.231 81 399.385 81C417.538 81 417.538 129 435.692 129C453.846 129 453.846 25 472 25" stroke="#135bec" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+<div class="flex justify-between w-full px-2">
+<p class="text-[#616f89] dark:text-gray-500 text-xs font-bold uppercase">Ene</p>
+<p class="text-[#616f89] dark:text-gray-500 text-xs font-bold uppercase">Feb</p>
+<p class="text-[#616f89] dark:text-gray-500 text-xs font-bold uppercase">Mar</p>
+<p class="text-[#616f89] dark:text-gray-500 text-xs font-bold uppercase">Abr</p>
+<p class="text-[#616f89] dark:text-gray-500 text-xs font-bold uppercase">May</p>
+<p class="text-[#616f89] dark:text-gray-500 text-xs font-bold uppercase">Jun</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Stock Distribution Chart -->
+<div class="px-4 mt-6">
+<div class="flex flex-col gap-4 bg-white dark:bg-surface-dark rounded-xl p-5 border border-[#dbdfe6] dark:border-gray-800 shadow-sm">
+<div class="flex justify-between items-center">
+<p class="text-[#111318] dark:text-white text-base font-bold">Stock por Marca</p>
+<button class="text-primary text-sm font-bold">Ver Todo</button>
+</div>
+<!-- Brand Item -->
+<div class="flex flex-col gap-1.5">
+<div class="flex justify-between text-sm">
+<span class="text-[#111318] dark:text-gray-300 font-medium">Toyota</span>
+<span class="text-[#616f89] dark:text-gray-400">15 coches (33%)</span>
+</div>
+<div class="h-2 w-full bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full w-[33%]"></div>
+</div>
+</div>
+<!-- Brand Item -->
+<div class="flex flex-col gap-1.5">
+<div class="flex justify-between text-sm">
+<span class="text-[#111318] dark:text-gray-300 font-medium">Volkswagen</span>
+<span class="text-[#616f89] dark:text-gray-400">10 coches (22%)</span>
+</div>
+<div class="h-2 w-full bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+<div class="h-full bg-[#135bec]/70 rounded-full w-[22%]"></div>
+</div>
+</div>
+<!-- Brand Item -->
+<div class="flex flex-col gap-1.5">
+<div class="flex justify-between text-sm">
+<span class="text-[#111318] dark:text-gray-300 font-medium">BMW</span>
+<span class="text-[#616f89] dark:text-gray-400">8 coches (18%)</span>
+</div>
+<div class="h-2 w-full bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+<div class="h-full bg-[#135bec]/40 rounded-full w-[18%]"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Quick Actions -->
+<div class="mt-6">
+<h2 class="text-[#111318] dark:text-white px-4 text-lg font-bold leading-tight mb-3">Acciones Rápidas</h2>
+<div class="grid grid-cols-2 gap-3 px-4">
+<button class="relative flex flex-col justify-end h-28 w-full overflow-hidden rounded-xl shadow-sm group">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110" data-alt="Close up of a shiny new car handle" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD4FLMuKh9Zinf_clhFqcKbBY-efX8WjAre_CCK5j2vGnbgAvLj8X6Qi6UEGYpQ_J3Sa5mYUggBZsqkyIkp2s2XG0CpvhCTnoBv76wnkQQUiyiKXt3dx23kjo_zuJJnZlUFXAwuniyQns2iwx5-kXjt_LsVvqNPTKefK0NA5PL1TOnWGeMe41cuogagxc11ZkB2SeH2ZaXzRLD5rgrGpUthkNyxtvzIi3g-P56ZmEJO3mK_PyaMlYez3rsi-Kodlg1S9-LtserscYvk");'></div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+<div class="relative p-3 flex flex-col items-start gap-1">
+<div class="size-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white mb-1">
+<span class="material-symbols-outlined text-[18px]">add</span>
+</div>
+<p class="text-white text-sm font-bold leading-tight">Añadir Coche</p>
+</div>
+</button>
+<button class="relative flex flex-col justify-end h-28 w-full overflow-hidden rounded-xl shadow-sm group">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110" data-alt="Person writing on a notepad" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDYHmiOF2LqSf3kGlOcsVrhuYj052ak6gHsQaSSyl-jXXO27hk0_JJ05Q7qrDTxLAF3yiMoEdpBx1CKvsxm7JHMh_mcBvRbhcFSHkF7TyPY56szzkhzeg3gHzA1A4io3bHBVTlKdBpWiKsVEbY0nR1TshKO-NnpBbq0AXhsA5ZiYUU4fSJhJZZxlxDOhQrVq5BBaeJmqmIo2JtC4mdR-vZDOXMRu5qckQIMdda141NqLXD7UDK3QC7Wn-PUxxo7Stevdt1iGC9JGfXf");'></div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+<div class="relative p-3 flex flex-col items-start gap-1">
+<div class="size-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white mb-1">
+<span class="material-symbols-outlined text-[18px]">person_add</span>
+</div>
+<p class="text-white text-sm font-bold leading-tight">Nuevo Lead</p>
+</div>
+</button>
+<button class="relative flex flex-col justify-end h-28 w-full overflow-hidden rounded-xl shadow-sm group">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110" data-alt="Hand shaking over a car key" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCEU-EUhcX8bH-DSzMb5xjBNvqp_BQEVykfzgsA4MpelIei8f7KFJwbVuzGSizyJGwkdQPNxJ7ly8Z4n7y6sYJ8fa61-iQPo-pwDAZY8DUgaB4i2LDZ3PM1f7yr26w79JfVLRtOk0iOtIjCC15XRbBU7egPforojp4_XqbjOsed8-ZZwvJNWwN5f0vi8nfQaUiJ3kL5NY69BAi3UZhw8wx8xRE7NMFoZxchX1cjbbGy--LVDftTEgmG5KICovCAQLOyn-Xg7Jk6ba8u");'></div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+<div class="relative p-3 flex flex-col items-start gap-1">
+<div class="size-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white mb-1">
+<span class="material-symbols-outlined text-[18px]">sell</span>
+</div>
+<p class="text-white text-sm font-bold leading-tight">Registrar Venta</p>
+</div>
+</button>
+<button class="relative flex flex-col justify-end h-28 w-full overflow-hidden rounded-xl shadow-sm group">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110" data-alt="Abstract barcode scanner concept" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAVI24xOFuwI--_4-Wd_vxxPDGKOsP08U-R2nEv034NJQKs0S3I12-k90sUUmaUMzYmXV70Pt5p-hZCqUmWXrPvQ57hoyjmHkeFY9WQ_QVaSu0vs9F3IurE1ParHkqqoqu4R-PnalwMLydD6qiAT46lWP-MQiQP-QFC4Yb_VKO7-AzVnEmFVNIfFGD50_BARM41vGdycuHTec-VSKoITOnfyHMpv8NZd4Yof8jRtOfmGLhq4kt1v0rU3EsTfAGaRRHfApMl87bIiuTQ");'></div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+<div class="relative p-3 flex flex-col items-start gap-1">
+<div class="size-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white mb-1">
+<span class="material-symbols-outlined text-[18px]">qr_code_scanner</span>
+</div>
+<p class="text-white text-sm font-bold leading-tight">Escanear VIN</p>
+</div>
+</button>
+</div>
+</div>
+<!-- Activity Feed -->
+<div class="mt-8 px-4 mb-4">
+<div class="flex justify-between items-end mb-4">
+<h3 class="text-[#111318] dark:text-white text-lg font-bold">Actividad Reciente</h3>
+<button class="text-primary text-sm font-bold">Ver Todo</button>
+</div>
+<div class="flex flex-col gap-3">
+<!-- Feed Item 1 -->
+<div class="flex items-start gap-3 p-3 bg-white dark:bg-surface-dark rounded-xl border border-[#dbdfe6] dark:border-gray-800 shadow-sm">
+<div class="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30 text-primary dark:text-blue-400">
+<span class="material-symbols-outlined text-[20px]">person</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-[#111318] dark:text-white text-sm font-semibold truncate">Nuevo Lead: Carlos Ruiz</p>
+<p class="text-[#616f89] dark:text-gray-400 text-xs mt-0.5">Interesado en Ford Focus (Stock #402)</p>
+<p class="text-[#616f89] dark:text-gray-500 text-[10px] mt-1.5 font-medium">Hace 2 horas</p>
+</div>
+</div>
+<!-- Feed Item 2 -->
+<div class="flex items-start gap-3 p-3 bg-white dark:bg-surface-dark rounded-xl border border-[#dbdfe6] dark:border-gray-800 shadow-sm">
+<div class="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-[#111318] dark:text-white text-sm font-semibold truncate">Venta completada</p>
+<p class="text-[#616f89] dark:text-gray-400 text-xs mt-0.5">Juan vendió BMW X5 a Ana G.</p>
+<p class="text-[#616f89] dark:text-gray-500 text-[10px] mt-1.5 font-medium">Hace 5 horas</p>
+</div>
+</div>
+<!-- Feed Item 3 -->
+<div class="flex items-start gap-3 p-3 bg-white dark:bg-surface-dark rounded-xl border border-[#dbdfe6] dark:border-gray-800 shadow-sm">
+<div class="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400">
+<span class="material-symbols-outlined text-[20px]">price_change</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-[#111318] dark:text-white text-sm font-semibold truncate">Precio Actualizado</p>
+<p class="text-[#616f89] dark:text-gray-400 text-xs mt-0.5">Audi A3 bajó a €18,500</p>
+<p class="text-[#616f89] dark:text-gray-500 text-[10px] mt-1.5 font-medium">Ayer</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Navigation -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white dark:bg-surface-dark border-t border-[#dbdfe6] dark:border-gray-800 pb-safe z-50">
+<div class="flex items-center justify-around h-16">
+<button class="flex flex-col items-center gap-1 w-full text-primary">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[10px] font-bold">Inicio</span>
+</button>
+<button class="flex flex-col items-center gap-1 w-full text-[#616f89] dark:text-gray-400 hover:text-[#111318] dark:hover:text-white transition-colors">
+<span class="material-symbols-outlined">directions_car</span>
+<span class="text-[10px] font-medium">Stock</span>
+</button>
+<button class="flex flex-col items-center gap-1 w-full text-[#616f89] dark:text-gray-400 hover:text-[#111318] dark:hover:text-white transition-colors">
+<span class="material-symbols-outlined">group</span>
+<span class="text-[10px] font-medium">Leads</span>
+</button>
+<button class="flex flex-col items-center gap-1 w-full text-[#616f89] dark:text-gray-400 hover:text-[#111318] dark:hover:text-white transition-colors">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-medium">Ajustes</span>
+</button>
+</div>
+</nav>
+<style>
+        .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+    </style>
+</body></html>

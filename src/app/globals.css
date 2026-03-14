@@ -1,0 +1,683 @@
+/* Stitch Design System - MidCar */
+/* Nota: Material Symbols se carga en layout.tsx para evitar bloqueo de render */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== MATERIAL SYMBOLS: hide text until font loads ===== */
+.material-symbols-outlined {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  overflow: hidden;
+  vertical-align: middle;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ===== PERFORMANCE OPTIMIZATIONS ===== */
+* {
+  /* Mejora la fluidez de scroll */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* GPU acceleration para elementos interactivos */
+button, a, [role="button"], .interactive {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* ===== ANIMATIONS - Optimizadas para 60fps ===== */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-in {
+  animation: fadeIn 0.15s ease-out;
+}
+
+/* ===== BASE STYLES ===== */
+@layer base {
+  :root {
+    /* Light mode variables */
+    --background: 246 246 248;
+    --foreground: 17 19 24;
+    --primary: 19 91 236;
+    --primary-foreground: 255 255 255;
+    --card: 255 255 255;
+    --card-foreground: 17 19 24;
+    --muted: 97 111 137;
+    --muted-foreground: 156 163 175;
+    --border: 219 223 230;
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    /* Dark mode variables */
+    --background: 16 22 34;
+    --foreground: 255 255 255;
+    --primary: 19 91 236;
+    --primary-foreground: 255 255 255;
+    --card: 26 34 48;
+    --card-foreground: 255 255 255;
+    --muted: 156 163 175;
+    --muted-foreground: 107 114 128;
+    --border: 42 52 71;
+  }
+
+  * {
+    border-color: rgb(var(--border) / 0.5);
+  }
+
+  body {
+    background-color: rgb(var(--background));
+    color: rgb(var(--foreground));
+    font-family: 'Manrope', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100dvh;
+  }
+
+  /* Typography */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    color: rgb(var(--foreground));
+  }
+}
+
+/* ===== SCROLLBAR ===== */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--muted) / 0.3);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--muted) / 0.5);
+}
+
+/* ===== MATERIAL SYMBOLS ===== */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+.material-symbols-outlined.filled {
+  font-variation-settings: 'FILL' 1;
+}
+
+/* ===== COMPONENTS ===== */
+@layer components {
+
+  /* Cards */
+  .card-stitch {
+    @apply bg-white dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark shadow-sm;
+  }
+
+  .card-stitch-hover {
+    @apply card-stitch hover:shadow-md hover:border-primary/20;
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  }
+
+  /* Buttons */
+  .btn-primary {
+    @apply bg-primary text-white font-semibold rounded-full px-4 py-2 shadow-primary;
+    @apply hover:bg-primary-hover hover:shadow-lg;
+    transition: background-color 0.1s ease, box-shadow 0.1s ease;
+  }
+
+  .btn-secondary {
+    @apply bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark text-text-primary-light dark:text-text-primary-dark font-medium rounded-full px-4 py-2;
+    @apply hover:bg-gray-50 dark:hover:bg-surface-dark-hover;
+    transition: background-color 0.1s ease;
+  }
+
+  /* Chips/Pills */
+  .chip {
+    @apply inline-flex items-center gap-2 h-9 px-4 rounded-full text-sm font-medium;
+    transition: background-color 0.1s ease, color 0.1s ease;
+  }
+
+  .chip-active {
+    @apply bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-md;
+  }
+
+  .chip-inactive {
+    @apply bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark text-slate-700 dark:text-slate-300;
+    @apply hover:bg-gray-50 dark:hover:bg-surface-dark-hover;
+  }
+
+  /* Input fields */
+  .input-stitch {
+    @apply w-full h-12 px-4 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl;
+    @apply text-text-primary-light dark:text-text-primary-dark placeholder:text-text-muted-light dark:placeholder:text-text-muted-dark;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all;
+  }
+
+  /* Search input with icon */
+  .search-stitch {
+    @apply flex items-center h-12 rounded-xl bg-white dark:bg-surface-dark shadow-sm;
+    @apply border border-transparent focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20;
+  }
+
+  /* Status badges */
+  .badge-success {
+    @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold;
+    @apply bg-green-500/90 text-white backdrop-blur-sm shadow-sm;
+  }
+
+  .badge-warning {
+    @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold;
+    @apply bg-orange-500/90 text-white backdrop-blur-sm shadow-sm;
+  }
+
+  .badge-danger {
+    @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold;
+    @apply bg-red-500/90 text-white backdrop-blur-sm shadow-sm;
+  }
+
+  .badge-muted {
+    @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold;
+    @apply bg-slate-500/90 text-white backdrop-blur-sm shadow-sm;
+  }
+
+  .badge-primary {
+    @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold;
+    @apply bg-primary/90 text-white backdrop-blur-sm shadow-sm;
+  }
+
+  /* Lead status badges (lighter) */
+  .lead-badge-nuevo {
+    @apply inline-flex items-center rounded-full bg-green-50 dark:bg-green-900/30 px-2.5 py-1 text-xs font-bold text-green-700 dark:text-green-400 ring-1 ring-inset ring-green-600/10;
+  }
+
+  .lead-badge-proceso {
+    @apply inline-flex items-center rounded-full bg-blue-50 dark:bg-blue-900/30 px-2.5 py-1 text-xs font-bold text-primary ring-1 ring-inset ring-blue-700/10;
+  }
+
+  .lead-badge-pendiente {
+    @apply inline-flex items-center rounded-full bg-orange-50 dark:bg-orange-900/30 px-2.5 py-1 text-xs font-bold text-orange-700 dark:text-orange-400 ring-1 ring-inset ring-orange-600/10;
+  }
+
+  .lead-badge-perdido {
+    @apply inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-800 px-2.5 py-1 text-xs font-bold text-gray-600 dark:text-gray-400 ring-1 ring-inset ring-gray-500/10;
+  }
+
+  /* KPI Cards */
+  .kpi-card {
+    @apply flex flex-col gap-2 rounded-xl p-4 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark shadow-sm min-w-[160px];
+  }
+
+  .kpi-icon {
+    @apply p-1.5 rounded-md flex items-center justify-center;
+  }
+
+  .kpi-value {
+    @apply text-2xl font-bold tracking-tight text-text-primary-light dark:text-text-primary-dark;
+  }
+
+  .kpi-change-positive {
+    @apply text-xs font-bold bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 w-fit px-2 py-0.5 rounded-full;
+  }
+
+  .kpi-change-negative {
+    @apply text-xs font-bold bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 w-fit px-2 py-0.5 rounded-full;
+  }
+
+  /* Progress bars */
+  .progress-bar {
+    @apply h-2 w-full bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden;
+  }
+
+  .progress-bar-fill {
+    @apply h-full rounded-full;
+    transition: width 0.3s ease-out;
+  }
+
+  /* Contact cards */
+  .contact-card {
+    @apply flex flex-col bg-white dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark shadow-sm overflow-hidden;
+  }
+
+  /* Action bar for contact cards */
+  .action-bar {
+    @apply grid grid-cols-3 divide-x divide-border-light dark:divide-border-dark border-t border-border-light dark:border-border-dark;
+  }
+
+  .action-bar-btn {
+    @apply flex items-center justify-center gap-2 py-3 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors;
+  }
+
+  /* Vehicle cards */
+  .vehicle-card {
+    @apply flex flex-col gap-3 cursor-pointer;
+  }
+
+  .vehicle-image {
+    @apply relative w-full aspect-[4/3] rounded-xl overflow-hidden shadow-sm;
+  }
+
+  .vehicle-image-inner {
+    @apply w-full h-full bg-center bg-no-repeat bg-cover group-hover:scale-[1.02];
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform;
+    transform: translateZ(0);
+  }
+
+  /* Quick action cards */
+  .quick-action {
+    @apply relative flex flex-col justify-end h-28 w-full overflow-hidden rounded-xl shadow-sm cursor-pointer;
+  }
+
+  .quick-action-bg {
+    @apply absolute inset-0 bg-cover bg-center group-hover:scale-[1.03];
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform;
+    transform: translateZ(0);
+  }
+
+  .quick-action-overlay {
+    @apply absolute inset-0 bg-gradient-to-t from-black/80 to-transparent;
+  }
+
+  .quick-action-content {
+    @apply relative p-3 flex flex-col items-start gap-1;
+  }
+
+  .quick-action-icon {
+    @apply size-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white mb-1;
+  }
+}
+
+/* ===== UTILITIES ===== */
+@layer utilities {
+
+  /* Safe area padding */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  /* Snap scroll */
+  .snap-x {
+    scroll-snap-type: x mandatory;
+  }
+
+  .snap-center {
+    scroll-snap-align: center;
+  }
+
+  .snap-start {
+    scroll-snap-align: start;
+  }
+
+  /* Hide scrollbar utility */
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Backdrop blur */
+  .backdrop-blur-sm {
+    backdrop-filter: blur(4px);
+  }
+
+  /* Animations - usa las definidas arriba */
+  .animate-in-subtle {
+    animation: fadeIn 0.12s ease-out;
+  }
+}
+
+/* ===== CHART STYLES ===== */
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: rgb(var(--border) / 0.3);
+}
+
+.recharts-text {
+  fill: rgb(var(--muted));
+  font-size: 12px;
+}
+
+/* ===== SELECTION ===== */
+::selection {
+  background: rgb(var(--primary) / 0.3);
+  color: rgb(var(--foreground));
+}
+
+/* ===== LIGHT MODE COMPATIBILITY ===== */
+/* Override legacy dark mode classes for light mode */
+html:not(.dark) {
+
+  /* Text colors - convert white-based to slate-based */
+  .text-white {
+    color: #0f172a !important;
+  }
+
+  .text-white\/90 {
+    color: rgb(15 23 42 / 0.9) !important;
+  }
+
+  .text-white\/80 {
+    color: rgb(15 23 42 / 0.8) !important;
+  }
+
+  .text-white\/75 {
+    color: rgb(15 23 42 / 0.75) !important;
+  }
+
+  .text-white\/70 {
+    color: rgb(51 65 85 / 1) !important;
+  }
+
+  .text-white\/60 {
+    color: rgb(71 85 105 / 1) !important;
+  }
+
+  .text-white\/50 {
+    color: rgb(100 116 139 / 1) !important;
+  }
+
+  .text-white\/40 {
+    color: rgb(148 163 184 / 1) !important;
+  }
+
+  .text-white\/30 {
+    color: rgb(148 163 184 / 1) !important;
+  }
+
+  .text-white\/25 {
+    color: rgb(148 163 184 / 1) !important;
+  }
+
+  .text-white\/20 {
+    color: rgb(148 163 184 / 1) !important;
+  }
+
+  /* Background colors - convert dark to light */
+  .bg-white\/\[0\.02\] {
+    background-color: rgb(241 245 249 / 1) !important;
+  }
+
+  .bg-white\/\[0\.03\] {
+    background-color: rgb(241 245 249 / 1) !important;
+  }
+
+  .bg-white\/\[0\.04\] {
+    background-color: rgb(241 245 249 / 1) !important;
+  }
+
+  .bg-white\/\[0\.05\] {
+    background-color: rgb(241 245 249 / 1) !important;
+  }
+
+  .bg-white\/\[0\.06\] {
+    background-color: rgb(226 232 240 / 1) !important;
+  }
+
+  .bg-white\/5 {
+    background-color: rgb(241 245 249 / 1) !important;
+  }
+
+  .bg-white\/10 {
+    background-color: rgb(226 232 240 / 1) !important;
+  }
+
+  .bg-black\/40 {
+    background-color: rgb(241 245 249 / 1) !important;
+  }
+
+  /* Border colors */
+  .border-white\/5 {
+    border-color: rgb(226 232 240 / 1) !important;
+  }
+
+  .border-white\/10 {
+    border-color: rgb(226 232 240 / 1) !important;
+  }
+
+  .border-white\/\[0\.04\] {
+    border-color: rgb(226 232 240 / 1) !important;
+  }
+
+  .border-white\/\[0\.05\] {
+    border-color: rgb(226 232 240 / 1) !important;
+  }
+
+  .border-white\/\[0\.06\] {
+    border-color: rgb(226 232 240 / 1) !important;
+  }
+
+  /* Gradient text override */
+  .bg-gradient-to-r.from-white {
+    background-image: linear-gradient(to right, #0f172a, #334155) !important;
+  }
+
+  /* Card and container overrides */
+  .card-luxury {
+    background-color: white !important;
+    border-color: rgb(226 232 240 / 1) !important;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.05) !important;
+  }
+
+  .glass {
+    background-color: white !important;
+    border-color: rgb(226 232 240 / 1) !important;
+  }
+
+  /* Table overrides */
+  .table-luxury {
+    background-color: white !important;
+  }
+
+  .table-luxury th {
+    color: #64748b !important;
+    background-color: #f8fafc !important;
+  }
+
+  .table-luxury td {
+    color: #334155 !important;
+    border-color: rgb(241 245 249 / 1) !important;
+  }
+
+  .table-luxury tr:hover {
+    background-color: rgb(248 250 252 / 1) !important;
+  }
+
+  /* Input overrides */
+  .input-luxury {
+    background-color: white !important;
+    border-color: rgb(226 232 240 / 1) !important;
+    color: #0f172a !important;
+  }
+
+  .input-luxury::placeholder {
+    color: #94a3b8 !important;
+  }
+
+  /* Button overrides */
+  .btn-luxury {
+    background-color: #135bec !important;
+    color: white !important;
+  }
+
+  .btn-ghost-luxury {
+    background-color: transparent !important;
+    color: #334155 !important;
+    border-color: rgb(226 232 240 / 1) !important;
+  }
+
+  .btn-ghost-luxury:hover {
+    background-color: rgb(241 245 249 / 1) !important;
+  }
+
+  /* Pills overrides */
+  .pill-luxury {
+    background-color: rgb(241 245 249 / 1) !important;
+    border-color: rgb(226 232 240 / 1) !important;
+    color: #64748b !important;
+  }
+
+  .pill-luxury-active {
+    background-color: rgb(19 91 236 / 0.1) !important;
+    border-color: rgb(19 91 236 / 0.3) !important;
+    color: #135bec !important;
+  }
+
+  /* Progress bar */
+  .progress-luxury {
+    background-color: rgb(226 232 240 / 1) !important;
+  }
+
+  /* Status badge */
+  .status-badge-luxury {
+    border: 1px solid currentColor;
+  }
+
+  /* Hover states */
+  .hover\:bg-white\/\[0\.04\]:hover {
+    background-color: rgb(241 245 249 / 1) !important;
+  }
+
+  .hover\:bg-white\/\[0\.05\]:hover {
+    background-color: rgb(241 245 249 / 1) !important;
+  }
+
+  .hover\:bg-white\/5:hover {
+    background-color: rgb(241 245 249 / 1) !important;
+  }
+
+  .hover\:bg-white\/10:hover {
+    background-color: rgb(226 232 240 / 1) !important;
+  }
+
+  .hover\:text-white:hover {
+    color: #0f172a !important;
+  }
+
+  .hover\:text-white\/60:hover {
+    color: rgb(71 85 105 / 1) !important;
+  }
+
+  /* Muted foreground for legacy dark theme */
+  .text-muted-foreground {
+    color: #64748b !important;
+  }
+
+  /* Ambient glow - hide in light mode */
+  .ambient-glow {
+    display: none !important;
+  }
+
+  /* Ring colors */
+  .ring-white\/5 {
+    --tw-ring-color: rgb(226 232 240 / 1) !important;
+  }
+
+  .ring-white\/10 {
+    --tw-ring-color: rgb(226 232 240 / 1) !important;
+  }
+
+  /* Card border overrides */
+  .border-card-border {
+    border-color: rgb(226 232 240 / 1) !important;
+  }
+
+  /* Muted background */
+  .bg-muted\/30,
+  .bg-muted\/20,
+  .bg-muted\/50 {
+    background-color: rgb(248 250 252 / 1) !important;
+  }
+
+  .hover\:bg-muted\/50:hover {
+    background-color: rgb(241 245 249 / 1) !important;
+  }
+
+  /* Card premium */
+  .card-premium {
+    background-color: white !important;
+    border-color: rgb(226 232 240 / 1) !important;
+  }
+
+  /* Primary background opacity */
+  .bg-primary\/10 {
+    background-color: rgb(19 91 236 / 0.1) !important;
+  }
+
+  /* Text foreground */
+  .text-foreground {
+    color: #0f172a !important;
+  }
+
+  /* Surface classes */
+  .bg-surface-300 {
+    background-color: rgb(241 245 249 / 1) !important;
+  }
+
+  .bg-surface-400 {
+    background-color: rgb(226 232 240 / 1) !important;
+  }
+
+  /* Background class */
+  .bg-background {
+    background-color: #f6f6f8 !important;
+  }
+
+  /* Focus ring offset */
+  .focus-visible\:ring-offset-background {
+    --tw-ring-offset-color: #f6f6f8 !important;
+  }
+}

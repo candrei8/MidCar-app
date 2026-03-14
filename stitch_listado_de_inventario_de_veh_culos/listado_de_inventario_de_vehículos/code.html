@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MidCar Inventory</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#135bec",
+              "background-light": "#f6f6f8",
+              "background-dark": "#101622",
+            },
+            fontFamily: {
+              "display": ["Manrope", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display antialiased">
+<div class="relative flex h-full min-h-screen w-full flex-col overflow-x-hidden pb-20">
+<!-- TopAppBar -->
+<div class="sticky top-0 z-20 flex items-center bg-white dark:bg-slate-900 p-4 shadow-sm justify-between border-b border-slate-100 dark:border-slate-800">
+<div class="text-slate-900 dark:text-white flex size-12 shrink-0 items-center justify-start cursor-pointer hover:opacity-70">
+<span class="material-symbols-outlined" style="font-size: 24px;">arrow_back</span>
+</div>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Inventario MidCar</h2>
+<div class="flex w-12 items-center justify-end cursor-pointer hover:opacity-70">
+<span class="material-symbols-outlined text-primary" style="font-size: 24px;">add_circle</span>
+</div>
+</div>
+<!-- Stats -->
+<div class="flex flex-wrap gap-4 p-4">
+<div class="flex min-w-[158px] flex-1 flex-col gap-2 rounded-xl p-5 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
+<div class="flex items-center gap-2">
+<div class="p-2 bg-primary/10 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" style="font-size: 20px;">directions_car</span>
+</div>
+<p class="text-slate-600 dark:text-slate-400 text-sm font-medium leading-normal">Total Vehículos</p>
+</div>
+<p class="text-slate-900 dark:text-white tracking-tight text-2xl font-extrabold leading-tight">142</p>
+</div>
+<div class="flex min-w-[158px] flex-1 flex-col gap-2 rounded-xl p-5 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
+<div class="flex items-center gap-2">
+<div class="p-2 bg-green-500/10 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-green-600" style="font-size: 20px;">attach_money</span>
+</div>
+<p class="text-slate-600 dark:text-slate-400 text-sm font-medium leading-normal">Valor del Stock</p>
+</div>
+<p class="text-slate-900 dark:text-white tracking-tight text-2xl font-extrabold leading-tight">€ 2.4M</p>
+</div>
+</div>
+<!-- SearchBar -->
+<div class="px-4 pb-2">
+<label class="flex flex-col min-w-40 h-12 w-full">
+<div class="flex w-full flex-1 items-stretch rounded-xl h-full shadow-sm">
+<div class="text-slate-500 dark:text-slate-400 flex border-none bg-white dark:bg-slate-800 items-center justify-center pl-4 rounded-l-xl border-r-0">
+<span class="material-symbols-outlined" style="font-size: 24px;">search</span>
+</div>
+<input class="flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-slate-900 dark:text-white focus:outline-0 focus:ring-0 border-none bg-white dark:bg-slate-800 focus:border-none h-full placeholder:text-slate-400 px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal" placeholder="Buscar por marca, modelo..." value=""/>
+</div>
+</label>
+</div>
+<!-- Chips (Filters) -->
+<div class="flex gap-3 px-4 py-2 overflow-x-auto no-scrollbar pb-4">
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-slate-900 dark:bg-white pl-3 pr-3 shadow-md">
+<span class="material-symbols-outlined text-white dark:text-slate-900" style="font-size: 18px;">tune</span>
+<p class="text-white dark:text-slate-900 text-sm font-semibold leading-normal">Filtros</p>
+<div class="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">2</div>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 pl-3 pr-3 whitespace-nowrap">
+<span class="material-symbols-outlined text-slate-700 dark:text-slate-300" style="font-size: 18px;">sort</span>
+<p class="text-slate-700 dark:text-slate-300 text-sm font-medium leading-normal">Ordenar</p>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 pl-3 pr-3 whitespace-nowrap">
+<p class="text-slate-700 dark:text-slate-300 text-sm font-medium leading-normal">Marca</p>
+<span class="material-symbols-outlined text-slate-500" style="font-size: 18px;">keyboard_arrow_down</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 pl-3 pr-3 whitespace-nowrap">
+<p class="text-slate-700 dark:text-slate-300 text-sm font-medium leading-normal">Precio</p>
+<span class="material-symbols-outlined text-slate-500" style="font-size: 18px;">keyboard_arrow_down</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 pl-3 pr-3 whitespace-nowrap">
+<p class="text-slate-700 dark:text-slate-300 text-sm font-medium leading-normal">Año</p>
+<span class="material-symbols-outlined text-slate-500" style="font-size: 18px;">keyboard_arrow_down</span>
+</button>
+</div>
+<!-- Inventory Grid -->
+<div class="grid grid-cols-[repeat(auto-fit,minmax(165px,1fr))] gap-4 px-4 pb-4">
+<!-- Card 1 -->
+<div class="flex flex-col gap-3 group cursor-pointer">
+<div class="relative w-full aspect-[4/3] rounded-xl overflow-hidden shadow-sm">
+<div class="w-full h-full bg-center bg-no-repeat bg-cover transition-transform duration-500 group-hover:scale-105" data-alt="Silver BMW sedan parked on asphalt" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBpkS6U2EODj1SXsvd66IfKKt94xMHqcpXOf6nmi7zepSc6HU5OiYsEUsfBC2aJ1TWUEB6pjKIvQdLumMSJaZFmt9lwWhuURKn6IzJv8u3RC_okPNfLM2JKKtYIDnkAKjRgeawIB8w8LouUrnz7T4F_-oa2kVP9iKTYneSUEpDcjNfb1vqye-5qz76SFb40faSmLcVhDQ7Qnve-mluquuewmv6WXqH9F80rT2zev50iFJJqyUUdlu7pDt3mEc16y3al2siaiq6U90Vx");'></div>
+<div class="absolute top-2 right-2 bg-green-500/90 backdrop-blur-sm text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">
+                    Disponible
+                </div>
+</div>
+<div>
+<div class="flex justify-between items-start">
+<p class="text-slate-900 dark:text-white text-base font-bold leading-tight">BMW Serie 3</p>
+</div>
+<p class="text-primary text-lg font-bold leading-normal mt-0.5">€ 24.900</p>
+<div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-slate-400" style="font-size: 16px;">calendar_today</span>
+<span class="text-slate-500 dark:text-slate-400 text-xs font-medium">2020</span>
+</div>
+<div class="w-1 h-1 rounded-full bg-slate-300"></div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-slate-400" style="font-size: 16px;">speed</span>
+<span class="text-slate-500 dark:text-slate-400 text-xs font-medium">55k km</span>
+</div>
+<div class="w-1 h-1 rounded-full bg-slate-300"></div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-slate-400" style="font-size: 16px;">local_gas_station</span>
+<span class="text-slate-500 dark:text-slate-400 text-xs font-medium">Diesel</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="flex flex-col gap-3 group cursor-pointer">
+<div class="relative w-full aspect-[4/3] rounded-xl overflow-hidden shadow-sm">
+<div class="w-full h-full bg-center bg-no-repeat bg-cover transition-transform duration-500 group-hover:scale-105" data-alt="White Audi hatchback front view" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDAhUOoKuhAjtBVtiMVmzJNi1tONMsxdF50wx75G3u6HxIH4oux-Ucyv7EZEdS0uo2M2FVF_ZjLRRAg53SL__gAaar07b6-kmzYrD1kzx644X187RaL14S1P9xhgqX9wIp28Kx1Npb19lIt0fqWhgqXRfBgpt57owQwCpWljjNVSxsGt1If3nlAb_-zcjRew44jpDxxuhH4BWVt2l7sAVXFqP7nWknwsefzsggorQEPqNPyAXUB9qVf74Fr6B63AaS9hMKrrIIlfWKI");'></div>
+<div class="absolute top-2 right-2 bg-orange-500/90 backdrop-blur-sm text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">
+                    Reservado
+                </div>
+</div>
+<div>
+<div class="flex justify-between items-start">
+<p class="text-slate-900 dark:text-white text-base font-bold leading-tight">Audi A3 Sportback</p>
+</div>
+<p class="text-primary text-lg font-bold leading-normal mt-0.5">€ 18.500</p>
+<div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-slate-400" style="font-size: 16px;">calendar_today</span>
+<span class="text-slate-500 dark:text-slate-400 text-xs font-medium">2018</span>
+</div>
+<div class="w-1 h-1 rounded-full bg-slate-300"></div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-slate-400" style="font-size: 16px;">speed</span>
+<span class="text-slate-500 dark:text-slate-400 text-xs font-medium">82k km</span>
+</div>
+<div class="w-1 h-1 rounded-full bg-slate-300"></div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-slate-400" style="font-size: 16px;">local_gas_station</span>
+<span class="text-slate-500 dark:text-slate-400 text-xs font-medium">Gasolina</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="flex flex-col gap-3 group cursor-pointer">
+<div class="relative w-full aspect-[4/3] rounded-xl overflow-hidden shadow-sm">
+<div class="w-full h-full bg-center bg-no-repeat bg-cover transition-transform duration-500 group-hover:scale-105" data-alt="Black Mercedes luxury car side view" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB90-A8UOI39LSAbevxviVehrU8img-RwglPDU01NHgLVtMvudwt7BZ5rGkfk5DBqAn60Xw2Ym88HOQFSeZc93WmKxcjnFcZXxtHMv1aEzDxtE6gUXTjrHrwUjXlTeU3LqVsyRy8yFjV0uhi89lIKRaZtrFnaMqzXRUytbgANHo3NfnT9qpQAaj7Qjb3QP15DM8_ipRPQ52Q31GX8uqlBpoMwnSL4YesCVBVZdiOytkVNYIjIpw-ZUIM-k2ouS5ioxhEvYUZQ8gdKD4");'></div>
+<div class="absolute top-2 right-2 bg-green-500/90 backdrop-blur-sm text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">
+                    Disponible
+                </div>
+</div>
+<div>
+<div class="flex justify-between items-start">
+<p class="text-slate-900 dark:text-white text-base font-bold leading-tight">Mercedes Clase A</p>
+</div>
+<p class="text-primary text-lg font-bold leading-normal mt-0.5">€ 21.000</p>
+<div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-slate-400" style="font-size: 16px;">calendar_today</span>
+<span class="text-slate-500 dark:text-slate-400 text-xs font-medium">2019</span>
+</div>
+<div class="w-1 h-1 rounded-full bg-slate-300"></div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-slate-400" style="font-size: 16px;">speed</span>
+<span class="text-slate-500 dark:text-slate-400 text-xs font-medium">40k km</span>
+</div>
+<div class="w-1 h-1 rounded-full bg-slate-300"></div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-slate-400" style="font-size: 16px;">local_gas_station</span>
+<span class="text-slate-500 dark:text-slate-400 text-xs font-medium">Diesel</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="flex flex-col gap-3 group cursor-pointer">
+<div class="relative w-full aspect-[4/3] rounded-xl overflow-hidden shadow-sm">
+<div class="w-full h-full bg-center bg-no-repeat bg-cover transition-transform duration-500 group-hover:scale-105 grayscale" data-alt="Blue Volkswagen hatchback in a showroom" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDxfMMSd0JENyPvPRbuNlLxMyxV4YAruHBXNB6AkLThA_r6IRk8uyDS5dJCJEaKvdYE5T9ntO9PJHmh01TbyUm4sHzvHK10EMckY2LYLogjqFMPCmX5u2zVFVCikSPfGs3j1PX6ueEGTo6Iwe7cEsZyjZ9PUzKNQmcSCZgeUzGG9kGjENHOL0dNSfc6KJNYrGJNd1_ObVoiVuebDSpdlKEjG6_c4JP68nmI48FnLFghVk8am1ya5I9vRaUWXC2dae6m1CFgy_3Vx9DB");'></div>
+<div class="absolute inset-0 bg-white/20 dark:bg-black/20"></div>
+<div class="absolute top-2 right-2 bg-slate-500/90 backdrop-blur-sm text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">
+                    Vendido
+                </div>
+</div>
+<div>
+<div class="flex justify-between items-start">
+<p class="text-slate-900 dark:text-white text-base font-bold leading-tight">Volkswagen Golf</p>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-lg font-bold leading-normal mt-0.5 line-through decoration-slate-400">€ 16.200</p>
+<div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-slate-400" style="font-size: 16px;">calendar_today</span>
+<span class="text-slate-500 dark:text-slate-400 text-xs font-medium">2017</span>
+</div>
+<div class="w-1 h-1 rounded-full bg-slate-300"></div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-slate-400" style="font-size: 16px;">speed</span>
+<span class="text-slate-500 dark:text-slate-400 text-xs font-medium">95k km</span>
+</div>
+<div class="w-1 h-1 rounded-full bg-slate-300"></div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-slate-400" style="font-size: 16px;">local_gas_station</span>
+<span class="text-slate-500 dark:text-slate-400 text-xs font-medium">Gasolina</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 5 -->
+<div class="flex flex-col gap-3 group cursor-pointer">
+<div class="relative w-full aspect-[4/3] rounded-xl overflow-hidden shadow-sm">
+<div class="w-full h-full bg-center bg-no-repeat bg-cover transition-transform duration-500 group-hover:scale-105" data-alt="Red Tesla Model 3 electric car parked" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA0Bjvs3kCMQVvfoDRYuEfH3w_GIM0x0oANKqzILN8YmBGMyWrcnH1c2YnV47Ysz4cD5Kt1eBK3dmB-ZuAspx9bq9GWmhnK83F1_4-JQtFfH8ONOCaM4K5PpMrPbamBWVgsXbC2OBOPXPrtLM2YBbeBcLbyAfwmTDIIawLgOJX-WqA7Yluj4ZLYGuVXfPjjaEnk0MevG1Yh2_nDfTvrNZouECD465vgh0ZtQzNm8ZFUfZ1XNJDKpcdkijrW_w361S-XxjXJesUZ3Cok");'></div>
+<div class="absolute top-2 right-2 bg-green-500/90 backdrop-blur-sm text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">
+                    Disponible
+                </div>
+</div>
+<div>
+<div class="flex justify-between items-start">
+<p class="text-slate-900 dark:text-white text-base font-bold leading-tight">Tesla Model 3</p>
+</div>
+<p class="text-primary text-lg font-bold leading-normal mt-0.5">€ 34.500</p>
+<div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-slate-400" style="font-size: 16px;">calendar_today</span>
+<span class="text-slate-500 dark:text-slate-400 text-xs font-medium">2021</span>
+</div>
+<div class="w-1 h-1 rounded-full bg-slate-300"></div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-slate-400" style="font-size: 16px;">speed</span>
+<span class="text-slate-500 dark:text-slate-400 text-xs font-medium">32k km</span>
+</div>
+<div class="w-1 h-1 rounded-full bg-slate-300"></div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-slate-400" style="font-size: 16px;">electric_car</span>
+<span class="text-slate-500 dark:text-slate-400 text-xs font-medium">Eléctrico</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 6 -->
+<div class="flex flex-col gap-3 group cursor-pointer">
+<div class="relative w-full aspect-[4/3] rounded-xl overflow-hidden shadow-sm">
+<div class="w-full h-full bg-center bg-no-repeat bg-cover transition-transform duration-500 group-hover:scale-105" data-alt="Grey Porsche SUV parked outdoors" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBqP5PQvbL2dsOUVM3DF1h65PAnemBabd2yUh8DEnXYA-6bbu3-xoOX4qtuEuNjqv6P2G020XgOVoeg28iBKvg1IcUkv1shJ4IF5g9v_JIOgpz3PSWWFt3iGsWfrxtp2Jw9kiCE_YdXmOZO9fvBU3vKPEQvRRv65IxeFvPIrGDQq_jGk-T09qSAhI_TMoo74-oHPG_pgbg1qoDd3nbXlbLKNChsd4lKI33GhQF9bY1HW2711d2xgf_ctaUEp8N604PO5n-EhTbjk2lH");'></div>
+<div class="absolute top-2 right-2 bg-green-500/90 backdrop-blur-sm text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">
+                    Disponible
+                </div>
+</div>
+<div>
+<div class="flex justify-between items-start">
+<p class="text-slate-900 dark:text-white text-base font-bold leading-tight">Porsche Macan</p>
+</div>
+<p class="text-primary text-lg font-bold leading-normal mt-0.5">€ 58.000</p>
+<div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-slate-400" style="font-size: 16px;">calendar_today</span>
+<span class="text-slate-500 dark:text-slate-400 text-xs font-medium">2022</span>
+</div>
+<div class="w-1 h-1 rounded-full bg-slate-300"></div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-slate-400" style="font-size: 16px;">speed</span>
+<span class="text-slate-500 dark:text-slate-400 text-xs font-medium">15k km</span>
+</div>
+<div class="w-1 h-1 rounded-full bg-slate-300"></div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-slate-400" style="font-size: 16px;">local_gas_station</span>
+<span class="text-slate-500 dark:text-slate-400 text-xs font-medium">Gasolina</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Navigation -->
+<div class="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 pb-safe">
+<div class="flex justify-around items-center h-16">
+<button class="flex flex-col items-center justify-center gap-1 w-full h-full text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined" style="font-size: 24px;">dashboard</span>
+<span class="text-[10px] font-medium">Inicio</span>
+</button>
+<button class="flex flex-col items-center justify-center gap-1 w-full h-full text-primary transition-colors">
+<span class="material-symbols-outlined fill-current" style="font-size: 24px;">directions_car</span>
+<span class="text-[10px] font-bold">Inventario</span>
+</button>
+<button class="flex flex-col items-center justify-center gap-1 w-full h-full text-slate-400 hover:text-primary transition-colors">
+<div class="relative">
+<span class="material-symbols-outlined" style="font-size: 24px;">euro_symbol</span>
+<span class="absolute -top-1 -right-1 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-red-500 ring-2 ring-white dark:ring-slate-900"></span>
+</div>
+<span class="text-[10px] font-medium">Ventas</span>
+</button>
+<button class="flex flex-col items-center justify-center gap-1 w-full h-full text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined" style="font-size: 24px;">group</span>
+<span class="text-[10px] font-medium">Clientes</span>
+</button>
+</div>
+</div>
+<!-- Safe area spacing for bottom nav -->
+<div class="h-8 w-full bg-transparent"></div>
+</div>
+</body></html>

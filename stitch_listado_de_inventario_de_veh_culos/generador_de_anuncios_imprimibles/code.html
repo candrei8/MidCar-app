@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Generador de Anuncios - MidCar</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        .aspect-a4 {
+            aspect-ratio: 1 / 1.414;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#111318] dark:text-white">
+<div class="relative flex h-full min-h-screen w-full flex-col overflow-x-hidden pb-24">
+<!-- Top App Bar -->
+<div class="sticky top-0 z-10 flex items-center bg-white dark:bg-[#101622] p-4 pb-2 justify-between border-b border-[#f0f2f4] dark:border-[#222831]">
+<div class="text-[#111318] dark:text-white flex size-12 shrink-0 items-center justify-start cursor-pointer">
+<span class="material-symbols-outlined text-2xl">arrow_back</span>
+</div>
+<h2 class="text-[#111318] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">
+                Generar Flyer
+            </h2>
+</div>
+<!-- Vehicle Selection Card -->
+<div class="p-4">
+<h3 class="text-[#111318] dark:text-white text-base font-bold leading-tight px-1 mb-3">Vehículo seleccionado</h3>
+<div class="flex items-stretch justify-between gap-4 rounded-xl bg-white dark:bg-[#1a202c] p-4 shadow-[0_0_4px_rgba(0,0,0,0.05)] dark:shadow-none border border-transparent dark:border-[#2d3748]">
+<div class="flex flex-[2_2_0px] flex-col gap-3 justify-between">
+<div class="flex flex-col gap-1">
+<p class="text-[#111318] dark:text-white text-base font-bold leading-tight">Audi A3 Sportback</p>
+<p class="text-[#616f89] dark:text-gray-400 text-sm font-normal leading-normal">2019 • 45.000 km</p>
+<p class="text-primary text-base font-bold leading-normal mt-1">18.500 €</p>
+</div>
+<button class="flex items-center justify-center overflow-hidden rounded-lg h-8 px-4 bg-[#f0f2f4] dark:bg-[#2d3748] text-[#111318] dark:text-white text-sm font-medium leading-normal w-fit transition hover:bg-[#e0e2e4] dark:hover:bg-[#4a5568]">
+<span class="truncate">Cambiar</span>
+</button>
+</div>
+<div class="w-24 sm:w-32 bg-center bg-no-repeat bg-cover rounded-lg shrink-0" data-alt="Side profile of a silver Audi A3 parked outdoors" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDizn8w9i4TfBIYwW3UvjDkYvScUSpM1ZkuQpvApCDxd-ltwkmNaKME0eR5rlyM1WlFM8IC6oCRjxcZx1zNI12LbKvum6w-y8DP4mryjKbFvkaHSSA6uxxsmzVzT7x2rMC29j79ykko8hd9f3HouTiiRbt-xDzC36TuwXEhEWNnap9IswxwaVLzLj5LnvLEglGTHBQm7QicoRRIBH7Xfcdcwv58tybdfyBKKWEP5uZINLMVT4ggzq_HLHyq4RAAMi96mV6r6q_wXpor");'></div>
+</div>
+</div>
+<!-- Configuration Section -->
+<div class="px-4 pt-2">
+<h2 class="text-[#111318] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] pb-3">Configuración</h2>
+<!-- Paper Size Segmented Control -->
+<div class="flex mb-6">
+<div class="flex h-12 flex-1 items-center justify-center rounded-xl bg-[#e5e7eb] dark:bg-[#1a202c] p-1">
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-[#2d3748] has-[:checked]:shadow-sm has-[:checked]:text-[#111318] dark:has-[:checked]:text-white text-[#616f89] dark:text-gray-400 text-sm font-medium leading-normal transition-all">
+<span class="truncate">A4 (Folio)</span>
+<input checked="" class="invisible w-0" name="paper-size" type="radio" value="A4"/>
+</label>
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-[#2d3748] has-[:checked]:shadow-sm has-[:checked]:text-[#111318] dark:has-[:checked]:text-white text-[#616f89] dark:text-gray-400 text-sm font-medium leading-normal transition-all">
+<span class="truncate">A5 (Cuartilla)</span>
+<input class="invisible w-0" name="paper-size" type="radio" value="A5"/>
+</label>
+</div>
+</div>
+<!-- Options Checklist -->
+<div class="space-y-1 mb-6">
+<label class="flex gap-x-3 py-3 items-center justify-between cursor-pointer group">
+<span class="text-[#111318] dark:text-white text-base font-normal leading-normal">Mostrar precio</span>
+<div class="relative flex items-center">
+<input checked="" class="peer h-6 w-6 cursor-pointer appearance-none rounded border-2 border-[#dbdfe6] dark:border-[#4a5568] bg-transparent transition-all checked:border-primary checked:bg-primary hover:border-primary focus:outline-none focus:ring-0 focus:ring-offset-0" type="checkbox"/>
+<span class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100">
+<span class="material-symbols-outlined text-sm font-bold">check</span>
+</span>
+</div>
+</label>
+<div class="h-px bg-[#e5e7eb] dark:bg-[#2d3748] w-full"></div>
+<label class="flex gap-x-3 py-3 items-center justify-between cursor-pointer group">
+<span class="text-[#111318] dark:text-white text-base font-normal leading-normal">Mostrar equipamiento destacado</span>
+<div class="relative flex items-center">
+<input checked="" class="peer h-6 w-6 cursor-pointer appearance-none rounded border-2 border-[#dbdfe6] dark:border-[#4a5568] bg-transparent transition-all checked:border-primary checked:bg-primary hover:border-primary focus:outline-none focus:ring-0 focus:ring-offset-0" type="checkbox"/>
+<span class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100">
+<span class="material-symbols-outlined text-sm font-bold">check</span>
+</span>
+</div>
+</label>
+<div class="h-px bg-[#e5e7eb] dark:bg-[#2d3748] w-full"></div>
+<label class="flex gap-x-3 py-3 items-center justify-between cursor-pointer group">
+<span class="text-[#111318] dark:text-white text-base font-normal leading-normal">Incluir código QR</span>
+<div class="relative flex items-center">
+<input checked="" class="peer h-6 w-6 cursor-pointer appearance-none rounded border-2 border-[#dbdfe6] dark:border-[#4a5568] bg-transparent transition-all checked:border-primary checked:bg-primary hover:border-primary focus:outline-none focus:ring-0 focus:ring-offset-0" type="checkbox"/>
+<span class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100">
+<span class="material-symbols-outlined text-sm font-bold">check</span>
+</span>
+</div>
+</label>
+</div>
+</div>
+<!-- Live Preview Section -->
+<div class="px-4 pb-8">
+<div class="flex items-center justify-between mb-3">
+<h2 class="text-[#111318] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Vista Previa</h2>
+<span class="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded">Escala 1:4</span>
+</div>
+<!-- The Paper Canvas -->
+<div class="w-full flex justify-center bg-[#e0e2e6] dark:bg-[#0d121c] p-6 rounded-xl overflow-hidden">
+<!-- This div represents the A4 paper. White background is fixed regardless of dark mode as it represents paper. -->
+<div class="relative bg-white w-[280px] aspect-[1/1.414] shadow-xl flex flex-col overflow-hidden">
+<!-- Header Image -->
+<div class="h-[45%] w-full bg-cover bg-center" data-alt="Front view of Audi A3 on a winding road" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA8Dn1vDV5QNQ0ZhWZ_mackDYnBHLPZZr5W6w_iAW0N-fKlG_KpzU_lj2qSrUKzH2F0DZoe09Anc8qR5728mQ2l106Hb8O_C_JmkSjOAwtJjDujCIA0pc0rwzwfUGsfH7OC7Fa1yeUxbn7xYygRxPYIGMtlYlZSMBUXK_r90Amnl5YumEwixXZ_ybKOZDF7P9z_ZR6fF-d3e3O1M5EQsVh-UZLSB-UNvzdTLUA8XUUK7bozBdOHQirsM9Vu-bDJPG5qiradzmOcEPZJ');">
+<div class="w-full h-full bg-gradient-to-t from-black/50 to-transparent flex items-end p-4">
+<div class="text-white font-bold text-xs uppercase tracking-wider bg-primary px-2 py-0.5 rounded-sm w-fit mb-1">MidCar Certified</div>
+</div>
+</div>
+<!-- Content Body -->
+<div class="flex-1 p-4 flex flex-col">
+<h1 class="text-[#111318] text-xl font-extrabold leading-tight mb-1">Audi A3 Sportback</h1>
+<p class="text-[#616f89] text-xs font-medium mb-3">35 TFSI S line S tronic</p>
+<!-- Price Tag -->
+<div class="text-primary text-3xl font-bold tracking-tight mb-4">18.500 €</div>
+<!-- Specs Grid -->
+<div class="grid grid-cols-2 gap-y-3 gap-x-2 mb-auto">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[#9ca3af] text-[16px]">calendar_today</span>
+<span class="text-[#111318] text-xs font-semibold">2019</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[#9ca3af] text-[16px]">speed</span>
+<span class="text-[#111318] text-xs font-semibold">45.000 km</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[#9ca3af] text-[16px]">local_gas_station</span>
+<span class="text-[#111318] text-xs font-semibold">Gasolina</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[#9ca3af] text-[16px]">settings</span>
+<span class="text-[#111318] text-xs font-semibold">Automático</span>
+</div>
+</div>
+<!-- Footer / QR -->
+<div class="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
+<div class="flex flex-col gap-1">
+<span class="text-[10px] text-gray-500 font-bold uppercase">Escanea para ver más</span>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-primary text-sm">verified</span>
+<span class="text-[10px] font-bold text-[#111318]">Garantía 12 meses</span>
+</div>
+</div>
+<div class="bg-white p-1 rounded border border-gray-100 shadow-sm">
+<!-- Simulated QR Code -->
+<div class="size-14 bg-white" data-alt="QR Code pattern for scanning" style="background-image: url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100%25\' height=\'100%25\' viewBox=\'0 0 80 80\'%3E%3Cpath fill=\'%23111318\' d=\'M0 0h20v20H0V0zm25 0h10v10H25V0zm15 0h15v15H40V0zm20 0h20v20H60V0zM5 5v10h10V5H5zm25 0v5h5V5h-5zm35 0v10h10V5H65zM0 25h15v15H0V25zm20 0h5v5h-5v-5zm10 0h10v10H30V25zm15 0h10v5h-5v5h-5V25zm20 0h15v15H65V25zM5 30v5h5v-5H5zm30 0v5h5v-5h-5zm45 0v5h10v-5h-10zM0 45h10v10H0V45zm15 0h20v20H15V45zm45 0h20v20H60V45zM5 50v5h5v-5H5zm60 0v10h10V50H65zM0 70h20v10H0V70zm25 0h10v10H25V70zm25 0h10v10H50V70zm15 0h15v10H65V70z\'/%3E%3C/svg%3E'); background-size: contain; background-repeat: no-repeat;"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Fixed Bottom Action Bar -->
+<div class="fixed bottom-0 left-0 right-0 bg-white dark:bg-[#101622] border-t border-[#f0f2f4] dark:border-[#222831] p-4 pb-6 sm:pb-4 shadow-[0_-4px_16px_rgba(0,0,0,0.05)] z-20">
+<div class="flex gap-3 max-w-2xl mx-auto">
+<button class="flex h-12 flex-1 cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-[#dbdfe6] dark:border-[#4a5568] bg-transparent text-[#111318] dark:text-white text-base font-bold leading-normal tracking-[0.015em] hover:bg-[#f6f6f8] dark:hover:bg-[#2d3748] transition active:scale-95">
+<span class="material-symbols-outlined mr-2">picture_as_pdf</span>
+<span class="truncate">PDF</span>
+</button>
+<button class="flex h-12 flex-[2] cursor-pointer items-center justify-center overflow-hidden rounded-xl bg-primary text-white shadow-lg shadow-blue-500/30 text-base font-bold leading-normal tracking-[0.015em] hover:bg-blue-700 transition active:scale-95">
+<span class="material-symbols-outlined mr-2">print</span>
+<span class="truncate">Imprimir Flyer</span>
+</button>
+</div>
+</div>
+</body></html>

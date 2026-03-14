@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" fill="none">
+  <rect width="400" height="300" fill="#e5e7eb"/>
+  <g transform="translate(125, 100)">
+    <path d="M150 70H0V100H150V70Z" fill="#9ca3af"/>
+    <path d="M135 30L150 70H0L25 30H135Z" fill="#9ca3af"/>
+    <path d="M30 35H45V60H30V35Z" fill="#d1d5db"/>
+    <path d="M105 35H120V60H105V35Z" fill="#d1d5db"/>
+    <circle cx="35" cy="100" r="18" fill="#6b7280"/>
+    <circle cx="35" cy="100" r="10" fill="#9ca3af"/>
+    <circle cx="115" cy="100" r="18" fill="#6b7280"/>
+    <circle cx="115" cy="100" r="10" fill="#9ca3af"/>
+  </g>
+  <text x="200" y="240" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" fill="#9ca3af">Sin imagen</text>
+</svg>
