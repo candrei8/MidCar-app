@@ -138,7 +138,7 @@ export function Header() {
     return (
         <>
             {/* Mobile Header */}
-            <header className="lg:hidden sticky top-0 z-20 bg-white shadow-sm border-b border-slate-100 transition-all">
+            <header className="lg:hidden sticky top-0 z-20 bg-white shadow-sm border-b border-slate-100">
                 <div className="flex items-center justify-between p-4">
                     {/* User Avatar */}
                     <div className="flex items-center gap-3">

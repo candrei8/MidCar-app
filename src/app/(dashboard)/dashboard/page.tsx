@@ -3,27 +3,17 @@
 import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import {
-    getDashboardData,
-    type DashboardData,
-} from "@/lib/dashboard-service"
+import dynamic from "next/dynamic"
+import { getDashboardData } from "@/lib/dashboard-service"
 import { formatCurrency, formatRelativeTime, cn } from "@/lib/utils"
 import { VINScannerModal } from "@/components/inventory/VINScannerModal"
 import { useFilteredData } from "@/hooks/useFilteredData"
-import {
-    AreaChart,
-    Area,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    ResponsiveContainer,
-    BarChart,
-    Bar,
-    Cell,
-    PieChart,
-    Pie
-} from 'recharts'
+
+// Lazy load recharts — heavy library, defer until charts are visible
+const DashboardCharts = dynamic(() => import('./DashboardCharts'), {
+    ssr: false,
+    loading: () => <div className="h-[180px] bg-slate-50 rounded-2xl animate-pulse" />,
+})
 
 // Helper function to format trend percentage
 function formatTrend(value: number): { text: string; isPositive: boolean } {
@@ -66,16 +56,12 @@ interface ActivityItem {
 export default function DashboardPage() {
     const router = useRouter()
     const [vinScannerOpen, setVinScannerOpen] = useState(false)
-    const [data, setData] = useState<DashboardData | null>(null)
+
+    // getDashboardData is synchronous — call directly, no useEffect needed
+    const data = useMemo(() => getDashboardData(), [])
 
     // Obtener datos filtrados por usuario (Mi Vista / Visión Completa)
     const { stats: filteredStats, isFullView } = useFilteredData()
-
-    // Load dashboard data
-    useEffect(() => {
-        const dashboardData = getDashboardData()
-        setData(dashboardData)
-    }, [])
 
     // Métricas de leads desde stats (count-only queries — sin cargar todos los leads)
     const filteredLeadMetrics = useMemo(() => {
@@ -101,14 +87,6 @@ export default function DashboardPage() {
 
     const handleVINDetected = (vin: string) => {
         router.push(`/inventario/nuevo?vin=${vin}`)
-    }
-
-    if (!data) {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            </div>
-        )
     }
 
     // AHORA USAMOS MÉTRICAS REALES DE filteredStats EN LUGAR DE CEROS
@@ -186,9 +164,6 @@ export default function DashboardPage() {
     // Usar métricas de leads filtradas por usuario
     const leads = filteredLeadMetrics
 
-    // Prepare chart colors
-    const BRAND_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#6366f1', '#14b8a6']
-
     return (
         <>
             <VINScannerModal
@@ -227,7 +202,7 @@ export default function DashboardPage() {
                             icon="attach_money"
                             iconBg="bg-green-100"
                             iconColor="text-green-700"
-                            onClick={() => router.push('/crm')}
+                            href="/crm"
                         />
 
                         {/* Margin KPI */}
@@ -239,7 +214,7 @@ export default function DashboardPage() {
                             icon="trending_up"
                             iconBg="bg-emerald-100"
                             iconColor="text-emerald-700"
-                            onClick={() => router.push('/inventario')}
+                            href="/inventario"
                         />
 
                         {/* Stock Value KPI */}
@@ -251,7 +226,7 @@ export default function DashboardPage() {
                             icon="inventory_2"
                             iconBg="bg-blue-100"
                             iconColor="text-blue-700"
-                            onClick={() => router.push('/inventario')}
+                            href="/inventario"
                         />
 
                         {/* Pipeline KPI */}
@@ -263,7 +238,7 @@ export default function DashboardPage() {
                             icon="trending_up"
                             iconBg="bg-purple-100"
                             iconColor="text-purple-700"
-                            onClick={() => router.push('/crm')}
+                            href="/crm"
                         />
                     </div>
                 </section>
@@ -292,124 +267,13 @@ export default function DashboardPage() {
                     </div>
                 </section>
 
-                {/* Sales Performance Chart */}
-                <section className="px-4">
-                    <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
-                        <div className="flex justify-between items-start mb-4">
-                            <div>
-                                <h3 className="text-base font-bold text-slate-900">Rendimiento de Ventas</h3>
-                                <p className="text-sm text-slate-500">Ingresos últimos meses</p>
-                            </div>
-                            <div className="text-right">
-                                <p className="text-xl font-bold text-slate-900">{formatCurrency(sales.ingresosReales)}</p>
-                                <p className={cn(
-                                    "text-sm font-medium",
-                                    sales.tendenciaMensual >= 0 ? "text-green-600" : "text-red-600"
-                                )}>
-                                    {sales.tendenciaMensual >= 0 ? '+' : ''}{sales.tendenciaMensual.toFixed(1)}% vs anterior
-                                </p>
-                            </div>
-                        </div>
-                        <div className="h-[180px] w-full">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={chartData.salesOverTime}>
-                                    <defs>
-                                        <linearGradient id="colorIngresos" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                                            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                                        </linearGradient>
-                                    </defs>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                                    <XAxis
-                                        dataKey="date"
-                                        tick={{ fill: '#64748b', fontSize: 11 }}
-                                        axisLine={false}
-                                        tickLine={false}
-                                    />
-                                    <YAxis
-                                        tick={{ fill: '#64748b', fontSize: 11 }}
-                                        axisLine={false}
-                                        tickLine={false}
-                                        tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
-                                    />
-                                    <Tooltip
-                                        contentStyle={{
-                                            backgroundColor: '#fff',
-                                            border: '1px solid #e2e8f0',
-                                            borderRadius: '12px',
-                                            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                                        }}
-                                        formatter={(value: number) => [formatCurrency(value), 'Ingresos']}
-                                    />
-                                    <Area
-                                        type="monotone"
-                                        dataKey="ingresos"
-                                        stroke="#3b82f6"
-                                        strokeWidth={2.5}
-                                        fill="url(#colorIngresos)"
-                                    />
-                                </AreaChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </div>
-                </section>
-
-                {/* Stock Distribution */}
-                <section className="px-4">
-                    <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
-                        <div className="flex justify-between items-center mb-4">
-                            <div>
-                                <h3 className="text-base font-bold text-slate-900">Stock por Marca</h3>
-                                <p className="text-sm text-slate-500">{stock.disponible + stock.reservado} vehículos activos</p>
-                            </div>
-                            <Link href="/inventario" className="text-blue-600 text-sm font-bold hover:underline">
-                                Ver Todo
-                            </Link>
-                        </div>
-
-                        <div className="flex gap-4">
-                            {/* Pie Chart */}
-                            <div className="w-32 h-32 shrink-0">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
-                                        <Pie
-                                            data={brands.slice(0, 6)}
-                                            cx="50%"
-                                            cy="50%"
-                                            innerRadius={30}
-                                            outerRadius={50}
-                                            paddingAngle={2}
-                                            dataKey="cantidad"
-                                        >
-                                            {brands.slice(0, 6).map((_, index) => (
-                                                <Cell key={`cell-${index}`} fill={BRAND_COLORS[index % BRAND_COLORS.length]} />
-                                            ))}
-                                        </Pie>
-                                    </PieChart>
-                                </ResponsiveContainer>
-                            </div>
-
-                            {/* Brand List */}
-                            <div className="flex-1 flex flex-col gap-2">
-                                {brands.slice(0, 5).map((brand, index) => (
-                                    <div key={brand.marca} className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <div
-                                                className="w-3 h-3 rounded-full"
-                                                style={{ backgroundColor: BRAND_COLORS[index % BRAND_COLORS.length] }}
-                                            />
-                                            <span className="text-sm text-slate-700 font-medium">{brand.marca}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-sm text-slate-500">{brand.cantidad}</span>
-                                            <span className="text-xs text-slate-400">({brand.porcentaje.toFixed(0)}%)</span>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </section>
+                {/* Charts — lazy loaded to keep initial render fast */}
+                <DashboardCharts
+                    chartData={chartData}
+                    sales={sales}
+                    stock={stock}
+                    brands={brands}
+                />
 
                 {/* Quick Actions */}
                 <section className="px-4">
@@ -438,7 +302,7 @@ export default function DashboardPage() {
                         />
                         <button
                             onClick={() => setVinScannerOpen(true)}
-                            className="flex items-center gap-3 p-4 bg-white rounded-xl shadow-sm border border-slate-100 hover:shadow-md hover:border-orange-200 transition-all group text-left"
+                            className="flex items-center gap-3 p-4 bg-white rounded-xl shadow-sm border border-slate-100 hover:shadow-md hover:border-orange-200 transition-[box-shadow,border-color] group text-left"
                         >
                             <div className="size-12 rounded-xl bg-orange-100 flex items-center justify-center text-orange-600 group-hover:bg-orange-500 group-hover:text-white transition-all">
                                 <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>qr_code_scanner</span>
@@ -521,7 +385,7 @@ function KPICard({
     icon,
     iconBg,
     iconColor,
-    onClick
+    href
 }: {
     label: string
     value: string
@@ -530,12 +394,12 @@ function KPICard({
     icon: string
     iconBg: string
     iconColor: string
-    onClick?: () => void
+    href: string
 }) {
     return (
-        <div
-            onClick={onClick}
-            className="flex flex-col gap-2 rounded-2xl p-4 bg-white border border-slate-200 shadow-sm cursor-pointer hover:shadow-md hover:border-slate-300 transition-all active:scale-[0.98]"
+        <Link
+            href={href}
+            className="flex flex-col gap-2 rounded-2xl p-4 bg-white border border-slate-200 shadow-sm cursor-pointer hover:shadow-md hover:border-slate-300 transition-[box-shadow,border-color] active:scale-[0.98]"
         >
             <div className="flex items-center gap-2">
                 <div className={cn("p-2 rounded-lg", iconBg, iconColor)}>
@@ -553,7 +417,7 @@ function KPICard({
                     {trend.text}
                 </p>
             </div>
-        </div>
+        </Link>
     )
 }
 
@@ -602,7 +466,7 @@ function AlertCard({ alert }: { alert: CriticalAlert }) {
         <Link
             href={alert.enlace}
             className={cn(
-                "flex items-center gap-3 p-3 rounded-xl border transition-all hover:shadow-sm",
+                "flex items-center gap-3 p-3 rounded-xl border transition-shadow hover:shadow-sm",
                 severityStyles[alert.severidad]
             )}
         >
@@ -642,7 +506,7 @@ function QuickActionCard({
         <Link
             href={href}
             className={cn(
-                "flex items-center gap-3 p-4 bg-white rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-all group",
+                "flex items-center gap-3 p-4 bg-white rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-[box-shadow,border-color] group",
                 styles.hover
             )}
         >
@@ -672,7 +536,7 @@ function ActivityCard({ item }: { item: ActivityItem }) {
     return (
         <Link
             href={item.enlace || '#'}
-            className="flex items-start gap-3 p-3 bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-slate-300 transition-all"
+            className="flex items-start gap-3 p-3 bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-slate-300 transition-[box-shadow,border-color]"
         >
             <div className={cn(
                 "mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full",

@@ -372,7 +372,7 @@ const VehicleCard = memo(function VehicleCard({
     }, [vehicle.created_at])
 
     return (
-        <Link href={`/inventario/${vehicle.id}`} prefetch={false}>
+        <Link href={`/inventario/${vehicle.id}`}>
             <article className="flex flex-col bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md border border-gray-100 cursor-pointer will-change-transform" style={{ transition: 'box-shadow 0.15s ease' }}>
                 {/* Image */}
                 <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100">

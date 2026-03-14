@@ -138,7 +138,7 @@ export function SaleConfirmationModal({
 
     return (
         <Dialog open={open} onOpenChange={resetAndClose}>
-            <DialogContent className="max-w-lg w-full max-h-[90vh] overflow-hidden p-0 bg-white dark:bg-[#1c1c1e] rounded-2xl">
+            <DialogContent className="max-w-lg w-[calc(100%-2rem)] sm:w-full max-h-[90dvh] overflow-y-auto p-0 bg-white dark:bg-[#1c1c1e] rounded-2xl">
                 <DialogTitle className="sr-only">Confirmar Venta</DialogTitle>
 
                 {/* Header */}

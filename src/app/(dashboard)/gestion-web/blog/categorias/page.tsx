@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { cn } from "@/lib/utils"
 import {
   getBlogCategories,
   createBlogCategory,
@@ -117,32 +118,37 @@ export default function CategoriasPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#f6f6f8] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#135bec]"></div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="animate-spin rounded-full h-10 w-10 border-[3px] border-red-600 border-t-transparent"></div>
+          <p className="text-sm text-slate-500 font-medium">Cargando categorías...</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-[#f6f6f8]">
+    <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
-        <div className="flex items-center justify-between px-4 md:px-6 py-4">
+      <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-xl border-b border-slate-200/60 shadow-sm">
+        <div className="max-w-4xl mx-auto flex items-center justify-between px-4 md:px-6 py-4">
           <div className="flex items-center gap-4">
-            <Link href="/gestion-web" className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+            <Link href="/gestion-web" className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
               <span className="material-symbols-outlined text-slate-600">arrow_back</span>
             </Link>
-            <div>
-              <h1 className="text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2">
-                <span className="material-symbols-outlined text-purple-500">category</span>
-                Categorías del Blog
-              </h1>
-              <p className="text-sm text-slate-500 mt-1">Organiza tus artículos por categorías</p>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-600/20">
+                <span className="material-symbols-outlined text-white" style={{ fontSize: '22px' }}>category</span>
+              </div>
+              <div>
+                <h1 className="text-xl md:text-2xl font-bold text-slate-900">Categorías del Blog</h1>
+                <p className="text-xs text-slate-500 mt-0.5">Organiza tus artículos por categorías</p>
+              </div>
             </div>
           </div>
           <button
             onClick={() => { setIsCreating(true); setEditingId(null); resetForm() }}
-            className="flex items-center gap-2 px-4 py-2 bg-[#135bec] hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+            className="flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition-all text-sm hover:-translate-y-0.5 hover:shadow-lg hover:shadow-red-600/20"
           >
             <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span>
             Nueva Categoría
@@ -150,17 +156,20 @@ export default function CategoriasPage() {
         </div>
       </header>
 
-      <main className="p-4 md:p-6 max-w-3xl mx-auto space-y-4">
+      <main className="p-4 md:p-6 max-w-4xl mx-auto space-y-5">
         {/* Form */}
         {(isCreating || editingId) && (
-          <div className="bg-white rounded-xl border border-slate-200 p-5">
-            <h3 className="font-semibold text-slate-900 mb-4">
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm animate-in">
+            <h3 className="font-bold text-slate-900 mb-5 flex items-center gap-2">
+              <span className="material-symbols-outlined text-violet-600" style={{ fontSize: '20px' }}>
+                {isCreating ? 'add_circle' : 'edit'}
+              </span>
               {isCreating ? 'Nueva Categoría' : 'Editar Categoría'}
             </h3>
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">
                     Nombre <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -168,66 +177,68 @@ export default function CategoriasPage() {
                     value={formData.nombre}
                     onChange={(e) => handleNameChange(e.target.value)}
                     placeholder="Nombre de la categoría"
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#135bec]"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500/20 focus:border-red-500 text-sm transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Slug (URL)</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Slug (URL)</label>
                   <input
                     type="text"
                     value={formData.slug}
                     onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
                     placeholder="nombre-categoria"
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#135bec]"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500/20 focus:border-red-500 text-sm font-mono transition-all"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Descripción</label>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Descripción</label>
                 <textarea
                   value={formData.descripcion}
                   onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
                   placeholder="Breve descripción de la categoría"
                   rows={2}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#135bec] resize-none"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500/20 focus:border-red-500 text-sm resize-none transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">URL de imagen</label>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">URL de imagen</label>
                 <input
                   type="url"
                   value={formData.imagen_url}
                   onChange={(e) => setFormData({ ...formData, imagen_url: e.target.value })}
                   placeholder="https://..."
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#135bec]"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500/20 focus:border-red-500 text-sm transition-all"
                 />
               </div>
 
-              <div className="flex items-center gap-2">
+              <label className="flex items-center gap-3 p-3 bg-emerald-50 rounded-xl border border-emerald-100 cursor-pointer hover:bg-emerald-100/50 transition-colors">
                 <input
                   type="checkbox"
-                  id="activo"
                   checked={formData.activo}
                   onChange={(e) => setFormData({ ...formData, activo: e.target.checked })}
-                  className="w-4 h-4 rounded border-slate-300 text-[#135bec] focus:ring-[#135bec]"
+                  className="w-4 h-4 rounded border-slate-300 text-red-600 focus:ring-red-500"
                 />
-                <label htmlFor="activo" className="text-sm text-slate-700">Categoría activa (visible en la web)</label>
-              </div>
+                <div>
+                  <span className="text-sm font-semibold text-emerald-800">Categoría activa</span>
+                  <p className="text-xs text-emerald-600 mt-0.5">Visible en la web pública</p>
+                </div>
+              </label>
 
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-end gap-2 pt-2">
                 <button
                   onClick={cancelEdit}
-                  className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition-colors"
+                  className="px-4 py-2.5 text-slate-600 hover:bg-slate-100 rounded-xl font-medium transition-colors text-sm"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={isCreating ? handleCreate : handleUpdate}
-                  className="px-4 py-2 bg-[#135bec] hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                  className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition-all text-sm"
                 >
-                  {isCreating ? 'Crear' : 'Guardar'}
+                  {isCreating ? 'Crear categoría' : 'Guardar cambios'}
                 </button>
               </div>
             </div>
@@ -236,42 +247,45 @@ export default function CategoriasPage() {
 
         {/* Categories List */}
         {categories.length > 0 ? (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {categories.map((category, index) => (
               <div
                 key={category.id}
-                className={`bg-white rounded-xl border ${category.activo ? 'border-slate-200' : 'border-slate-200 opacity-60'} p-4`}
+                className={cn(
+                  "bg-white rounded-2xl border border-slate-200/80 p-5 transition-all hover:shadow-md",
+                  !category.activo && "opacity-60"
+                )}
               >
                 <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-3">
-                    <div className="flex flex-col items-center gap-1 text-slate-400">
-                      <span className="text-xs font-medium">{index + 1}</span>
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-100 flex items-center justify-center flex-shrink-0">
+                      <span className="text-sm font-bold text-violet-600">{index + 1}</span>
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="font-medium text-slate-900">{category.nombre}</h3>
+                        <h3 className="font-bold text-slate-900">{category.nombre}</h3>
                         {!category.activo && (
-                          <span className="px-2 py-0.5 bg-slate-100 text-slate-500 text-xs rounded">Inactiva</span>
+                          <span className="px-2 py-0.5 bg-slate-100 text-slate-500 text-xs rounded-full font-medium border border-slate-200">Inactiva</span>
                         )}
                       </div>
-                      <p className="text-sm text-slate-500 mt-0.5">/blog/categoria/{category.slug}</p>
+                      <p className="text-sm text-slate-400 mt-0.5 font-mono">/blog/categoria/{category.slug}</p>
                       {category.descripcion && (
-                        <p className="text-sm text-slate-600 mt-1 line-clamp-1">{category.descripcion}</p>
+                        <p className="text-sm text-slate-600 mt-1.5 line-clamp-1">{category.descripcion}</p>
                       )}
                     </div>
                   </div>
-                  <div className="flex gap-1">
+                  <div className="flex gap-1 flex-shrink-0">
                     <button
                       onClick={() => startEdit(category)}
-                      className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                      className="p-2 hover:bg-slate-100 rounded-xl transition-colors"
                     >
-                      <span className="material-symbols-outlined text-slate-500" style={{ fontSize: '18px' }}>edit</span>
+                      <span className="material-symbols-outlined text-slate-400 hover:text-red-600" style={{ fontSize: '18px' }}>edit</span>
                     </button>
                     <button
                       onClick={() => handleDelete(category.id, category.nombre)}
-                      className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+                      className="p-2 hover:bg-red-50 rounded-xl transition-colors"
                     >
-                      <span className="material-symbols-outlined text-red-500" style={{ fontSize: '18px' }}>delete</span>
+                      <span className="material-symbols-outlined text-slate-400 hover:text-red-600" style={{ fontSize: '18px' }}>delete</span>
                     </button>
                   </div>
                 </div>
@@ -279,12 +293,15 @@ export default function CategoriasPage() {
             ))}
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-slate-200 p-8 text-center">
-            <span className="material-symbols-outlined text-slate-300 mb-2" style={{ fontSize: '48px' }}>category</span>
-            <p className="text-slate-500">No hay categorías todavía</p>
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-12 text-center shadow-sm">
+            <div className="w-16 h-16 rounded-2xl bg-violet-50 flex items-center justify-center mx-auto mb-4">
+              <span className="material-symbols-outlined text-violet-400" style={{ fontSize: '32px' }}>category</span>
+            </div>
+            <p className="text-slate-700 font-medium mb-1">No hay categorías todavía</p>
+            <p className="text-sm text-slate-400 mb-6">Crea categorías para organizar los artículos del blog</p>
             <button
               onClick={() => { setIsCreating(true); resetForm() }}
-              className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-[#135bec] hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition-all text-sm hover:-translate-y-0.5 hover:shadow-lg"
             >
               <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span>
               Crear primera categoría
@@ -293,15 +310,16 @@ export default function CategoriasPage() {
         )}
 
         {/* Info */}
-        <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
-          <div className="flex items-start gap-3">
-            <span className="material-symbols-outlined text-blue-600" style={{ fontSize: '24px' }}>info</span>
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 to-slate-800 p-5">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_50%,rgba(139,92,246,0.15),transparent_50%)]"></div>
+          <div className="relative flex items-start gap-4">
+            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
+              <span className="material-symbols-outlined text-violet-400" style={{ fontSize: '22px' }}>info</span>
+            </div>
             <div>
-              <p className="text-sm text-blue-800 font-medium">
-                Las categorías ayudan a organizar los artículos del blog
-              </p>
-              <p className="text-sm text-blue-600 mt-1">
-                Los artículos sin categoría se mostrarán igualmente en el blog general
+              <p className="text-sm text-white font-semibold">Organización del blog</p>
+              <p className="text-sm text-slate-400 mt-1">
+                Las categorías ayudan a organizar los artículos. Los artículos sin categoría se mostrarán igualmente en el blog general.
               </p>
             </div>
           </div>

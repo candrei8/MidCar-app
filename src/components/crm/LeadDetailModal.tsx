@@ -584,7 +584,7 @@ export function LeadDetailModal({ lead, open, onClose, onStatusChange, onDelete 
 
             {/* Delete Confirmation Dialog */}
             <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-                <DialogContent className="max-w-sm p-0 overflow-hidden gap-0">
+                <DialogContent className="max-w-sm p-0 overflow-y-auto max-h-[90dvh] gap-0">
                     <div className="p-6 text-center">
                         <div className="mx-auto w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mb-4">
                             <span className="material-symbols-outlined text-3xl text-red-500">delete_forever</span>
@@ -611,7 +611,7 @@ export function LeadDetailModal({ lead, open, onClose, onStatusChange, onDelete 
                         </div>
                     </div>
                 </DialogContent>
-            </Dialog>
+            </Dialog >
         </>
     )
 }

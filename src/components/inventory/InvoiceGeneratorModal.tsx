@@ -406,15 +406,15 @@ export function InvoiceGeneratorModal({ vehicle, open, onOpenChange, onSuccess }
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="w-[95vw] max-w-[600px] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
-                <DialogHeader className="pb-2">
+            <DialogContent className="w-[95vw] md:w-[90vw] max-w-4xl max-h-[90dvh] flex flex-col p-0 overflow-hidden">
+                <DialogHeader className="p-4 sm:p-6 pb-4 border-b shrink-0 bg-white z-10">
                     <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
                         <span className="material-symbols-outlined text-[#135bec] text-[20px] sm:text-[24px]">receipt_long</span>
                         Generar Factura
                     </DialogTitle>
                 </DialogHeader>
 
-                <div className="space-y-3 sm:space-y-4">
+                <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-6 relative">
                     {/* Resumen Vehículo */}
                     <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-slate-50 rounded-xl">
                         <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg bg-slate-200 overflow-hidden shrink-0">
@@ -690,23 +690,23 @@ export function InvoiceGeneratorModal({ vehicle, open, onOpenChange, onSuccess }
                         />
                     </div>
 
-                    {/* Acciones */}
-                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2">
-                        <Button
-                            onClick={generatePDF}
-                            className="order-1 sm:order-2 flex-1 bg-[#135bec] hover:bg-blue-700 h-10 sm:h-11 text-sm"
-                        >
-                            <span className="material-symbols-outlined mr-2 text-[16px] sm:text-[18px]">picture_as_pdf</span>
-                            Generar Factura
-                        </Button>
-                        <Button
-                            variant="outline"
-                            onClick={() => onOpenChange(false)}
-                            className="order-2 sm:order-1 flex-1 h-9 sm:h-11 text-sm"
-                        >
-                            Cancelar
-                        </Button>
-                    </div>
+                </div>
+                {/* Acciones */}
+                <div className="p-4 sm:p-6 border-t bg-slate-50 shrink-0 flex flex-col sm:flex-row gap-2 sm:gap-3">
+                    <Button
+                        onClick={generatePDF}
+                        className="order-1 sm:order-2 flex-1 bg-[#135bec] hover:bg-blue-700 h-10 sm:h-11 text-sm"
+                    >
+                        <span className="material-symbols-outlined mr-2 text-[16px] sm:text-[18px]">picture_as_pdf</span>
+                        Generar Factura
+                    </Button>
+                    <Button
+                        variant="outline"
+                        onClick={() => onOpenChange(false)}
+                        className="order-2 sm:order-1 flex-1 h-9 sm:h-11 text-sm bg-white"
+                    >
+                        Cancelar
+                    </Button>
                 </div>
             </DialogContent>
         </Dialog>

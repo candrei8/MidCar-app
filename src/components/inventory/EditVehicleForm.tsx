@@ -7,7 +7,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { VehicleForm, VehicleFormData } from "@/components/inventory/VehicleForm"
 import { getVehicleById, updateVehicle } from "@/lib/supabase-service"
-import { uploadVehicleImage } from "@/lib/vehicle-image-service"
+import { uploadVehicleImage, deleteVehicleImage } from "@/lib/vehicle-image-service"
 import { useToast } from "@/components/ui/toast"
 
 interface EditVehicleFormProps {
@@ -20,6 +20,8 @@ export function EditVehicleForm({ vehicleId }: EditVehicleFormProps) {
     const [isSaving, setIsSaving] = useState(false)
     const [initialData, setInitialData] = useState<Partial<VehicleFormData> | null>(null)
     const [notFoundState, setNotFoundState] = useState(false)
+    const [originalImageUrls, setOriginalImageUrls] = useState<string[]>([])
+
 
     useEffect(() => {
         // Load vehicle from Supabase
@@ -33,40 +35,45 @@ export function EditVehicleForm({ vehicleId }: EditVehicleFormProps) {
 
             // Map existing images to UploadedFile format
             // Handle both string[] and VehicleImage[] formats
-            const imageUrls = (vehicle.imagenes || []).map((img: any) =>
+            const rawImages = vehicle.imagenes || []
+            const imageUrls = rawImages.map((img: any) =>
                 typeof img === 'string' ? img : img.url || img.preview || ''
+            ).filter((url: string) => url && url !== '/placeholder-car.svg')
+
+            // Find which image is marked as principal in the DB
+            const principalImg = rawImages.find((img: any) =>
+                typeof img !== 'string' && img.es_principal
             )
+            const principalUrl = principalImg?.url || vehicle.imagen_principal
 
-        const fotos = imageUrls.map((url: string, index: number) => ({
-            id: `existing-${index}`,
-            name: `Foto ${index + 1}`,
-            preview: url,
-            size: 0,
-            type: 'image/jpeg',
-            lastModified: Date.now(),
-            slice: () => new Blob(),
-            stream: () => new ReadableStream(),
-            arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
-            text: () => Promise.resolve(""),
-        } as any));
+            const fotos = imageUrls.map((url: string, index: number) => ({
+                id: `existing-${index}`,
+                name: `Foto ${index + 1}`,
+                preview: url,
+                file: new File([], `existing-${index}.jpg`),
+                progress: 100,
+                isExisting: true,
+            }));
 
-        // Add principal image if not in list
-        if (vehicle.imagen_principal && !imageUrls.includes(vehicle.imagen_principal)) {
-            fotos.unshift({
-                id: 'principal-existing',
-                name: 'Foto Principal',
-                preview: vehicle.imagen_principal,
-                size: 0,
-                type: 'image/jpeg',
-                lastModified: Date.now(),
-                slice: () => new Blob(),
-                stream: () => new ReadableStream(),
-                arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
-                text: () => Promise.resolve(""),
-            } as any)
-        }
+            // Add principal image if not in list
+            if (vehicle.imagen_principal && vehicle.imagen_principal !== '/placeholder-car.svg' && !imageUrls.includes(vehicle.imagen_principal)) {
+                fotos.unshift({
+                    id: 'principal-existing',
+                    name: 'Foto Principal',
+                    preview: vehicle.imagen_principal,
+                    file: new File([], 'principal.jpg'),
+                    progress: 100,
+                    isExisting: true,
+                })
+            }
 
-        const formData: Partial<VehicleFormData> = {
+            // Detect which photo ID should be the principal
+            const principalFotoId = fotos.find((f: any) => f.preview === principalUrl)?.id || fotos[0]?.id || null
+
+            // Store original URLs for deletion tracking
+            setOriginalImageUrls(fotos.map((f: any) => f.preview))
+
+            const formData: Partial<VehicleFormData> = {
             marca: vehicle.marca,
             modelo: vehicle.modelo,
             version: vehicle.version,
@@ -99,7 +106,7 @@ export function EditVehicleForm({ vehicleId }: EditVehicleFormProps) {
             destacado: vehicle.destacado,
             en_oferta: vehicle.en_oferta,
             fotos: fotos,
-            foto_principal: fotos.length > 0 ? fotos[0].id : null,
+            foto_principal: principalFotoId,
             documentos: [] // No documents in mock data
         }
 
@@ -126,12 +133,12 @@ export function EditVehicleForm({ vehicleId }: EditVehicleFormProps) {
                     const isPrincipal = formData.foto_principal === foto.id || (orden === 0 && !formData.foto_principal)
                     let url: string
 
-                    if (foto.file && foto.file.size > 0) {
+                    if (foto.isExisting && foto.preview) {
+                        // Existing photo - keep URL
+                        url = foto.preview
+                    } else if (foto.file && foto.file.size > 0) {
                         // New photo - upload to Storage
                         url = await uploadVehicleImage(foto.file, stockId, orden)
-                    } else if ((foto as any).preview) {
-                        // Existing photo - keep URL
-                        url = (foto as any).preview
                     } else {
                         orden++
                         continue
@@ -143,6 +150,17 @@ export function EditVehicleForm({ vehicleId }: EditVehicleFormProps) {
                         imagenPrincipal = url
                     }
                     orden++
+                }
+            }
+
+            // Delete removed existing photos from Supabase Storage
+            const currentUrls = imagenesArray.map(img => img.url)
+            const removedUrls = originalImageUrls.filter(url => !currentUrls.includes(url))
+            for (const url of removedUrls) {
+                try {
+                    await deleteVehicleImage(url)
+                } catch (error) {
+                    console.error('Error deleting old image:', error)
                 }
             }
 

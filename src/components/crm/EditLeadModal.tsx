@@ -107,7 +107,7 @@ export function EditLeadModal({ lead, open, onClose, onSave }: EditLeadModalProp
 
     return (
         <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden gap-0">
+            <DialogContent className="sm:max-w-[600px] p-0 overflow-y-auto max-h-[90dvh] gap-0">
                 <div className="absolute inset-0 bg-gradient-to-b from-slate-50/50 to-transparent pointer-events-none" />
 
                 <DialogHeader className="px-8 pt-8 pb-6 border-b border-slate-100 relative z-10">

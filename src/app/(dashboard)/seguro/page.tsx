@@ -700,13 +700,13 @@ export default function SeguroPage() {
                                                 <div className="h-full w-full bg-cover bg-center" style={{ backgroundImage: `url(${getValidImageUrl(item.vehicle.imagen_principal)})` }}></div>
                                             </div>
                                             <div className="flex-1 flex flex-col justify-center min-w-0 gap-1">
-                                                <div className="flex justify-between items-start">
-                                                    <div>
+                                                <div className="flex justify-between items-start gap-4">
+                                                    <div className="flex-1 min-w-0">
                                                         <p className="text-[#111318] dark:text-white font-bold text-sm md:text-base truncate">{item.vehicle.marca} {item.vehicle.modelo}</p>
-                                                        <p className="text-[#616f89] dark:text-gray-400 text-xs md:text-sm">{item.vehicle.version}</p>
+                                                        <p className="text-[#616f89] dark:text-gray-400 text-xs md:text-sm truncate">{item.vehicle.version}</p>
                                                     </div>
                                                     <span className={cn(
-                                                        "text-xs font-bold px-2 py-1 rounded-full uppercase tracking-wider",
+                                                        "text-xs font-bold px-2 py-1 rounded-full uppercase tracking-wider shrink-0 whitespace-nowrap mt-0.5",
                                                         item.state === 'sin_seguro' ? "text-red-600 bg-red-50 dark:bg-red-900/30 dark:text-red-300" :
                                                             item.state === 'por_vencer' ? "text-yellow-700 bg-yellow-50 dark:bg-yellow-900/30 dark:text-yellow-300" :
                                                                 "text-gray-600 bg-gray-50 dark:bg-gray-800"

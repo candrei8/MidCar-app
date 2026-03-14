@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { EQUIPAMIENTO_VEHICULO } from "@/lib/constants"
@@ -429,6 +429,14 @@ const DGT_COLORS: Record<string, string> = {
     'SIN': 'bg-gray-400 text-white',
 }
 
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+    DropdownMenuSeparator
+} from "@/components/ui/dropdown-menu"
+
 export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
     const router = useRouter()
     const { user, isFullView } = useAuth()
@@ -437,6 +445,8 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
     const [vehicle, setVehicle] = useState<Vehicle | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const [currentImageIndex, setCurrentImageIndex] = useState(0)
+    const thumbnailContainerRef = useRef<HTMLDivElement>(null)
+    const touchStartRef = useRef<number | null>(null)
     const [showAllEquipment, setShowAllEquipment] = useState(false)
     const [showShareModal, setShowShareModal] = useState(false)
     const [showContractModal, setShowContractModal] = useState(false)
@@ -524,6 +534,47 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
         return () => window.removeEventListener('midcar-data-updated', handleDataUpdate as EventListener)
     }, [id])
 
+    // Use actual vehicle images if available, otherwise just show main image
+    // Filter out Azure CDN images that don't exist
+    const galleryImages = vehicle && vehicle.imagenes && vehicle.imagenes.length > 0
+        ? vehicle.imagenes
+            .filter(img => isValidImageUrl(img.url))
+            .map((img, idx) => ({
+                url: img.url,
+                label: img.tipo ? img.tipo.charAt(0).toUpperCase() + img.tipo.slice(1) : `Foto ${idx + 1}`
+            }))
+        : vehicle && isValidImageUrl(vehicle.imagen_principal)
+            ? [{ url: vehicle.imagen_principal!, label: 'Principal' }]
+            : []
+
+    const galleryLength = galleryImages.length
+
+    const goToPrevImage = useCallback(() => setCurrentImageIndex(prev => prev > 0 ? prev - 1 : galleryLength - 1), [galleryLength])
+    const goToNextImage = useCallback(() => setCurrentImageIndex(prev => prev < galleryLength - 1 ? prev + 1 : 0), [galleryLength])
+
+    // Auto-scroll thumbnail strip to keep selected thumbnail visible
+    useEffect(() => {
+        const container = thumbnailContainerRef.current
+        if (!container) return
+        const thumb = container.children[currentImageIndex] as HTMLElement
+        if (!thumb) return
+        thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+    }, [currentImageIndex])
+
+    // Touch swipe handlers for mobile hero
+    const handleTouchStart = useCallback((e: React.TouchEvent) => {
+        touchStartRef.current = e.touches[0].clientX
+    }, [])
+    const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+        if (touchStartRef.current === null) return
+        const diff = touchStartRef.current - e.changedTouches[0].clientX
+        if (Math.abs(diff) > 50) {
+            if (diff > 0) goToNextImage()
+            else goToPrevImage()
+        }
+        touchStartRef.current = null
+    }, [goToNextImage, goToPrevImage])
+
     // Show loading state
     if (isLoading) {
         return (
@@ -560,19 +611,6 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
         category.items.filter(item => vehicle.equipamiento?.includes(item.id))
     ).slice(0, showAllEquipment ? undefined : 4)
 
-    // Use actual vehicle images if available, otherwise just show main image
-    // Filter out Azure CDN images that don't exist
-    const galleryImages = vehicle.imagenes && vehicle.imagenes.length > 0
-        ? vehicle.imagenes
-            .filter(img => isValidImageUrl(img.url))
-            .map((img, idx) => ({
-                url: img.url,
-                label: img.tipo ? img.tipo.charAt(0).toUpperCase() + img.tipo.slice(1) : `Foto ${idx + 1}`
-            }))
-        : isValidImageUrl(vehicle.imagen_principal)
-            ? [{ url: vehicle.imagen_principal!, label: 'Principal' }]
-            : []
-
     // Calculate price with discount
     const finalPrice = vehicle.precio_venta - (vehicle.descuento || 0)
     const hasDiscount = vehicle.descuento > 0
@@ -606,32 +644,42 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
                         <span className="material-symbols-outlined">arrow_back</span>
                     </button>
                     <div className="flex items-center gap-3">
-                        <button
-                            onClick={() => setShowShareModal(true)}
-                            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-md text-white hover:bg-white/30 transition-colors"
-                        >
-                            <span className="material-symbols-outlined">share</span>
-                        </button>
-                        {canEdit && (
-                            <>
-                                <Link href={`/inventario/${vehicle.id}/editar`}>
-                                    <button className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-md text-white hover:bg-white/30 transition-colors">
-                                        <span className="material-symbols-outlined">edit</span>
-                                    </button>
-                                </Link>
-                                <button
-                                    onClick={() => setShowDeleteConfirm(true)}
-                                    className="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/80 backdrop-blur-md text-white hover:bg-red-600/90 transition-colors"
-                                >
-                                    <span className="material-symbols-outlined">delete</span>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <button className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-md text-white hover:bg-white/30 transition-colors">
+                                    <span className="material-symbols-outlined">more_vert</span>
                                 </button>
-                            </>
-                        )}
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48 bg-background border-border/10 z-[100]">
+                                <DropdownMenuItem onClick={() => setShowShareModal(true)} className="gap-2 cursor-pointer">
+                                    <span className="material-symbols-outlined text-base">share</span> Compartir
+                                </DropdownMenuItem>
+                                {canEdit && (
+                                    <>
+                                        <DropdownMenuItem onClick={() => router.push(`/inventario/${vehicle.id}/editar`)} className="gap-2 cursor-pointer">
+                                            <span className="material-symbols-outlined text-base">edit</span> Editar
+                                        </DropdownMenuItem>
+                                        {/* Assuming a WebLink modal/function exists, otherwise remove */}
+                                        {/* <DropdownMenuItem onClick={() => setIsWebLinkModalOpen(true)} className="gap-2 cursor-pointer">
+                                            <span className="material-symbols-outlined text-base">link</span> Enlazar Web
+                                        </DropdownMenuItem> */}
+                                        <DropdownMenuSeparator className="bg-border/10" />
+                                        <DropdownMenuItem onClick={() => setShowDeleteConfirm(true)} className="gap-2 text-red-500 hover:text-red-600 focus:text-red-500 cursor-pointer">
+                                            <span className="material-symbols-outlined text-base">delete</span> Eliminar
+                                        </DropdownMenuItem>
+                                    </>
+                                )}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                 </div>
 
                 {/* Hero Image Gallery (Mobile) */}
-                <div className="relative w-full h-[40vh] bg-gray-200 dark:bg-gray-800">
+                <div
+                    className="relative w-full h-[40vh] bg-gray-200 dark:bg-gray-800"
+                    onTouchStart={handleTouchStart}
+                    onTouchEnd={handleTouchEnd}
+                >
                     {galleryImages.length > 0 ? (
                         <>
                             <div
@@ -640,17 +688,23 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
                             />
                             {galleryImages.length > 1 && (
                                 <>
+                                    {/* Prev/Next arrows */}
+                                    <button
+                                        onClick={goToPrevImage}
+                                        className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
+                                        style={{ color: '#FFFFFF' }}
+                                    >
+                                        <span className="material-symbols-outlined text-xl">chevron_left</span>
+                                    </button>
+                                    <button
+                                        onClick={goToNextImage}
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
+                                        style={{ color: '#FFFFFF' }}
+                                    >
+                                        <span className="material-symbols-outlined text-xl">chevron_right</span>
+                                    </button>
                                     <div className="absolute bottom-6 right-4 bg-black/90 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg" style={{ color: '#FFFFFF' }}>
                                         {currentImageIndex + 1} / {galleryImages.length}
-                                    </div>
-                                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5">
-                                        {galleryImages.slice(0, 5).map((_, idx) => (
-                                            <div
-                                                key={idx}
-                                                className={cn("w-2 h-2 rounded-full cursor-pointer transition-colors", idx === currentImageIndex ? "bg-white" : "bg-white/50")}
-                                                onClick={() => setCurrentImageIndex(idx)}
-                                            />
-                                        ))}
                                     </div>
                                 </>
                             )}
@@ -742,9 +796,25 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
                                         style={{ backgroundImage: `url("${galleryImages[currentImageIndex]?.url || ''}")` }}
                                     />
                                     {galleryImages.length > 1 && (
-                                        <div className="absolute bottom-4 right-4 bg-black/90 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg" style={{ color: '#FFFFFF' }}>
-                                            {currentImageIndex + 1} / {galleryImages.length}
-                                        </div>
+                                        <>
+                                            <button
+                                                onClick={goToPrevImage}
+                                                className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
+                                                style={{ color: '#FFFFFF' }}
+                                            >
+                                                <span className="material-symbols-outlined text-xl">chevron_left</span>
+                                            </button>
+                                            <button
+                                                onClick={goToNextImage}
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
+                                                style={{ color: '#FFFFFF' }}
+                                            >
+                                                <span className="material-symbols-outlined text-xl">chevron_right</span>
+                                            </button>
+                                            <div className="absolute bottom-4 right-4 bg-black/90 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg" style={{ color: '#FFFFFF' }}>
+                                                {currentImageIndex + 1} / {galleryImages.length}
+                                            </div>
+                                        </>
                                     )}
                                 </>
                             ) : (
@@ -765,7 +835,7 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
 
                         {/* Thumbnail Gallery - only show if multiple images */}
                         {galleryImages.length > 1 && (
-                            <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
+                            <div ref={thumbnailContainerRef} className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
                                 {galleryImages.map((img, idx) => (
                                     <div
                                         key={idx}

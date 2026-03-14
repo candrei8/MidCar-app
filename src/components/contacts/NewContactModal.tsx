@@ -169,7 +169,7 @@ export function NewContactModal({ open, onClose, onContactCreated }: NewContactM
 
     return (
         <Dialog open={open} onOpenChange={handleClose}>
-            <DialogContent className="sm:max-w-[480px] p-0 gap-0 overflow-hidden">
+            <DialogContent className="sm:max-w-[480px] p-0 gap-0 overflow-y-auto max-h-[90dvh]">
                 {/* Header */}
                 <DialogHeader className="px-5 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-slate-100">
                     <DialogTitle className="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">

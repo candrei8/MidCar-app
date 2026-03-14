@@ -33,18 +33,36 @@ export interface UploadedFile {
     id: string;
     progress: number;
     name: string;
+    isExisting?: boolean; // true for photos already uploaded to storage
 }
 
 interface PhotoUploaderProps {
     onFilesChange: (files: UploadedFile[]) => void;
     onPrincipalChange: (fileId: string | null) => void;
+    initialFiles?: UploadedFile[];
+    initialPrincipal?: string | null;
 }
 
-export function PhotoUploader({ onFilesChange, onPrincipalChange }: PhotoUploaderProps) {
-    const [files, setFiles] = useState<UploadedFile[]>([]);
-    const [principal, setPrincipal] = useState<string | null>(null);
+export function PhotoUploader({ onFilesChange, onPrincipalChange, initialFiles, initialPrincipal }: PhotoUploaderProps) {
+    const [files, setFiles] = useState<UploadedFile[]>(initialFiles || []);
+    const [principal, setPrincipal] = useState<string | null>(initialPrincipal || null);
     const urlsRef = useRef<string[]>([]);
     const intervalsRef = useRef<NodeJS.Timeout[]>([]);
+    const initializedRef = useRef(false);
+
+    // Load initial files when they become available (edit mode)
+    useEffect(() => {
+        if (initialFiles && initialFiles.length > 0 && !initializedRef.current) {
+            initializedRef.current = true;
+            setFiles(initialFiles);
+            const principalId = initialPrincipal || initialFiles[0]?.id || null;
+            setPrincipal(principalId);
+            queueMicrotask(() => {
+                onFilesChange(initialFiles);
+                onPrincipalChange(principalId);
+            });
+        }
+    }, [initialFiles, initialPrincipal, onFilesChange, onPrincipalChange]);
 
     // Cleanup intervals on unmount
     useEffect(() => {
@@ -119,8 +137,8 @@ export function PhotoUploader({ onFilesChange, onPrincipalChange }: PhotoUploade
             const needsNewPrincipal = principal === fileId;
             const newPrincipalId = newFiles.length > 0 ? newFiles[0].id : null;
 
-            // Revoke URL of removed file
-            if (fileToRemove) {
+            // Revoke URL of removed file (only for new local files, not existing remote URLs)
+            if (fileToRemove && !fileToRemove.isExisting) {
                 URL.revokeObjectURL(fileToRemove.preview);
                 urlsRef.current = urlsRef.current.filter(url => url !== fileToRemove.preview);
             }

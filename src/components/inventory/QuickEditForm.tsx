@@ -27,12 +27,19 @@ import {
     Camera,
     Upload,
     FileText,
+    Star,
+    GripVertical,
+    Trash2,
+    Plus,
+    ImageIcon,
 } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { MARCAS, COMBUSTIBLES, TRANSMISIONES, CARROCERIAS, ETIQUETAS_DGT, EQUIPAMIENTO_VEHICULO } from "@/lib/constants"
 import { formatCurrency, cn } from "@/lib/utils"
 import { getVehicleById, updateVehicle } from "@/lib/supabase-service"
-import type { Vehicle } from "@/types"
+import { uploadVehicleImage, deleteVehicleImage } from "@/lib/vehicle-image-service"
+import { useDropzone } from "react-dropzone"
+import type { Vehicle, VehicleImage } from "@/types"
 
 interface QuickEditFormProps {
     vehicleId: string
@@ -191,8 +198,19 @@ export function QuickEditForm({ vehicleId, onSave, onCancel }: QuickEditFormProp
     const [isSaving, setIsSaving] = useState(false)
     const [showSaveSuccess, setShowSaveSuccess] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
-    const [photoPreview, setPhotoPreview] = useState<string | null>(null)
-    const fileInputRef = useRef<HTMLInputElement>(null)
+    // Photo gallery state
+    interface GalleryPhoto {
+        id: string
+        url: string // preview URL for new, storage URL for existing
+        file?: File // only for new photos
+        isExisting: boolean
+        isPrincipal: boolean
+        orden: number
+    }
+    const [galleryPhotos, setGalleryPhotos] = useState<GalleryPhoto[]>([])
+    const [photosToDelete, setPhotosToDelete] = useState<string[]>([]) // URLs of existing photos to delete
+    const [isUploadingPhotos, setIsUploadingPhotos] = useState(false)
+    const galleryInitRef = useRef(false)
 
     // Load vehicle from Supabase
     useEffect(() => {
@@ -208,11 +226,63 @@ export function QuickEditForm({ vehicleId, onSave, onCancel }: QuickEditFormProp
         loadVehicle()
     }, [vehicleId])
 
+    // Initialize gallery photos from loaded vehicle
+    useEffect(() => {
+        if (originalVehicle && !galleryInitRef.current) {
+            galleryInitRef.current = true
+            const photos: GalleryPhoto[] = []
+            const imagenes = originalVehicle.imagenes || []
+
+            imagenes.forEach((img: any, index: number) => {
+                const url = typeof img === 'string' ? img : img.url
+                const isPrincipal = typeof img === 'string' ? index === 0 : (img.es_principal || false)
+                if (url) {
+                    photos.push({
+                        id: `existing-${index}`,
+                        url,
+                        isExisting: true,
+                        isPrincipal,
+                        orden: typeof img === 'string' ? index : (img.orden ?? index),
+                    })
+                }
+            })
+
+            // Add imagen_principal if not already in list
+            if (originalVehicle.imagen_principal && originalVehicle.imagen_principal !== '/placeholder-car.svg' && !photos.some(p => p.url === originalVehicle.imagen_principal)) {
+                photos.unshift({
+                    id: 'principal-existing',
+                    url: originalVehicle.imagen_principal,
+                    isExisting: true,
+                    isPrincipal: true,
+                    orden: 0,
+                })
+            }
+
+            // Ensure at least one photo is marked as principal
+            if (photos.length > 0 && !photos.some(p => p.isPrincipal)) {
+                photos[0].isPrincipal = true
+            }
+
+            setGalleryPhotos(photos)
+        }
+    }, [originalVehicle])
+
+    // Check if form has changes (include photo changes)
+    const hasPhotoChanges = useMemo(() => {
+        if (!originalVehicle) return false
+        const originalUrls = (originalVehicle.imagenes || []).map((img: any) => typeof img === 'string' ? img : img.url).sort()
+        const currentUrls = galleryPhotos.filter(p => p.isExisting).map(p => p.url).sort()
+        const hasNewPhotos = galleryPhotos.some(p => !p.isExisting)
+        const hasDeletedPhotos = photosToDelete.length > 0
+        const hasOrderChange = JSON.stringify(originalUrls) !== JSON.stringify(currentUrls)
+        return hasNewPhotos || hasDeletedPhotos || hasOrderChange
+    }, [originalVehicle, galleryPhotos, photosToDelete])
+
     // Check if form has changes
     const hasChanges = useMemo(() => {
         if (!formData || !originalVehicle) return false
-        return JSON.stringify(formData) !== JSON.stringify(originalVehicle)
-    }, [formData, originalVehicle])
+        return JSON.stringify(formData) !== JSON.stringify(originalVehicle) || hasPhotoChanges
+    }, [formData, originalVehicle, hasPhotoChanges])
 
     // Update a field
     const updateField = useCallback(<K extends keyof Vehicle>(field: K, value: Vehicle[K]) => {
@@ -236,8 +306,82 @@ export function QuickEditForm({ vehicleId, onSave, onCancel }: QuickEditFormProp
     const handleReset = useCallback(() => {
         if (originalVehicle) {
             setFormData({ ...originalVehicle })
+            // Reset gallery photos
+            galleryInitRef.current = false
+            setPhotosToDelete([])
+            // Revoke new photo URLs
+            galleryPhotos.filter(p => !p.isExisting).forEach(p => URL.revokeObjectURL(p.url))
         }
-    }, [originalVehicle])
+    }, [originalVehicle, galleryPhotos])
+
+    // Add new photos to gallery
+    const addPhotosToGallery = useCallback((acceptedFiles: File[]) => {
+        const newPhotos: GalleryPhoto[] = acceptedFiles.map((file, i) => ({
+            id: `new-${Date.now()}-${i}-${Math.random()}`,
+            url: URL.createObjectURL(file),
+            file,
+            isExisting: false,
+            isPrincipal: false,
+            orden: galleryPhotos.length + i,
+        }))
+
+        setGalleryPhotos(prev => {
+            const combined = [...prev, ...newPhotos].slice(0, 20)
+            // If no principal, set first
+            if (combined.length > 0 && !combined.some(p => p.isPrincipal)) {
+                combined[0].isPrincipal = true
+            }
+            return combined
+        })
+    }, [galleryPhotos.length])
+
+    // Remove photo from gallery
+    const removeGalleryPhoto = useCallback((photoId: string) => {
+        setGalleryPhotos(prev => {
+            const photo = prev.find(p => p.id === photoId)
+            if (!photo) return prev
+
+            // Track existing photos for deletion from storage
+            if (photo.isExisting) {
+                setPhotosToDelete(d => [...d, photo.url])
+            } else {
+                URL.revokeObjectURL(photo.url)
+            }
+
+            const remaining = prev.filter(p => p.id !== photoId)
+            // Reassign principal if needed
+            if (photo.isPrincipal && remaining.length > 0) {
+                remaining[0].isPrincipal = true
+            }
+            // Reorder
+            return remaining.map((p, i) => ({ ...p, orden: i }))
+        })
+    }, [])
+
+    // Set photo as principal
+    const setGalleryPrincipal = useCallback((photoId: string) => {
+        setGalleryPhotos(prev =>
+            prev.map(p => ({ ...p, isPrincipal: p.id === photoId }))
+        )
+    }, [])
+
+    // Move photo in gallery (reorder)
+    const moveGalleryPhoto = useCallback((fromIndex: number, toIndex: number) => {
+        setGalleryPhotos(prev => {
+            const items = [...prev]
+            const [moved] = items.splice(fromIndex, 1)
+            items.splice(toIndex, 0, moved)
+            return items.map((p, i) => ({ ...p, orden: i }))
+        })
+    }, [])
+
+    // Dropzone for gallery
+    const { getRootProps: getGalleryRootProps, getInputProps: getGalleryInputProps, isDragActive: isGalleryDragActive } = useDropzone({
+        onDrop: addPhotosToGallery,
+        accept: { 'image/jpeg': [], 'image/png': [], 'image/webp': [] },
+        maxSize: 5 * 1024 * 1024,
+        maxFiles: 20,
+    })
 
     // Save changes
     const handleSave = useCallback(async () => {
@@ -246,11 +390,59 @@ export function QuickEditForm({ vehicleId, onSave, onCancel }: QuickEditFormProp
         setIsSaving(true)
 
         try {
-            const updatedVehicle = await updateVehicle(vehicleId, formData)
+            // Process photo changes
+            const stockId = formData.stock_id || vehicleId
+            const imagenesArray: VehicleImage[] = []
+            let imagenPrincipal = formData.imagen_principal || '/placeholder-car.svg'
+
+            if (galleryPhotos.length > 0) {
+                for (let i = 0; i < galleryPhotos.length; i++) {
+                    const photo = galleryPhotos[i]
+                    let url: string
+
+                    if (photo.isExisting) {
+                        url = photo.url
+                    } else if (photo.file) {
+                        // Upload new photo
+                        url = await uploadVehicleImage(photo.file, stockId, i)
+                    } else {
+                        continue
+                    }
+
+                    imagenesArray.push({
+                        id: photo.id,
+                        vehiculo_id: vehicleId,
+                        url,
+                        es_principal: photo.isPrincipal,
+                        orden: i,
+                        tipo: 'exterior' as const,
+                    })
+
+                    if (photo.isPrincipal) {
+                        imagenPrincipal = url
+                    }
+                }
+            }
+
+            // Delete removed photos from storage
+            for (const urlToDelete of photosToDelete) {
+                await deleteVehicleImage(urlToDelete)
+            }
+
+            const updates = {
+                ...formData,
+                imagenes: imagenesArray.length > 0 ? imagenesArray : formData.imagenes,
+                imagen_principal: imagenesArray.length > 0 ? imagenPrincipal : formData.imagen_principal,
+            }
+
+            const updatedVehicle = await updateVehicle(vehicleId, updates)
 
             if (updatedVehicle) {
                 window.dispatchEvent(new CustomEvent('midcar-data-updated', { detail: { type: 'vehicles' } }))
                 setOriginalVehicle(updatedVehicle)
+                setPhotosToDelete([])
+                // Reset gallery init so it reloads from updated vehicle
+                galleryInitRef.current = false
                 setShowSaveSuccess(true)
                 setTimeout(() => {
                     setShowSaveSuccess(false)
@@ -264,7 +456,7 @@ export function QuickEditForm({ vehicleId, onSave, onCancel }: QuickEditFormProp
         }
 
         setIsSaving(false)
-    }, [formData, vehicleId, onSave])
+    }, [formData, vehicleId, onSave, galleryPhotos, photosToDelete])
 
     // Calculate financials
     const financials = useMemo(() => {
@@ -283,39 +475,6 @@ export function QuickEditForm({ vehicleId, onSave, onCancel }: QuickEditFormProp
         return (formData?.equipamiento || []).length
     }, [formData?.equipamiento])
 
-    // Handle photo change
-    const handlePhotoChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0]
-        if (!file) return
-
-        // Validate file type
-        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-            alert('Por favor selecciona una imagen válida (JPG, PNG o WEBP)')
-            return
-        }
-
-        // Validate file size (max 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-            alert('La imagen no puede superar los 5MB')
-            return
-        }
-
-        // Create preview and convert to base64
-        const reader = new FileReader()
-        reader.onloadend = () => {
-            const base64String = reader.result as string
-            setPhotoPreview(base64String)
-            updateField('imagen_principal', base64String)
-        }
-        reader.readAsDataURL(file)
-    }, [updateField])
-
-    // Reset photo preview when form resets
-    useEffect(() => {
-        if (formData && originalVehicle && JSON.stringify(formData) === JSON.stringify(originalVehicle)) {
-            setPhotoPreview(null)
-        }
-    }, [formData, originalVehicle])
 
     if (isLoading) {
         return (
@@ -405,71 +564,125 @@ export function QuickEditForm({ vehicleId, onSave, onCancel }: QuickEditFormProp
 
             {/* Form Content */}
             <div className="space-y-4 pt-4">
-                {/* Foto Principal */}
-                <Section title="Foto Principal" icon={Camera}>
+                {/* Fotos del Vehículo */}
+                <Section title="Fotos del Vehículo" icon={Camera} badge={galleryPhotos.length}>
                     <div className="space-y-4">
-                        {/* Current photo preview */}
-                        <div className="relative aspect-video bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden">
-                            <img
-                                src={photoPreview || formData.imagen_principal || '/placeholder-car.svg'}
-                                alt={`${formData.marca} ${formData.modelo}`}
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                    e.currentTarget.src = '/placeholder-car.svg'
-                                }}
-                            />
-                            {/* Overlay with change button */}
-                            <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
-                                <Button
-                                    variant="secondary"
-                                    size="lg"
-                                    onClick={() => fileInputRef.current?.click()}
-                                    className="gap-2"
-                                >
-                                    <Upload className="h-5 w-5" />
-                                    Cambiar foto
-                                </Button>
+                        {/* Photo Gallery Grid */}
+                        {galleryPhotos.length > 0 && (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                                {galleryPhotos.map((photo, index) => (
+                                    <div
+                                        key={photo.id}
+                                        className="relative group aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 border-2 border-transparent transition-all hover:border-primary/30"
+                                    >
+                                        <img
+                                            src={photo.url}
+                                            alt={`Foto ${index + 1}`}
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                e.currentTarget.src = '/placeholder-car.svg'
+                                            }}
+                                        />
+
+                                        {/* Principal badge */}
+                                        {photo.isPrincipal && (
+                                            <div className="absolute top-2 left-2 bg-yellow-400 text-black px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1 shadow-md">
+                                                <Star className="h-3 w-3 fill-current" />
+                                                Principal
+                                            </div>
+                                        )}
+
+                                        {/* New badge */}
+                                        {!photo.isExisting && (
+                                            <div className="absolute top-2 right-10 bg-green-500 text-white px-2 py-0.5 rounded-full text-[10px] font-bold shadow-md">
+                                                Nueva
+                                            </div>
+                                        )}
+
+                                        {/* Action overlay */}
+                                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
+                                            {/* Reorder buttons */}
+                                            <div className="flex gap-1">
+                                                {index > 0 && (
+                                                    <button
+                                                        onClick={() => moveGalleryPhoto(index, index - 1)}
+                                                        className="w-8 h-8 rounded-lg bg-white/20 hover:bg-white/40 flex items-center justify-center text-white transition-colors"
+                                                        title="Mover antes"
+                                                    >
+                                                        <ChevronUp className="h-4 w-4" />
+                                                    </button>
+                                                )}
+                                                {index < galleryPhotos.length - 1 && (
+                                                    <button
+                                                        onClick={() => moveGalleryPhoto(index, index + 1)}
+                                                        className="w-8 h-8 rounded-lg bg-white/20 hover:bg-white/40 flex items-center justify-center text-white transition-colors"
+                                                        title="Mover después"
+                                                    >
+                                                        <ChevronDown className="h-4 w-4" />
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            {/* Set as principal */}
+                                            {!photo.isPrincipal && (
+                                                <button
+                                                    onClick={() => setGalleryPrincipal(photo.id)}
+                                                    className="w-full mx-4 px-3 py-1.5 rounded-lg bg-yellow-400/90 hover:bg-yellow-400 text-black text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
+                                                >
+                                                    <Star className="h-3 w-3" />
+                                                    Hacer principal
+                                                </button>
+                                            )}
+
+                                            {/* Delete */}
+                                            <button
+                                                onClick={() => removeGalleryPhoto(photo.id)}
+                                                className="w-full mx-4 px-3 py-1.5 rounded-lg bg-red-500/90 hover:bg-red-500 text-white text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
+                                            >
+                                                <Trash2 className="h-3 w-3" />
+                                                Eliminar
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Drop zone for adding new photos */}
+                        <div
+                            {...getGalleryRootProps()}
+                            className={cn(
+                                "border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all",
+                                isGalleryDragActive
+                                    ? "border-primary bg-primary/5 scale-[1.01]"
+                                    : "border-gray-300 dark:border-gray-600 hover:border-primary/50 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                            )}
+                        >
+                            <input {...getGalleryInputProps()} />
+                            <div className="flex flex-col items-center gap-2">
+                                <div className={cn(
+                                    "w-12 h-12 rounded-full flex items-center justify-center transition-colors",
+                                    isGalleryDragActive ? "bg-primary/10" : "bg-gray-100 dark:bg-gray-800"
+                                )}>
+                                    {isGalleryDragActive ? (
+                                        <ImageIcon className="h-6 w-6 text-primary" />
+                                    ) : (
+                                        <Plus className="h-6 w-6 text-gray-400" />
+                                    )}
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium text-foreground">
+                                        {isGalleryDragActive ? 'Suelta las fotos aquí' : 'Añadir fotos'}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                        Arrastra o pulsa para seleccionar (JPG, PNG, WEBP, max 5MB)
+                                    </p>
+                                </div>
                             </div>
                         </div>
 
-                        {/* Hidden file input */}
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="image/jpeg,image/png,image/webp"
-                            onChange={handlePhotoChange}
-                            className="hidden"
-                        />
-
-                        {/* Action buttons */}
-                        <div className="flex gap-3">
-                            <Button
-                                variant="outline"
-                                onClick={() => fileInputRef.current?.click()}
-                                className="flex-1 h-12 gap-2"
-                            >
-                                <Upload className="h-4 w-4" />
-                                Seleccionar nueva foto
-                            </Button>
-                            {photoPreview && (
-                                <Button
-                                    variant="ghost"
-                                    onClick={() => {
-                                        setPhotoPreview(null)
-                                        updateField('imagen_principal', originalVehicle?.imagen_principal || '')
-                                        if (fileInputRef.current) {
-                                            fileInputRef.current.value = ''
-                                        }
-                                    }}
-                                    className="h-12 px-4"
-                                >
-                                    <X className="h-4 w-4" />
-                                </Button>
-                            )}
-                        </div>
-
                         <p className="text-xs text-muted-foreground text-center">
-                            Formatos: JPG, PNG, WEBP. Tamaño máximo: 5MB
+                            {galleryPhotos.length}/20 fotos · Pasa el ratón sobre una foto para editarla
                         </p>
                     </div>
                 </Section>

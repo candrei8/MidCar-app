@@ -77,7 +77,7 @@ export const BottomNav = memo(function BottomNav() {
                             <Link
                                 key={item.href}
                                 href={item.href}
-                                prefetch={false}
+                                prefetch={true}
                                 onClick={() => setIsMoreOpen(false)}
                                 className={cn(
                                     "flex items-center gap-3 px-4 py-3",
@@ -110,7 +110,7 @@ export const BottomNav = memo(function BottomNav() {
                             <Link
                                 key={item.href}
                                 href={item.href}
-                                prefetch={false}
+                                prefetch={true}
                                 className={cn(
                                     "flex flex-col items-center justify-center gap-1 w-full h-full",
                                     isActive

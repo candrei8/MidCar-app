@@ -724,6 +724,8 @@ export function VehicleForm({ initialData, onSubmit, isSubmitting = false, onCan
                         <PhotoUploader
                             onFilesChange={(files) => updateField('fotos', files)}
                             onPrincipalChange={(id) => updateField('foto_principal', id)}
+                            initialFiles={initialData?.fotos}
+                            initialPrincipal={initialData?.foto_principal}
                         />
 
                         <div className="space-y-2">
