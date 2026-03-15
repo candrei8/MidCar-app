@@ -341,9 +341,9 @@ export function QuickEditForm({ vehicleId, onSave, onCancel }: QuickEditFormProp
             const photo = prev.find(p => p.id === photoId)
             if (!photo) return prev
 
-            // Track existing photos for deletion from storage
+            // Track existing photos for deletion from storage (deferred to avoid nested setState)
             if (photo.isExisting) {
-                setPhotosToDelete(d => [...d, photo.url])
+                queueMicrotask(() => setPhotosToDelete(d => [...d, photo.url]))
             } else {
                 URL.revokeObjectURL(photo.url)
             }
@@ -599,48 +599,41 @@ export function QuickEditForm({ vehicleId, onSave, onCancel }: QuickEditFormProp
                                             </div>
                                         )}
 
-                                        {/* Action overlay */}
-                                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
-                                            {/* Reorder buttons */}
-                                            <div className="flex gap-1">
-                                                {index > 0 && (
-                                                    <button
-                                                        onClick={() => moveGalleryPhoto(index, index - 1)}
-                                                        className="w-8 h-8 rounded-lg bg-white/20 hover:bg-white/40 flex items-center justify-center text-white transition-colors"
-                                                        title="Mover antes"
-                                                    >
-                                                        <ChevronUp className="h-4 w-4" />
-                                                    </button>
-                                                )}
-                                                {index < galleryPhotos.length - 1 && (
-                                                    <button
-                                                        onClick={() => moveGalleryPhoto(index, index + 1)}
-                                                        className="w-8 h-8 rounded-lg bg-white/20 hover:bg-white/40 flex items-center justify-center text-white transition-colors"
-                                                        title="Mover después"
-                                                    >
-                                                        <ChevronDown className="h-4 w-4" />
-                                                    </button>
-                                                )}
-                                            </div>
-
-                                            {/* Set as principal */}
-                                            {!photo.isPrincipal && (
+                                        {/* Action buttons - always visible on mobile, hover on desktop */}
+                                        <div className="absolute bottom-0 left-0 right-0 p-1.5 flex gap-1 justify-end bg-gradient-to-t from-black/60 to-transparent sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                                            {index > 0 && (
                                                 <button
-                                                    onClick={() => setGalleryPrincipal(photo.id)}
-                                                    className="w-full mx-4 px-3 py-1.5 rounded-lg bg-yellow-400/90 hover:bg-yellow-400 text-black text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
+                                                    type="button"
+                                                    onClick={(e) => { e.stopPropagation(); moveGalleryPhoto(index, index - 1) }}
+                                                    className="w-8 h-8 rounded-lg bg-white/80 hover:bg-white flex items-center justify-center text-gray-700 transition-colors shadow-sm"
                                                 >
-                                                    <Star className="h-3 w-3" />
-                                                    Hacer principal
+                                                    <ChevronUp className="h-4 w-4" />
                                                 </button>
                                             )}
-
-                                            {/* Delete */}
+                                            {index < galleryPhotos.length - 1 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => { e.stopPropagation(); moveGalleryPhoto(index, index + 1) }}
+                                                    className="w-8 h-8 rounded-lg bg-white/80 hover:bg-white flex items-center justify-center text-gray-700 transition-colors shadow-sm"
+                                                >
+                                                    <ChevronDown className="h-4 w-4" />
+                                                </button>
+                                            )}
+                                            {!photo.isPrincipal && (
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => { e.stopPropagation(); setGalleryPrincipal(photo.id) }}
+                                                    className="w-8 h-8 rounded-lg bg-yellow-400 hover:bg-yellow-500 flex items-center justify-center text-black transition-colors shadow-sm"
+                                                >
+                                                    <Star className="h-4 w-4" />
+                                                </button>
+                                            )}
                                             <button
-                                                onClick={() => removeGalleryPhoto(photo.id)}
-                                                className="w-full mx-4 px-3 py-1.5 rounded-lg bg-red-500/90 hover:bg-red-500 text-white text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
+                                                type="button"
+                                                onClick={(e) => { e.stopPropagation(); removeGalleryPhoto(photo.id) }}
+                                                className="w-8 h-8 rounded-lg bg-red-500 hover:bg-red-600 flex items-center justify-center text-white transition-colors shadow-sm"
                                             >
-                                                <Trash2 className="h-3 w-3" />
-                                                Eliminar
+                                                <Trash2 className="h-4 w-4" />
                                             </button>
                                         </div>
                                     </div>
