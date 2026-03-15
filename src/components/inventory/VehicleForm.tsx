@@ -26,7 +26,7 @@ import {
     FileText,
     Save,
 } from "lucide-react"
-import { MARCAS, COMBUSTIBLES, TRANSMISIONES, CARROCERIAS, ETIQUETAS_DGT, TIPOS_DOCUMENTO_VEHICULO, EQUIPAMIENTO_VEHICULO } from "@/lib/constants"
+import { MARCAS, MODELOS_POR_MARCA, COMBUSTIBLES, TRANSMISIONES, CARROCERIAS, ETIQUETAS_DGT, TIPOS_DOCUMENTO_VEHICULO, EQUIPAMIENTO_VEHICULO } from "@/lib/constants"
 import { formatCurrency } from "@/lib/utils"
 
 export interface VehicleFormData {
@@ -184,7 +184,7 @@ export function VehicleForm({ initialData, onSubmit, isSubmitting = false, onCan
 
         if (stepNum === 1) {
             if (!formData.marca) newErrors.marca = "La marca es obligatoria"
-            if (!formData.modelo) newErrors.modelo = "El modelo es obligatorio"
+            if (!formData.modelo || formData.modelo === '__otro__') newErrors.modelo = "El modelo es obligatorio"
             if (!formData.matricula) newErrors.matricula = "La matrícula es obligatoria"
             if (!formData.año_matriculacion) newErrors.año_matriculacion = "El año es obligatorio"
             if (!formData.kilometraje) newErrors.kilometraje = "Los kilómetros son obligatorios"
@@ -295,7 +295,7 @@ export function VehicleForm({ initialData, onSubmit, isSubmitting = false, onCan
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <div className="space-y-2">
                                 <Label htmlFor="marca">Marca <span className="text-destructive">*</span></Label>
-                                <Select value={formData.marca} onValueChange={(v) => updateField('marca', v)}>
+                                <Select value={formData.marca} onValueChange={(v) => { updateField('marca', v); updateField('modelo', '') }}>
                                     <SelectTrigger className={errors.marca ? "border-destructive" : ""}>
                                         <SelectValue placeholder="Seleccionar marca" />
                                     </SelectTrigger>
@@ -309,13 +309,36 @@ export function VehicleForm({ initialData, onSubmit, isSubmitting = false, onCan
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="modelo">Modelo <span className="text-destructive">*</span></Label>
-                                <Input
-                                    id="modelo"
-                                    placeholder="Ej: Serie 3"
-                                    value={formData.modelo}
-                                    onChange={(e) => updateField('modelo', e.target.value)}
-                                    className={errors.modelo ? "border-destructive" : ""}
-                                />
+                                {formData.marca && MODELOS_POR_MARCA[formData.marca] ? (
+                                    <Select value={formData.modelo} onValueChange={(v) => updateField('modelo', v)}>
+                                        <SelectTrigger className={errors.modelo ? "border-destructive" : ""}>
+                                            <SelectValue placeholder="Seleccionar modelo" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {MODELOS_POR_MARCA[formData.marca].map(modelo => (
+                                                <SelectItem key={modelo} value={modelo}>{modelo}</SelectItem>
+                                            ))}
+                                            <SelectItem value="__otro__">Otro modelo...</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                ) : (
+                                    <Input
+                                        id="modelo"
+                                        placeholder={formData.marca ? "Escribe el modelo" : "Selecciona primero una marca"}
+                                        value={formData.modelo}
+                                        onChange={(e) => updateField('modelo', e.target.value)}
+                                        className={errors.modelo ? "border-destructive" : ""}
+                                        disabled={!formData.marca}
+                                    />
+                                )}
+                                {formData.modelo === '__otro__' && (
+                                    <Input
+                                        placeholder="Escribe el modelo"
+                                        className="mt-2"
+                                        onChange={(e) => updateField('modelo', e.target.value)}
+                                        autoFocus
+                                    />
+                                )}
                                 {errors.modelo && <p className="text-xs text-destructive">{errors.modelo}</p>}
                             </div>
                             <div className="space-y-2">

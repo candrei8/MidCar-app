@@ -34,7 +34,7 @@ import {
     ImageIcon,
 } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
-import { MARCAS, COMBUSTIBLES, TRANSMISIONES, CARROCERIAS, ETIQUETAS_DGT, EQUIPAMIENTO_VEHICULO } from "@/lib/constants"
+import { MARCAS, MODELOS_POR_MARCA, COMBUSTIBLES, TRANSMISIONES, CARROCERIAS, ETIQUETAS_DGT, EQUIPAMIENTO_VEHICULO } from "@/lib/constants"
 import { formatCurrency, cn } from "@/lib/utils"
 import { getVehicleById, updateVehicle } from "@/lib/supabase-service"
 import { uploadVehicleImage, deleteVehicleImage } from "@/lib/vehicle-image-service"
@@ -691,7 +691,7 @@ export function QuickEditForm({ vehicleId, onSave, onCancel }: QuickEditFormProp
                 <Section title="Datos Básicos" icon={Car}>
                     <div className="space-y-4">
                         <FormField label="Marca">
-                            <Select value={formData.marca} onValueChange={(v) => updateField('marca', v)}>
+                            <Select value={formData.marca} onValueChange={(v) => { updateField('marca', v); updateField('modelo', '') }}>
                                 <SelectTrigger className="h-12 text-base">
                                     <SelectValue />
                                 </SelectTrigger>
@@ -705,11 +705,38 @@ export function QuickEditForm({ vehicleId, onSave, onCancel }: QuickEditFormProp
 
                         <div className="grid grid-cols-2 gap-3">
                             <FormField label="Modelo">
-                                <Input
-                                    value={formData.modelo}
-                                    onChange={(e) => updateField('modelo', e.target.value)}
-                                    className="h-12 text-base"
-                                />
+                                {formData.marca && MODELOS_POR_MARCA[formData.marca] ? (
+                                    <>
+                                        <Select value={MODELOS_POR_MARCA[formData.marca].includes(formData.modelo) ? formData.modelo : (formData.modelo ? '__otro__' : '')} onValueChange={(v) => { if (v !== '__otro__') updateField('modelo', v); else updateField('modelo', '') }}>
+                                            <SelectTrigger className="h-12 text-base">
+                                                <SelectValue placeholder="Seleccionar modelo" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {MODELOS_POR_MARCA[formData.marca].map(modelo => (
+                                                    <SelectItem key={modelo} value={modelo} className="py-3">{modelo}</SelectItem>
+                                                ))}
+                                                <SelectItem value="__otro__" className="py-3">Otro modelo...</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        {formData.modelo !== '' && !MODELOS_POR_MARCA[formData.marca]?.includes(formData.modelo) && (
+                                            <Input
+                                                value={formData.modelo === '__otro__' ? '' : formData.modelo}
+                                                onChange={(e) => updateField('modelo', e.target.value)}
+                                                placeholder="Escribe el modelo"
+                                                className="h-12 text-base mt-2"
+                                                autoFocus
+                                            />
+                                        )}
+                                    </>
+                                ) : (
+                                    <Input
+                                        value={formData.modelo}
+                                        onChange={(e) => updateField('modelo', e.target.value)}
+                                        className="h-12 text-base"
+                                        placeholder={formData.marca ? "Escribe el modelo" : "Selecciona marca"}
+                                        disabled={!formData.marca}
+                                    />
+                                )}
                             </FormField>
                             <FormField label="Versión">
                                 <Input

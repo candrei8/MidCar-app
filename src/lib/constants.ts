@@ -66,10 +66,50 @@ export const CARROCERIAS = [
 
 // Marcas de coches
 export const MARCAS = [
-    'Audi', 'BMW', 'Citroën', 'Dacia', 'Fiat', 'Ford', 'Honda', 'Hyundai',
-    'Kia', 'Mazda', 'Mercedes-Benz', 'Nissan', 'Opel', 'Peugeot', 'Renault',
-    'Seat', 'Skoda', 'Toyota', 'Volkswagen', 'Volvo'
+    'Abarth', 'Alfa Romeo', 'Audi', 'BMW', 'Citroën', 'Cupra', 'Dacia', 'DS',
+    'Fiat', 'Ford', 'Honda', 'Hyundai', 'Jaguar', 'Jeep', 'Kia', 'Land Rover',
+    'Lexus', 'Mazda', 'Mercedes-Benz', 'Mini', 'Mitsubishi', 'Nissan', 'Opel',
+    'Peugeot', 'Porsche', 'Renault', 'Seat', 'Skoda', 'Smart', 'Suzuki',
+    'Tesla', 'Toyota', 'Volkswagen', 'Volvo'
 ] as const
+
+// Modelos por marca
+export const MODELOS_POR_MARCA: Record<string, string[]> = {
+    'Abarth': ['500', '595', '695', '124 Spider'],
+    'Alfa Romeo': ['Giulia', 'Stelvio', 'Tonale', 'Giulietta', 'MiTo', '4C'],
+    'Audi': ['A1', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'Q2', 'Q3', 'Q5', 'Q7', 'Q8', 'e-tron', 'e-tron GT', 'TT', 'R8', 'RS3', 'RS4', 'RS5', 'RS6', 'RS7', 'S3', 'S4', 'S5'],
+    'BMW': ['Serie 1', 'Serie 2', 'Serie 3', 'Serie 4', 'Serie 5', 'Serie 7', 'Serie 8', 'X1', 'X2', 'X3', 'X4', 'X5', 'X6', 'X7', 'Z4', 'i3', 'i4', 'iX', 'iX3', 'M2', 'M3', 'M4', 'M5'],
+    'Citroën': ['C1', 'C3', 'C3 Aircross', 'C4', 'C4 X', 'C5 Aircross', 'C5 X', 'Berlingo', 'SpaceTourer', 'ë-C4', 'ë-Berlingo'],
+    'Cupra': ['Formentor', 'Leon', 'Born', 'Ateca', 'Tavascan'],
+    'Dacia': ['Sandero', 'Duster', 'Jogger', 'Spring', 'Logan'],
+    'DS': ['DS 3', 'DS 4', 'DS 7', 'DS 9'],
+    'Fiat': ['500', '500X', '500L', '500e', 'Panda', 'Tipo', 'Punto', 'Dobló'],
+    'Ford': ['Fiesta', 'Focus', 'Mondeo', 'Puma', 'Kuga', 'Explorer', 'Mustang', 'Mustang Mach-E', 'Ranger', 'Transit', 'Transit Connect', 'Galaxy', 'S-Max', 'EcoSport', 'Edge'],
+    'Honda': ['Civic', 'CR-V', 'HR-V', 'Jazz', 'ZR-V', 'e:Ny1', 'e'],
+    'Hyundai': ['i10', 'i20', 'i30', 'Bayon', 'Kona', 'Tucson', 'Santa Fe', 'Ioniq', 'Ioniq 5', 'Ioniq 6', 'Nexo'],
+    'Jaguar': ['E-Pace', 'F-Pace', 'I-Pace', 'XE', 'XF', 'F-Type'],
+    'Jeep': ['Renegade', 'Compass', 'Cherokee', 'Grand Cherokee', 'Wrangler', 'Avenger'],
+    'Kia': ['Picanto', 'Rio', 'Ceed', 'XCeed', 'Sportage', 'Sorento', 'Niro', 'EV6', 'EV9', 'Stonic', 'Stinger', 'ProCeed'],
+    'Land Rover': ['Defender', 'Discovery', 'Discovery Sport', 'Range Rover', 'Range Rover Sport', 'Range Rover Velar', 'Range Rover Evoque'],
+    'Lexus': ['CT', 'IS', 'ES', 'LS', 'UX', 'NX', 'RX', 'RZ', 'LC'],
+    'Mazda': ['Mazda2', 'Mazda3', 'Mazda6', 'CX-3', 'CX-30', 'CX-5', 'CX-60', 'MX-5', 'MX-30'],
+    'Mercedes-Benz': ['Clase A', 'Clase B', 'Clase C', 'Clase E', 'Clase S', 'CLA', 'CLS', 'GLA', 'GLB', 'GLC', 'GLE', 'GLS', 'EQA', 'EQB', 'EQC', 'EQE', 'EQS', 'AMG GT', 'Vito', 'Sprinter'],
+    'Mini': ['Mini 3p', 'Mini 5p', 'Mini Cabrio', 'Mini Clubman', 'Mini Countryman', 'Mini Electric'],
+    'Mitsubishi': ['ASX', 'Eclipse Cross', 'Outlander', 'Space Star', 'L200'],
+    'Nissan': ['Micra', 'Juke', 'Qashqai', 'X-Trail', 'Leaf', 'Ariya', 'Navara', 'Townstar'],
+    'Opel': ['Corsa', 'Astra', 'Mokka', 'Crossland', 'Grandland', 'Combo', 'Zafira', 'Insignia', 'Vivaro'],
+    'Peugeot': ['208', '308', '408', '508', '2008', '3008', '5008', 'Rifter', 'Partner', 'Expert', 'e-208', 'e-2008', 'e-308'],
+    'Porsche': ['911', '718 Cayman', '718 Boxster', 'Cayenne', 'Macan', 'Panamera', 'Taycan'],
+    'Renault': ['Clio', 'Captur', 'Megane', 'Arkana', 'Austral', 'Espace', 'Scenic', 'Kangoo', 'Trafic', 'Zoe', 'Megane E-Tech', 'Twingo'],
+    'Seat': ['Ibiza', 'León', 'Arona', 'Ateca', 'Tarraco', 'Alhambra', 'Mii'],
+    'Skoda': ['Fabia', 'Scala', 'Octavia', 'Superb', 'Kamiq', 'Karoq', 'Kodiaq', 'Enyaq', 'Citigo'],
+    'Smart': ['ForTwo', 'ForFour', '#1', '#3'],
+    'Suzuki': ['Swift', 'Ignis', 'Vitara', 'S-Cross', 'Jimny', 'Across', 'Swace'],
+    'Tesla': ['Model 3', 'Model Y', 'Model S', 'Model X'],
+    'Toyota': ['Aygo', 'Yaris', 'Yaris Cross', 'Corolla', 'Camry', 'C-HR', 'RAV4', 'Highlander', 'Land Cruiser', 'Hilux', 'Supra', 'GR86', 'bZ4X', 'Proace'],
+    'Volkswagen': ['Polo', 'Golf', 'T-Cross', 'T-Roc', 'Tiguan', 'Touareg', 'Passat', 'Arteon', 'ID.3', 'ID.4', 'ID.5', 'ID.7', 'ID.Buzz', 'Taigo', 'Caddy', 'Multivan', 'Transporter'],
+    'Volvo': ['XC40', 'XC60', 'XC90', 'C40', 'S60', 'S90', 'V60', 'V90', 'EX30', 'EX90'],
+}
 
 // Roles de usuario
 export const ROLES_USUARIO = [
