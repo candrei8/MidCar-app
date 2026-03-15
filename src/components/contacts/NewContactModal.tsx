@@ -28,12 +28,18 @@ import {
     Users,
     Save,
     ArrowRight,
-    UserPlus
+    UserPlus,
+    Car,
+    X,
+    Plus
 } from "lucide-react"
 import { ORIGENES_CONTACTO } from "@/lib/constants"
 import { createContact } from "@/lib/supabase-service"
 import { useAuth } from "@/lib/auth-context"
 import { useToast } from "@/components/ui/toast"
+import { useFilteredData } from "@/hooks/useFilteredData"
+import { VehicleSelector } from "@/components/contacts/VehicleSelector"
+import { formatCurrency } from "@/lib/utils"
 import type { Contact } from "@/types"
 
 interface NewContactModalProps {
@@ -45,7 +51,10 @@ interface NewContactModalProps {
 export function NewContactModal({ open, onClose, onContactCreated }: NewContactModalProps) {
     const { user, profile } = useAuth()
     const { addToast } = useToast()
+    const { vehicles } = useFilteredData()
     const [isLoading, setIsLoading] = useState(false)
+    const [showVehicleSelector, setShowVehicleSelector] = useState(false)
+    const [selectedVehicleIds, setSelectedVehicleIds] = useState<string[]>([])
     const [formData, setFormData] = useState({
         nombre: "",
         apellidos: "",
@@ -54,6 +63,8 @@ export function NewContactModal({ open, onClose, onContactCreated }: NewContactM
         origen: "",
     })
     const [errors, setErrors] = useState<Record<string, string>>({})
+
+    const selectedVehicles = vehicles.filter(v => selectedVehicleIds.includes(v.id))
 
     const getOrigenIcon = (origen: string) => {
         switch (origen) {
@@ -110,7 +121,7 @@ export function NewContactModal({ open, onClose, onContactCreated }: NewContactM
                 email: formData.email || '',
                 origen: formData.origen as Contact['origen'],
                 estado: 'pendiente' as Contact['estado'],
-                vehiculos_interes: [] as string[],
+                vehiculos_interes: selectedVehicleIds,
                 preferencias_comunicacion: [] as string[],
                 acepta_marketing: false,
                 consentimiento_rgpd: true,
@@ -137,6 +148,7 @@ export function NewContactModal({ open, onClose, onContactCreated }: NewContactM
                     email: "",
                     origen: "",
                 })
+                setSelectedVehicleIds([])
                 setErrors({})
 
                 if (continueEditing) {
@@ -163,6 +175,7 @@ export function NewContactModal({ open, onClose, onContactCreated }: NewContactM
             email: "",
             origen: "",
         })
+        setSelectedVehicleIds([])
         setErrors({})
         onClose()
     }
@@ -279,7 +292,59 @@ export function NewContactModal({ open, onClose, onContactCreated }: NewContactM
                             <p className="text-xs text-red-500">{errors.origen}</p>
                         )}
                     </div>
+                    {/* Vehículo de interés */}
+                    <div className="space-y-2">
+                        <Label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                            <Car className="h-4 w-4 text-[#135bec]" />
+                            Vehículo de interés <span className="text-slate-400 font-normal">(opcional)</span>
+                        </Label>
+
+                        {selectedVehicles.length > 0 && (
+                            <div className="space-y-2">
+                                {selectedVehicles.map(v => (
+                                    <div key={v.id} className="flex items-center gap-3 p-2.5 bg-blue-50 border border-blue-200 rounded-lg">
+                                        <div
+                                            className="w-12 h-12 rounded-lg bg-cover bg-center flex-shrink-0 bg-slate-200"
+                                            style={{ backgroundImage: `url(${v.imagen_principal || '/placeholder-car.svg'})` }}
+                                        />
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-semibold text-sm text-slate-900 truncate">{v.marca} {v.modelo}</p>
+                                            <p className="text-xs text-slate-500">{formatCurrency(v.precio_venta)} · {v.kilometraje?.toLocaleString()} km</p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => setSelectedVehicleIds(prev => prev.filter(id => id !== v.id))}
+                                            className="p-1 hover:bg-red-100 rounded-md transition-colors"
+                                        >
+                                            <X className="h-4 w-4 text-red-500" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setShowVehicleSelector(true)}
+                            className="w-full h-11 gap-2 border-dashed border-slate-300 text-slate-600 hover:border-[#135bec] hover:text-[#135bec]"
+                        >
+                            <Plus className="h-4 w-4" />
+                            {selectedVehicles.length > 0 ? 'Añadir otro vehículo' : 'Seleccionar vehículo del inventario'}
+                        </Button>
+                    </div>
                 </div>
+
+                {/* Vehicle Selector Modal */}
+                <VehicleSelector
+                    open={showVehicleSelector}
+                    onClose={() => setShowVehicleSelector(false)}
+                    onSelect={(ids) => {
+                        setSelectedVehicleIds(prev => [...new Set([...prev, ...ids])])
+                        setShowVehicleSelector(false)
+                    }}
+                    excludeIds={selectedVehicleIds}
+                />
 
                 {/* Footer */}
                 <div className="px-5 sm:px-6 py-4 bg-slate-50 border-t border-slate-100">

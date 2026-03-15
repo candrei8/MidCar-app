@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import {
     Dialog,
     DialogContent,
@@ -24,13 +24,17 @@ import {
     Phone,
     Car,
     Save,
-    Sparkles
+    Sparkles,
+    X,
+    Search
 } from "lucide-react"
-import { ESTADOS_LEAD, PRIORIDADES_LEAD, MARCAS } from "@/lib/constants"
+import { ESTADOS_LEAD, PRIORIDADES_LEAD } from "@/lib/constants"
 import { createLead } from "@/lib/supabase-service"
 import { useAuth } from "@/lib/auth-context"
 import { useToast } from "@/components/ui/toast"
-import type { Lead } from "@/types"
+import { useFilteredData } from "@/hooks/useFilteredData"
+import { formatCurrency } from "@/lib/utils"
+import type { Lead, Vehicle } from "@/types"
 
 interface NewLeadModalProps {
     open: boolean
@@ -40,17 +44,42 @@ interface NewLeadModalProps {
 export function NewLeadModal({ open, onClose }: NewLeadModalProps) {
     const { user, profile } = useAuth()
     const { addToast } = useToast()
+    const { vehicles } = useFilteredData()
     const [isLoading, setIsLoading] = useState(false)
+    const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null)
+    const [vehicleSearch, setVehicleSearch] = useState("")
+    const [showVehicleDropdown, setShowVehicleDropdown] = useState(false)
     const [formData, setFormData] = useState({
         nombre: "",
         apellidos: "",
         email: "",
         telefono: "",
-        marca: "",
-        modelo: "",
         estado: "nuevo",
         prioridad: "media"
     })
+
+    const vehicleSearchRef = useRef<HTMLDivElement>(null)
+
+    // Close dropdown on click outside
+    useEffect(() => {
+        const handleClick = (e: MouseEvent) => {
+            if (vehicleSearchRef.current && !vehicleSearchRef.current.contains(e.target as Node)) {
+                setShowVehicleDropdown(false)
+            }
+        }
+        document.addEventListener('mousedown', handleClick)
+        return () => document.removeEventListener('mousedown', handleClick)
+    }, [])
+
+    const availableVehicles = vehicles
+        .filter(v => v.estado === 'disponible' || v.estado === 'reservado')
+        .filter(v => {
+            if (!vehicleSearch.trim()) return true
+            const q = vehicleSearch.toLowerCase()
+            return v.marca.toLowerCase().includes(q) ||
+                v.modelo.toLowerCase().includes(q) ||
+                v.matricula?.toLowerCase().includes(q)
+        })
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -65,11 +94,11 @@ export function NewLeadModal({ open, onClose }: NewLeadModalProps) {
             // Crear el nuevo lead en Supabase (sin id, Supabase lo genera)
             const newLead = {
                 cliente_id: '', // Se generará en el backend o se puede crear un cliente primero
-                vehiculo_id: null,
+                vehiculo_id: selectedVehicle?.id || null,
                 estado: formData.estado as Lead['estado'],
                 prioridad: formData.prioridad as Lead['prioridad'],
                 probabilidad: 50,
-                tipo_interes: formData.marca ? `${formData.marca} ${formData.modelo}`.trim() : 'General',
+                tipo_interes: selectedVehicle ? `${selectedVehicle.marca} ${selectedVehicle.modelo}`.trim() : 'General',
                 presupuesto_cliente: 0,
                 forma_pago: 'contado',
                 asignado_a: user?.id || '',
@@ -105,11 +134,11 @@ export function NewLeadModal({ open, onClose }: NewLeadModalProps) {
                     apellidos: "",
                     email: "",
                     telefono: "",
-                    marca: "",
-                    modelo: "",
                     estado: "nuevo",
                     prioridad: "media"
                 })
+                setSelectedVehicle(null)
+                setVehicleSearch("")
                 onClose()
             } else {
                 throw new Error('No se pudo crear el lead')
@@ -204,29 +233,72 @@ export function NewLeadModal({ open, onClose }: NewLeadModalProps) {
                             <Car className="h-3 w-3" />
                             Interés y Estado
                         </h3>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label>Marca de Interés</Label>
-                                <Select value={formData.marca} onValueChange={val => setFormData({ ...formData, marca: val })}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Seleccionar marca" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {MARCAS.map(marca => (
-                                            <SelectItem key={marca} value={marca}>{marca}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="modelo">Modelo (Opcional)</Label>
-                                <Input
-                                    id="modelo"
-                                    placeholder="Ej: Serie 3"
-                                    value={formData.modelo}
-                                    onChange={e => setFormData({ ...formData, modelo: e.target.value })}
-                                />
-                            </div>
+
+                        {/* Vehicle Selector */}
+                        <div className="space-y-2">
+                            <Label>Vehículo de interés <span className="text-slate-400 font-normal">(opcional)</span></Label>
+
+                            {selectedVehicle ? (
+                                <div className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                    <div
+                                        className="w-14 h-14 rounded-lg bg-cover bg-center flex-shrink-0 bg-slate-200"
+                                        style={{ backgroundImage: `url(${selectedVehicle.imagen_principal || '/placeholder-car.svg'})` }}
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-semibold text-sm text-slate-900">{selectedVehicle.marca} {selectedVehicle.modelo}</p>
+                                        <p className="text-xs text-slate-500">{selectedVehicle.version}</p>
+                                        <p className="text-sm font-bold text-[#135bec]">{formatCurrency(selectedVehicle.precio_venta)} · {selectedVehicle.kilometraje?.toLocaleString()} km</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setSelectedVehicle(null)}
+                                        className="p-1.5 hover:bg-red-100 rounded-md transition-colors"
+                                    >
+                                        <X className="h-4 w-4 text-red-500" />
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="relative" ref={vehicleSearchRef}>
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                    <Input
+                                        placeholder="Buscar por marca, modelo o matrícula..."
+                                        value={vehicleSearch}
+                                        onChange={(e) => { setVehicleSearch(e.target.value); setShowVehicleDropdown(true) }}
+                                        onFocus={() => setShowVehicleDropdown(true)}
+                                        className="pl-9"
+                                    />
+                                    {showVehicleDropdown && (
+                                        <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-[240px] overflow-y-auto">
+                                            {availableVehicles.slice(0, 8).map(v => (
+                                                <button
+                                                    key={v.id}
+                                                    type="button"
+                                                    className="w-full flex items-center gap-3 p-2.5 hover:bg-slate-50 transition-colors text-left"
+                                                    onClick={() => {
+                                                        setSelectedVehicle(v)
+                                                        setVehicleSearch("")
+                                                        setShowVehicleDropdown(false)
+                                                    }}
+                                                >
+                                                    <div
+                                                        className="w-10 h-10 rounded-md bg-cover bg-center flex-shrink-0 bg-slate-200"
+                                                        style={{ backgroundImage: `url(${v.imagen_principal || '/placeholder-car.svg'})` }}
+                                                    />
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="font-medium text-sm text-slate-900 truncate">{v.marca} {v.modelo}</p>
+                                                        <p className="text-xs text-slate-500">{formatCurrency(v.precio_venta)} · {v.año_matriculacion} · {v.kilometraje?.toLocaleString()} km</p>
+                                                    </div>
+                                                </button>
+                                            ))}
+                                            {availableVehicles.length === 0 && (
+                                                <div className="p-4 text-center text-sm text-slate-400">
+                                                    No se encontraron vehículos
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
