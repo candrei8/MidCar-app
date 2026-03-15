@@ -21,19 +21,30 @@ export const isSupabaseConfigured = Boolean(
     supabaseAnonKey &&
     supabaseUrl.length > 10 &&
     supabaseAnonKey.length > 10 &&
-    !supabaseUrl.includes('placeholder')
+    !supabaseUrl.includes('placeholder') &&
+    (supabaseUrl.startsWith('https://') || supabaseUrl.startsWith('http://'))
 )
 
 // Create browser client for proper cookie-based session persistence
 let supabase: SupabaseClient
 
 if (isSupabaseConfigured) {
-    if (typeof window !== 'undefined') {
-        // Use SSR browser client for proper session persistence with cookies
-        supabase = createBrowserClient(supabaseUrl, supabaseAnonKey)
-    } else {
-        // Server-side: use standard client
-        supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    try {
+        if (typeof window !== 'undefined') {
+            // Use SSR browser client for proper session persistence with cookies
+            supabase = createBrowserClient(supabaseUrl, supabaseAnonKey)
+        } else {
+            // Server-side: use standard client
+            supabase = createClient(supabaseUrl, supabaseAnonKey, {
+                auth: {
+                    persistSession: false,
+                    autoRefreshToken: false,
+                },
+            })
+        }
+    } catch {
+        // Fallback if URL validation fails
+        supabase = createClient('https://placeholder.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2MTY3MjQ4MDAsImV4cCI6MTkzMjMwMDgwMH0.placeholder', {
             auth: {
                 persistSession: false,
                 autoRefreshToken: false,
@@ -42,7 +53,7 @@ if (isSupabaseConfigured) {
     }
 } else {
     // Build time/demo mode: create a dummy client that won't throw on URL validation
-    supabase = createClient('https://localhost.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxvY2FsaG9zdCIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNjE2NzI0ODAwLCJleHAiOjE5MzIzMDA4MDB9.stub', {
+    supabase = createClient('https://placeholder.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2MTY3MjQ4MDAsImV4cCI6MTkzMjMwMDgwMH0.placeholder', {
         auth: {
             persistSession: false,
             autoRefreshToken: false,

@@ -20,7 +20,8 @@ export async function middleware(request: NextRequest) {
     const isSupabaseConfigured = Boolean(
         supabaseUrl &&
         supabaseAnonKey &&
-        !supabaseUrl.includes('placeholder')
+        !supabaseUrl.includes('placeholder') &&
+        (supabaseUrl.startsWith('https://') || supabaseUrl.startsWith('http://'))
     )
 
     // SECURITY: If Supabase is not configured, block access to protected routes
