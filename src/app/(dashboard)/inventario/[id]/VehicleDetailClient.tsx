@@ -9,7 +9,8 @@ import { ShareModal } from "@/components/inventory/ShareModal"
 import { ContractGeneratorModal } from "@/components/inventory/ContractGeneratorModal"
 import { InvoiceGeneratorModal } from "@/components/inventory/InvoiceGeneratorModal"
 import { DocumentGeneratorModal } from "@/components/documents"
-import { getVehicleById, getContractsByVehicle, getInvoicesByVehicle, updateContract, updateInvoice, deleteVehicle, type ContractDB, type InvoiceDB } from "@/lib/supabase-service"
+import { getVehicleById, getContractsByVehicle, getInvoicesByVehicle, updateContract, updateInvoice, deleteVehicle, updateVehicle, type ContractDB, type InvoiceDB } from "@/lib/supabase-service"
+import { invalidateDataCache } from "@/hooks/useFilteredData"
 import { getContacts } from "@/lib/db/contacts"
 import { useToast } from "@/components/ui/toast"
 import { useAuth } from "@/lib/auth-context"
@@ -394,9 +395,10 @@ const generateInvoicePDF = (invoice: InvoiceDB, vehicle: Vehicle) => {
     doc.save(`Factura_${invoice.numero_factura}_${vehicle.matricula}.pdf`)
 }
 
-// Helper para verificar si una URL de imagen es válida (excluye Azure CDN que no existe)
+// Helper para verificar si una URL de imagen es válida (excluye placeholders y URLs inválidas)
 const isValidImageUrl = (url: string | null | undefined): boolean => {
     if (!url) return false
+    if (url.includes('placeholder-')) return false
     return true
 }
 
@@ -474,12 +476,29 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
         setIsDeleting(true)
         const success = await deleteVehicle(vehicle.id)
         if (success) {
+            invalidateDataCache()
+            window.dispatchEvent(new CustomEvent('midcar-data-updated', { detail: { type: 'vehicles' } }))
             addToast('Vehículo eliminado correctamente', 'success')
             router.push('/inventario')
         } else {
             addToast('Error al eliminar el vehículo', 'error')
             setIsDeleting(false)
             setShowDeleteConfirm(false)
+        }
+    }
+
+    // Change vehicle status (reservado, vendido, disponible)
+    const handleStatusChange = async (newStatus: Vehicle['estado']) => {
+        if (!vehicle || vehicle.estado === newStatus) return
+        const updated = await updateVehicle(vehicle.id, { estado: newStatus })
+        if (updated) {
+            setVehicle({ ...vehicle, estado: newStatus })
+            invalidateDataCache()
+            window.dispatchEvent(new CustomEvent('midcar-data-updated', { detail: { type: 'vehicles' } }))
+            const labels: Record<string, string> = { disponible: 'Disponible', reservado: 'Reservado', vendido: 'Vendido', taller: 'En taller', baja: 'De baja' }
+            addToast(`Estado cambiado a ${labels[newStatus] || newStatus}`, 'success')
+        } else {
+            addToast('Error al cambiar el estado', 'error')
         }
     }
 
@@ -659,10 +678,22 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
                                         <DropdownMenuItem onClick={() => router.push(`/inventario/${vehicle.id}/editar`)} className="gap-2 cursor-pointer">
                                             <span className="material-symbols-outlined text-base">edit</span> Editar
                                         </DropdownMenuItem>
-                                        {/* Assuming a WebLink modal/function exists, otherwise remove */}
-                                        {/* <DropdownMenuItem onClick={() => setIsWebLinkModalOpen(true)} className="gap-2 cursor-pointer">
-                                            <span className="material-symbols-outlined text-base">link</span> Enlazar Web
-                                        </DropdownMenuItem> */}
+                                        <DropdownMenuSeparator className="bg-border/10" />
+                                        {vehicle.estado !== 'disponible' && (
+                                            <DropdownMenuItem onClick={() => handleStatusChange('disponible')} className="gap-2 cursor-pointer">
+                                                <span className="w-2 h-2 rounded-full bg-green-500" /> Disponible
+                                            </DropdownMenuItem>
+                                        )}
+                                        {vehicle.estado !== 'reservado' && (
+                                            <DropdownMenuItem onClick={() => handleStatusChange('reservado')} className="gap-2 cursor-pointer">
+                                                <span className="w-2 h-2 rounded-full bg-amber-500" /> Reservado
+                                            </DropdownMenuItem>
+                                        )}
+                                        {vehicle.estado !== 'vendido' && (
+                                            <DropdownMenuItem onClick={() => handleStatusChange('vendido')} className="gap-2 cursor-pointer">
+                                                <span className="w-2 h-2 rounded-full bg-slate-500" /> Vendido
+                                            </DropdownMenuItem>
+                                        )}
                                         <DropdownMenuSeparator className="bg-border/10" />
                                         <DropdownMenuItem onClick={() => setShowDeleteConfirm(true)} className="gap-2 text-red-500 hover:text-red-600 focus:text-red-500 cursor-pointer">
                                             <span className="material-symbols-outlined text-base">delete</span> Eliminar
@@ -710,8 +741,10 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
                             )}
                         </>
                     ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                            <span className="material-symbols-outlined text-gray-400 text-6xl">no_photography</span>
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-slate-100 gap-3">
+                            <span className="material-symbols-outlined text-[#135bec]/40 text-6xl">photo_camera</span>
+                            <span className="text-lg font-bold text-[#135bec]">Próximamente</span>
+                            <span className="text-xs text-slate-400">Fotos disponibles en breve</span>
                         </div>
                     )}
                 </div>
@@ -736,6 +769,8 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
                         vehicleContracts={vehicleContracts}
                         vehicleInvoices={vehicleInvoices}
                         onSelectDocument={setSelectedDocument}
+                        onStatusChange={handleStatusChange}
+                        canEdit={canEdit}
                     />
                 </div>
 
@@ -818,8 +853,10 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
                                     )}
                                 </>
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center">
-                                    <span className="material-symbols-outlined text-gray-400 text-6xl">no_photography</span>
+                                <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-slate-100 gap-3">
+                                    <span className="material-symbols-outlined text-[#135bec]/40 text-6xl">photo_camera</span>
+                                    <span className="text-lg font-bold text-[#135bec]">Próximamente</span>
+                                    <span className="text-xs text-slate-400">Fotos disponibles en breve</span>
                                 </div>
                             )}
                             {/* DGT Badge */}
@@ -928,22 +965,56 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
                                 </div>
 
                                 {/* Status Tags */}
-                                <div className="flex flex-wrap gap-2">
-                                    <div className={cn(
-                                        "inline-flex items-center gap-1.5 px-3 py-1 rounded-lg border text-xs font-bold uppercase",
-                                        vehicle.estado === 'disponible'
-                                            ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200"
-                                            : vehicle.estado === 'reservado'
-                                                ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 border-yellow-200"
-                                                : "bg-gray-100 text-gray-700 border-gray-200"
-                                    )}>
-                                        <span className={cn("w-2 h-2 rounded-full", vehicle.estado === 'disponible' && "bg-green-500 animate-pulse")} />
-                                        {vehicle.estado}
+                                {canEdit ? (
+                                    <div className="flex flex-wrap gap-2">
+                                        {([
+                                            { value: 'disponible', label: 'Disponible', bg: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200', dot: 'bg-green-500' },
+                                            { value: 'reservado', label: 'Reservado', bg: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200', dot: 'bg-amber-500' },
+                                            { value: 'vendido', label: 'Vendido', bg: 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-300', dot: 'bg-slate-500' },
+                                        ] as const).map((s) => (
+                                            <button
+                                                key={s.value}
+                                                onClick={() => handleStatusChange(s.value)}
+                                                className={cn(
+                                                    "inline-flex items-center gap-1.5 px-3 py-1 rounded-lg border text-xs font-bold uppercase transition-all hover:scale-105 cursor-pointer",
+                                                    vehicle.estado === s.value
+                                                        ? s.bg + " ring-2 ring-offset-1 ring-current shadow-sm"
+                                                        : "bg-gray-50 dark:bg-gray-800 text-gray-400 border-gray-200 dark:border-gray-700 hover:border-gray-300"
+                                                )}
+                                            >
+                                                <span className={cn("w-2 h-2 rounded-full", vehicle.estado === s.value ? s.dot : "bg-gray-300")} />
+                                                {s.label}
+                                            </button>
+                                        ))}
+                                        <div className="inline-flex items-center px-3 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 text-xs font-medium">
+                                            Garantía {vehicle.garantia_meses} meses
+                                        </div>
                                     </div>
-                                    <div className="inline-flex items-center px-3 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 text-xs font-medium">
-                                        Garantía {vehicle.garantia_meses} meses
+                                ) : (
+                                    <div className="flex flex-wrap gap-2">
+                                        <div className={cn(
+                                            "inline-flex items-center gap-1.5 px-3 py-1 rounded-lg border text-xs font-bold uppercase",
+                                            vehicle.estado === 'disponible'
+                                                ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200"
+                                                : vehicle.estado === 'reservado'
+                                                    ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200"
+                                                    : vehicle.estado === 'vendido'
+                                                        ? "bg-slate-200 text-slate-700 border-slate-300"
+                                                        : "bg-gray-100 text-gray-700 border-gray-200"
+                                        )}>
+                                            <span className={cn("w-2 h-2 rounded-full",
+                                                vehicle.estado === 'disponible' ? "bg-green-500 animate-pulse"
+                                                    : vehicle.estado === 'reservado' ? "bg-amber-500"
+                                                    : vehicle.estado === 'vendido' ? "bg-slate-500"
+                                                    : "bg-gray-500"
+                                            )} />
+                                            {vehicle.estado}
+                                        </div>
+                                        <div className="inline-flex items-center px-3 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 text-xs font-medium">
+                                            Garantía {vehicle.garantia_meses} meses
+                                        </div>
                                     </div>
-                                </div>
+                                )}
                             </div>
                         </div>
 
@@ -1873,7 +1944,9 @@ function MobileContent({
     onGenerateDocument,
     vehicleContracts,
     vehicleInvoices,
-    onSelectDocument
+    onSelectDocument,
+    onStatusChange,
+    canEdit
 }: any) {
     const DGT_COLORS: Record<string, string> = {
         '0': 'bg-blue-500 text-white',
@@ -1899,18 +1972,53 @@ function MobileContent({
                         {hasDiscount && <span className="text-xs text-gray-500 line-through">{formatCurrency(vehicle.precio_venta)}</span>}
                     </div>
                 </div>
-                <div className="flex flex-wrap gap-2 mt-2">
-                    <div className={cn(
-                        "inline-flex items-center gap-1.5 px-3 py-1 rounded-lg border",
-                        vehicle.estado === 'disponible' ? "bg-green-100 text-green-700 border-green-200" : "bg-gray-100 text-gray-700 border-gray-200"
-                    )}>
-                        <span className={cn("w-2 h-2 rounded-full", vehicle.estado === 'disponible' && "bg-green-500 animate-pulse")} />
-                        <span className="text-xs font-bold uppercase">{vehicle.estado}</span>
+                {canEdit ? (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                        {([
+                            { value: 'disponible', label: 'Disponible', bg: 'bg-green-100 text-green-700 border-green-200', dot: 'bg-green-500' },
+                            { value: 'reservado', label: 'Reservado', bg: 'bg-amber-100 text-amber-700 border-amber-200', dot: 'bg-amber-500' },
+                            { value: 'vendido', label: 'Vendido', bg: 'bg-slate-200 text-slate-700 border-slate-300', dot: 'bg-slate-500' },
+                        ] as const).map((s) => (
+                            <button
+                                key={s.value}
+                                onClick={() => onStatusChange(s.value)}
+                                className={cn(
+                                    "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold uppercase transition-all active:scale-95",
+                                    vehicle.estado === s.value
+                                        ? s.bg + " ring-2 ring-offset-1 ring-current shadow-sm"
+                                        : "bg-white text-gray-400 border-gray-200"
+                                )}
+                            >
+                                <span className={cn("w-2 h-2 rounded-full", vehicle.estado === s.value ? s.dot : "bg-gray-300")} />
+                                {s.label}
+                            </button>
+                        ))}
+                        <div className="inline-flex items-center px-3 py-1 rounded-lg bg-gray-100 text-gray-600 border border-gray-200 text-xs font-medium">
+                            Garantía {vehicle.garantia_meses} meses
+                        </div>
                     </div>
-                    <div className="inline-flex items-center px-3 py-1 rounded-lg bg-gray-100 text-gray-600 border border-gray-200 text-xs font-medium">
-                        Garantía {vehicle.garantia_meses} meses
+                ) : (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                        <div className={cn(
+                            "inline-flex items-center gap-1.5 px-3 py-1 rounded-lg border text-xs font-bold uppercase",
+                            vehicle.estado === 'disponible' ? "bg-green-100 text-green-700 border-green-200"
+                                : vehicle.estado === 'reservado' ? "bg-amber-100 text-amber-700 border-amber-200"
+                                : vehicle.estado === 'vendido' ? "bg-slate-200 text-slate-700 border-slate-300"
+                                : "bg-gray-100 text-gray-700 border-gray-200"
+                        )}>
+                            <span className={cn("w-2 h-2 rounded-full",
+                                vehicle.estado === 'disponible' ? "bg-green-500 animate-pulse"
+                                    : vehicle.estado === 'reservado' ? "bg-amber-500"
+                                    : vehicle.estado === 'vendido' ? "bg-slate-500"
+                                    : "bg-gray-500"
+                            )} />
+                            {vehicle.estado}
+                        </div>
+                        <div className="inline-flex items-center px-3 py-1 rounded-lg bg-gray-100 text-gray-600 border border-gray-200 text-xs font-medium">
+                            Garantía {vehicle.garantia_meses} meses
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
 
             {/* Quick Specs Grid */}

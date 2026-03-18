@@ -16,6 +16,7 @@ interface CompraventaFormProps {
   formData: Partial<CompraventaData>;
   onChange: (data: Partial<CompraventaData>) => void;
   suggestedPrice?: number;
+  empresaIban?: string;
 }
 
 export function CompraventaForm({
@@ -23,7 +24,8 @@ export function CompraventaForm({
   customer,
   formData,
   onChange,
-  suggestedPrice = 0
+  suggestedPrice = 0,
+  empresaIban
 }: CompraventaFormProps) {
   const initializedRef = useRef(false);
 
@@ -52,7 +54,7 @@ export function CompraventaForm({
       ivaImporte: Math.round((suggestedPrice - suggestedPrice / 1.21) * 100) / 100,
       totalConIva: suggestedPrice,
       formaPago: 'transferencia',
-      cuentaBancaria: EMPRESA_DATOS.cuentaBancaria,
+      cuentaBancaria: empresaIban || EMPRESA_DATOS.cuentaBancaria,
       ...formData.condiciones
     },
     garantia: {

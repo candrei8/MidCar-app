@@ -153,7 +153,7 @@ function transformVehicleFromDB(dbVehicle: Record<string, unknown>): Vehicle {
         garantia_meses: (dbVehicle.garantia_meses as number) || 12,
         tipo_garantia: (dbVehicle.tipo_garantia as string) || 'Mecánica completa',
         fecha_itv_vencimiento: dbVehicle.fecha_itv_vencimiento as string | undefined,
-        imagen_principal: (dbVehicle.imagen_principal as string) || '/placeholder-car.svg',
+        imagen_principal: (dbVehicle.imagen_principal as string) || '/placeholder-proximamente.svg',
         imagenes: Array.isArray(dbVehicle.imagenes) ? (dbVehicle.imagenes as any[]) : [],
         documentos: [], // Documents are stored separately
         url_web: dbVehicle.url_web as string | undefined,

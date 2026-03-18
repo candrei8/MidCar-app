@@ -16,6 +16,7 @@ export interface Vehicle {
     version: string
     año_fabricacion: number
     año_matriculacion: number
+    mes_matriculacion?: number
 
     // Technical
     tipo_motor: string
@@ -686,6 +687,7 @@ export interface EmpresaVendedora {
     email: string
     web?: string
     logo?: string // Base64 o URL
+    iban?: string // IBAN / Cuenta bancaria
     activa: boolean
     es_ejemplo: boolean
     created_at: string

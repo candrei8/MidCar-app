@@ -39,6 +39,7 @@ import { formatCurrency, cn } from "@/lib/utils"
 import { getVehicleById, updateVehicle } from "@/lib/supabase-service"
 import { uploadVehicleImage, deleteVehicleImage } from "@/lib/vehicle-image-service"
 import { useDropzone } from "react-dropzone"
+import { invalidateDataCache } from "@/hooks/useFilteredData"
 import type { Vehicle, VehicleImage } from "@/types"
 
 interface QuickEditFormProps {
@@ -248,7 +249,7 @@ export function QuickEditForm({ vehicleId, onSave, onCancel }: QuickEditFormProp
             })
 
             // Add imagen_principal if not already in list
-            if (originalVehicle.imagen_principal && originalVehicle.imagen_principal !== '/placeholder-car.svg' && !photos.some(p => p.url === originalVehicle.imagen_principal)) {
+            if (originalVehicle.imagen_principal && originalVehicle.imagen_principal !== '/placeholder-proximamente.svg' && !photos.some(p => p.url === originalVehicle.imagen_principal)) {
                 photos.unshift({
                     id: 'principal-existing',
                     url: originalVehicle.imagen_principal,
@@ -316,24 +317,28 @@ export function QuickEditForm({ vehicleId, onSave, onCancel }: QuickEditFormProp
 
     // Add new photos to gallery
     const addPhotosToGallery = useCallback((acceptedFiles: File[]) => {
-        const newPhotos: GalleryPhoto[] = acceptedFiles.map((file, i) => ({
-            id: `new-${Date.now()}-${i}-${Math.random()}`,
-            url: URL.createObjectURL(file),
-            file,
-            isExisting: false,
-            isPrincipal: false,
-            orden: galleryPhotos.length + i,
-        }))
-
         setGalleryPhotos(prev => {
-            const combined = [...prev, ...newPhotos].slice(0, 20)
+            const spotsLeft = 20 - prev.length
+            if (spotsLeft <= 0) return prev
+
+            const filesToAdd = acceptedFiles.slice(0, spotsLeft)
+            const newPhotos: GalleryPhoto[] = filesToAdd.map((file, i) => ({
+                id: `new-${Date.now()}-${i}-${Math.random()}`,
+                url: URL.createObjectURL(file),
+                file,
+                isExisting: false,
+                isPrincipal: false,
+                orden: prev.length + i,
+            }))
+
+            const combined = [...prev, ...newPhotos]
             // If no principal, set first
             if (combined.length > 0 && !combined.some(p => p.isPrincipal)) {
                 combined[0].isPrincipal = true
             }
             return combined
         })
-    }, [galleryPhotos.length])
+    }, [])
 
     // Remove photo from gallery
     const removeGalleryPhoto = useCallback((photoId: string) => {
@@ -341,11 +346,12 @@ export function QuickEditForm({ vehicleId, onSave, onCancel }: QuickEditFormProp
             const photo = prev.find(p => p.id === photoId)
             if (!photo) return prev
 
-            // Track existing photos for deletion from storage (deferred to avoid nested setState)
+            // Track existing photos for deletion from storage
             if (photo.isExisting) {
                 queueMicrotask(() => setPhotosToDelete(d => [...d, photo.url]))
             } else {
-                URL.revokeObjectURL(photo.url)
+                // Defer URL revocation to after React commits the render
+                setTimeout(() => URL.revokeObjectURL(photo.url), 0)
             }
 
             const remaining = prev.filter(p => p.id !== photoId)
@@ -375,12 +381,11 @@ export function QuickEditForm({ vehicleId, onSave, onCancel }: QuickEditFormProp
         })
     }, [])
 
-    // Dropzone for gallery
+    // Dropzone for gallery - no maxFiles, we handle the limit in addPhotosToGallery
     const { getRootProps: getGalleryRootProps, getInputProps: getGalleryInputProps, isDragActive: isGalleryDragActive } = useDropzone({
         onDrop: addPhotosToGallery,
         accept: { 'image/jpeg': [], 'image/png': [], 'image/webp': [] },
         maxSize: 5 * 1024 * 1024,
-        maxFiles: 20,
     })
 
     // Save changes
@@ -393,7 +398,7 @@ export function QuickEditForm({ vehicleId, onSave, onCancel }: QuickEditFormProp
             // Process photo changes
             const stockId = formData.stock_id || vehicleId
             const imagenesArray: VehicleImage[] = []
-            let imagenPrincipal = formData.imagen_principal || '/placeholder-car.svg'
+            let imagenPrincipal = formData.imagen_principal || '/placeholder-proximamente.svg'
 
             if (galleryPhotos.length > 0) {
                 for (let i = 0; i < galleryPhotos.length; i++) {
@@ -438,6 +443,7 @@ export function QuickEditForm({ vehicleId, onSave, onCancel }: QuickEditFormProp
             const updatedVehicle = await updateVehicle(vehicleId, updates)
 
             if (updatedVehicle) {
+                invalidateDataCache()
                 window.dispatchEvent(new CustomEvent('midcar-data-updated', { detail: { type: 'vehicles' } }))
                 setOriginalVehicle(updatedVehicle)
                 setPhotosToDelete([])
@@ -580,7 +586,7 @@ export function QuickEditForm({ vehicleId, onSave, onCancel }: QuickEditFormProp
                                             alt={`Foto ${index + 1}`}
                                             className="w-full h-full object-cover"
                                             onError={(e) => {
-                                                e.currentTarget.src = '/placeholder-car.svg'
+                                                e.currentTarget.src = '/placeholder-proximamente.svg'
                                             }}
                                         />
 
@@ -758,6 +764,27 @@ export function QuickEditForm({ vehicleId, onSave, onCancel }: QuickEditFormProp
                                 />
                             </FormField>
                         </div>
+                        <FormField label="Mes Matriculación">
+                            <select
+                                value={formData.mes_matriculacion || ''}
+                                onChange={(e) => updateField('mes_matriculacion', parseInt(e.target.value) || 0)}
+                                className="flex h-12 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                            >
+                                <option value="">Sin especificar</option>
+                                <option value="1">Enero</option>
+                                <option value="2">Febrero</option>
+                                <option value="3">Marzo</option>
+                                <option value="4">Abril</option>
+                                <option value="5">Mayo</option>
+                                <option value="6">Junio</option>
+                                <option value="7">Julio</option>
+                                <option value="8">Agosto</option>
+                                <option value="9">Septiembre</option>
+                                <option value="10">Octubre</option>
+                                <option value="11">Noviembre</option>
+                                <option value="12">Diciembre</option>
+                            </select>
+                        </FormField>
 
                         <FormField label="VIN">
                             <Input
@@ -872,7 +899,7 @@ export function QuickEditForm({ vehicleId, onSave, onCancel }: QuickEditFormProp
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {[2, 4, 5, 7, 9].map(n => (
+                                        {[2, 3, 4, 5, 7, 9].map(n => (
                                             <SelectItem key={n} value={n.toString()} className="py-3">{n} plazas</SelectItem>
                                         ))}
                                     </SelectContent>

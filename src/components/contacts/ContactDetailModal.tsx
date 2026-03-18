@@ -33,7 +33,7 @@ const isValidImageUrl = (url: string | null | undefined): boolean => {
 // Helper para obtener imagen válida
 const getValidImageUrl = (url: string | null | undefined): string => {
     if (!url) {
-        return '/placeholder-car.svg'
+        return '/placeholder-proximamente.svg'
     }
     return url
 }

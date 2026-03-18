@@ -15,6 +15,7 @@ interface ProformaFormProps {
   formData: Partial<ProformaData>;
   onChange: (data: Partial<ProformaData>) => void;
   suggestedPrice?: number;
+  empresaIban?: string;
 }
 
 // Generar número de proforma único
@@ -29,7 +30,8 @@ export function ProformaForm({
   customer,
   formData,
   onChange,
-  suggestedPrice = 0
+  suggestedPrice = 0,
+  empresaIban
 }: ProformaFormProps) {
   const initializedRef = useRef(false);
 
@@ -58,7 +60,7 @@ export function ProformaForm({
       ivaImporte: Math.round((suggestedPrice - suggestedPrice / 1.21) * 100) / 100,
       totalConIva: suggestedPrice,
       formaPago: 'transferencia',
-      cuentaBancaria: EMPRESA_DATOS.cuentaBancaria,
+      cuentaBancaria: empresaIban || EMPRESA_DATOS.cuentaBancaria,
       ...formData.condiciones
     },
     numeroProforma: formData.numeroProforma || generateProformaNumber(),

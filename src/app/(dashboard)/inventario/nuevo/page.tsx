@@ -11,6 +11,7 @@ import { useToast } from "@/components/ui/toast"
 import { createVehicle, generateStockId } from "@/lib/supabase-service"
 import { uploadVehicleImage } from "@/lib/vehicle-image-service"
 import { useAuth } from "@/lib/auth-context"
+import { invalidateDataCache } from "@/hooks/useFilteredData"
 import type { Vehicle } from "@/types"
 
 function NuevoVehiculoContent() {
@@ -158,7 +159,8 @@ function NuevoVehiculoContent() {
         const stockId = await generateStockId()
 
         // Upload all photos to Supabase Storage
-        let imagenPrincipal = '/placeholder-car.svg'
+        // Si no hay fotos, usar placeholder "Próximamente"
+        let imagenPrincipal = '/placeholder-proximamente.svg'
         const imagenesArray: { url: string; es_principal: boolean; orden: number }[] = []
 
         if (formData.fotos && formData.fotos.length > 0) {
@@ -192,6 +194,7 @@ function NuevoVehiculoContent() {
             version: formData.version || '',
             año_fabricacion: parseInt(formData.año_fabricacion) || parseInt(formData.año_matriculacion) || 2024,
             año_matriculacion: parseInt(formData.año_matriculacion) || 2024,
+            mes_matriculacion: parseInt(formData.mes_matriculacion) || undefined,
             tipo_motor: formData.combustible || 'gasolina',
             cilindrada: parseInt(formData.cilindrada) || 0,
             potencia_cv: parseInt(formData.potencia_cv) || 0,
@@ -253,6 +256,9 @@ function NuevoVehiculoContent() {
         }
 
         setIsSaving(false)
+
+        // Invalidar cache para que el inventario muestre el nuevo vehículo
+        invalidateDataCache()
 
         // Redirect to inventory
         router.push('/inventario')

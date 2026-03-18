@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" fill="none">
+  <rect width="400" height="300" fill="#f0f4ff"/>
+  <rect width="400" height="300" rx="0" fill="url(#grad)" opacity="0.15"/>
+  <defs>
+    <linearGradient id="grad" x1="0" y1="0" x2="400" y2="300">
+      <stop offset="0%" stop-color="#135bec"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </linearGradient>
+  </defs>
+  <!-- Camera icon -->
+  <g transform="translate(165, 85)">
+    <rect x="5" y="18" width="60" height="45" rx="6" stroke="#94a3b8" stroke-width="2.5" fill="none"/>
+    <path d="M22 18L27 8H43L48 18" stroke="#94a3b8" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="35" cy="40" r="12" stroke="#94a3b8" stroke-width="2.5" fill="none"/>
+    <circle cx="35" cy="40" r="5" fill="#cbd5e1"/>
+  </g>
+  <!-- Próximamente text -->
+  <text x="200" y="175" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="700" fill="#135bec" letter-spacing="0.5">Próximamente</text>
+  <text x="200" y="200" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#94a3b8">Fotos disponibles en breve</text>
+</svg>

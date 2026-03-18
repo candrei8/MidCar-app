@@ -15,6 +15,7 @@ interface SenalFormProps {
   formData: Partial<SenalData>;
   onChange: (data: Partial<SenalData>) => void;
   suggestedPrice?: number;
+  empresaIban?: string;
 }
 
 export function SenalForm({
@@ -22,7 +23,8 @@ export function SenalForm({
   customer,
   formData,
   onChange,
-  suggestedPrice = 0
+  suggestedPrice = 0,
+  empresaIban
 }: SenalFormProps) {
   const initializedRef = useRef(false);
 
@@ -50,7 +52,7 @@ export function SenalForm({
     },
     precioTotal: suggestedPrice,
     importeSenal: formData.importeSenal || Math.round(suggestedPrice * 0.1), // 10% por defecto
-    cuentaBancaria: formData.cuentaBancaria || EMPRESA_DATOS.cuentaBancaria,
+    cuentaBancaria: formData.cuentaBancaria || empresaIban || EMPRESA_DATOS.cuentaBancaria,
     fechaContrato: formData.fechaContrato || new Date().toISOString().split('T')[0],
     lugarContrato: formData.lugarContrato || EMPRESA_DATOS.localidad,
     fechaLimiteVenta: formData.fechaLimiteVenta || defaultLimitDate.toISOString().split('T')[0],

@@ -43,11 +43,13 @@ interface PhotoUploaderProps {
     initialPrincipal?: string | null;
 }
 
+const MAX_PHOTOS = 20;
+
 export function PhotoUploader({ onFilesChange, onPrincipalChange, initialFiles, initialPrincipal }: PhotoUploaderProps) {
     const [files, setFiles] = useState<UploadedFile[]>(initialFiles || []);
     const [principal, setPrincipal] = useState<string | null>(initialPrincipal || null);
     const urlsRef = useRef<string[]>([]);
-    const intervalsRef = useRef<NodeJS.Timeout[]>([]);
+    const intervalsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
     const initializedRef = useRef(false);
 
     // Load initial files when they become available (edit mode)
@@ -64,34 +66,49 @@ export function PhotoUploader({ onFilesChange, onPrincipalChange, initialFiles, 
         }
     }, [initialFiles, initialPrincipal, onFilesChange, onPrincipalChange]);
 
-    // Cleanup intervals on unmount
+    // Cleanup all intervals on unmount
     useEffect(() => {
         return () => {
-            intervalsRef.current.forEach(clearInterval);
+            intervalsRef.current.forEach(interval => clearInterval(interval));
+            intervalsRef.current.clear();
+        };
+    }, []);
+
+    // Cleanup URLs on unmount
+    useEffect(() => {
+        return () => {
+            urlsRef.current.forEach(url => URL.revokeObjectURL(url));
         };
     }, []);
 
     const onDrop = useCallback((acceptedFiles: File[]) => {
-        const newFiles: UploadedFile[] = acceptedFiles.map(file => {
-            const previewUrl = URL.createObjectURL(file);
-            urlsRef.current.push(previewUrl);
+        if (acceptedFiles.length === 0) return;
 
-            return {
-                file: file,
-                preview: previewUrl,
-                id: `${file.name}-${file.lastModified}-${Math.random()}`,
-                progress: 0,
-                name: file.name,
-            };
-        });
-
-        // Calculate combined files outside of setState
         setFiles(prev => {
-            const combinedFiles = [...prev, ...newFiles].slice(0, 20);
+            const spotsLeft = MAX_PHOTOS - prev.length;
+            if (spotsLeft <= 0) return prev;
+
+            // Only take as many files as we have room for
+            const filesToAdd = acceptedFiles.slice(0, spotsLeft);
+
+            const newFiles: UploadedFile[] = filesToAdd.map(file => {
+                const previewUrl = URL.createObjectURL(file);
+                urlsRef.current.push(previewUrl);
+
+                return {
+                    file: file,
+                    preview: previewUrl,
+                    id: `${file.name}-${file.lastModified}-${Math.random()}`,
+                    progress: 0,
+                    name: file.name,
+                };
+            });
+
+            const combinedFiles = [...prev, ...newFiles];
             const isFirstUpload = prev.length === 0 && combinedFiles.length > 0;
             const firstFileId = combinedFiles[0]?.id || null;
 
-            // Schedule all parent updates for next tick to avoid setState during render
+            // Notify parent
             queueMicrotask(() => {
                 if (isFirstUpload && firstFileId) {
                     setPrincipal(firstFileId);
@@ -107,7 +124,7 @@ export function PhotoUploader({ onFilesChange, onPrincipalChange, initialFiles, 
                     progress += 10;
                     if (progress >= 100) {
                         clearInterval(interval);
-                        intervalsRef.current = intervalsRef.current.filter(i => i !== interval);
+                        intervalsRef.current.delete(newFile.id);
                         progress = 100;
                     }
                     setFiles(currentFiles =>
@@ -116,7 +133,7 @@ export function PhotoUploader({ onFilesChange, onPrincipalChange, initialFiles, 
                         )
                     );
                 }, 100);
-                intervalsRef.current.push(interval);
+                intervalsRef.current.set(newFile.id, interval);
             });
 
             return combinedFiles;
@@ -127,23 +144,38 @@ export function PhotoUploader({ onFilesChange, onPrincipalChange, initialFiles, 
         onDrop,
         accept: { 'image/jpeg': [], 'image/png': [], 'image/webp': [] },
         maxSize: 5 * 1024 * 1024,
-        maxFiles: 20,
+        // No maxFiles limit - we handle it ourselves in onDrop
     });
 
-    const removeFile = (fileId: string) => {
+    const removeFile = useCallback((fileId: string) => {
+        // 1. Clear any running progress interval for this file
+        const interval = intervalsRef.current.get(fileId);
+        if (interval) {
+            clearInterval(interval);
+            intervalsRef.current.delete(fileId);
+        }
+
+        // 2. Update state and collect info for side effects
         setFiles(prev => {
             const fileToRemove = prev.find(f => f.id === fileId);
+            if (!fileToRemove) return prev;
+
             const newFiles = prev.filter(f => f.id !== fileId);
+
+            // Revoke URL after state update (outside setState would be ideal,
+            // but we need the file reference). Safe because we're removing it from render.
+            if (!fileToRemove.isExisting) {
+                // Defer URL revocation to after React has committed the render
+                setTimeout(() => {
+                    URL.revokeObjectURL(fileToRemove.preview);
+                    urlsRef.current = urlsRef.current.filter(url => url !== fileToRemove.preview);
+                }, 0);
+            }
+
+            // Update principal if needed
             const needsNewPrincipal = principal === fileId;
             const newPrincipalId = newFiles.length > 0 ? newFiles[0].id : null;
 
-            // Revoke URL of removed file (only for new local files, not existing remote URLs)
-            if (fileToRemove && !fileToRemove.isExisting) {
-                URL.revokeObjectURL(fileToRemove.preview);
-                urlsRef.current = urlsRef.current.filter(url => url !== fileToRemove.preview);
-            }
-
-            // Schedule parent updates for next tick
             queueMicrotask(() => {
                 if (needsNewPrincipal) {
                     setPrincipal(newPrincipalId);
@@ -154,12 +186,12 @@ export function PhotoUploader({ onFilesChange, onPrincipalChange, initialFiles, 
 
             return newFiles;
         });
-    };
+    }, [principal, onFilesChange, onPrincipalChange]);
 
-    const handleSetPrincipal = (fileId: string) => {
+    const handleSetPrincipal = useCallback((fileId: string) => {
         setPrincipal(fileId);
         onPrincipalChange(fileId);
-    };
+    }, [onPrincipalChange]);
 
     const onDragEnd: OnDragEndResponder = (result) => {
         if (!result.destination) {
@@ -170,24 +202,18 @@ export function PhotoUploader({ onFilesChange, onPrincipalChange, initialFiles, 
             const items = Array.from(prev);
             const [reorderedItem] = items.splice(result.source.index, 1);
             items.splice(result.destination!.index, 0, reorderedItem);
-            // Defer parent notification
             queueMicrotask(() => onFilesChange(items));
             return items;
         });
     };
 
-    // Cleanup URLs only on unmount
-    useEffect(() => {
-        return () => {
-            urlsRef.current.forEach(url => URL.revokeObjectURL(url));
-        };
-    }, []);
+    const remainingSlots = MAX_PHOTOS - files.length;
 
     return (
         <div className="space-y-4">
             <div
                 {...getRootProps()}
-                className={`border-2 border-dashed border-surface-400 rounded-lg p-12 text-center cursor-pointer transition-colors ${isDragActive ? 'bg-primary/10 border-primary' : 'hover:bg-surface-200'}`}
+                className={`border-2 border-dashed border-surface-400 rounded-lg p-12 text-center cursor-pointer transition-colors ${isDragActive ? 'bg-primary/10 border-primary' : 'hover:bg-surface-200'} ${remainingSlots <= 0 ? 'opacity-50 pointer-events-none' : ''}`}
             >
                 <input {...getInputProps()} />
                 <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -195,16 +221,25 @@ export function PhotoUploader({ onFilesChange, onPrincipalChange, initialFiles, 
                     Arrastra las fotos aquí
                 </h3>
                 <p className="text-muted-foreground mb-4">
-                    o haz clic para seleccionar (JPG, PNG, WEBP, max 5MB, hasta 20 fotos)
+                    o haz clic para seleccionar (JPG, PNG, WEBP, max 5MB)
                 </p>
-                <Button variant="outline" type="button">
+                {remainingSlots > 0 ? (
+                    <p className="text-xs text-muted-foreground mb-4">
+                        Puedes añadir hasta {remainingSlots} foto{remainingSlots !== 1 ? 's' : ''} más
+                    </p>
+                ) : (
+                    <p className="text-xs text-amber-600 font-medium mb-4">
+                        Has alcanzado el límite de {MAX_PHOTOS} fotos
+                    </p>
+                )}
+                <Button variant="outline" type="button" disabled={remainingSlots <= 0}>
                     Seleccionar archivos
                 </Button>
             </div>
 
             {files.length > 0 && (
                 <div>
-                    <h4 className="text-sm font-medium mb-2">Fotos subidas ({files.length}/20):</h4>
+                    <h4 className="text-sm font-medium mb-2">Fotos subidas ({files.length}/{MAX_PHOTOS}):</h4>
                     <DragDropContext onDragEnd={onDragEnd}>
                         <StrictModeDroppable droppableId="photos-list" direction="horizontal">
                             {(provided) => (
@@ -227,8 +262,7 @@ export function PhotoUploader({ onFilesChange, onPrincipalChange, initialFiles, 
                                                             alt={fileData.name}
                                                             className="w-full h-full object-cover"
                                                             onError={(e) => {
-                                                                console.error('Image load error:', fileData.preview);
-                                                                e.currentTarget.src = '/placeholder-car.svg';
+                                                                e.currentTarget.src = '/placeholder-proximamente.svg';
                                                             }}
                                                         />
                                                         {fileData.progress < 100 && (
@@ -238,32 +272,31 @@ export function PhotoUploader({ onFilesChange, onPrincipalChange, initialFiles, 
                                                                 </div>
                                                             </div>
                                                         )}
-                                                        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                            <div {...provided.dragHandleProps} className="cursor-move text-white">
-                                                                <GripVertical size={24} />
-                                                            </div>
+                                                        {/* Drag handle - only visible on hover, behind action buttons */}
+                                                        <div
+                                                            {...provided.dragHandleProps}
+                                                            className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-auto cursor-move"
+                                                        >
+                                                            <GripVertical size={24} className="text-white" />
                                                         </div>
                                                     </div>
 
-                                                    <div className="absolute top-1 right-1 flex flex-col gap-1">
-                                                        <Button
+                                                    {/* Action buttons - z-index above the drag handle */}
+                                                    <div className="absolute top-1 right-1 flex flex-col gap-1 z-10">
+                                                        <button
                                                             type="button"
-                                                            variant="secondary"
-                                                            size="icon"
-                                                            className={`h-6 w-6 opacity-70 group-hover:opacity-100 transition-all ${principal === fileData.id ? 'bg-yellow-400 hover:bg-yellow-500 text-black' : ''}`}
-                                                            onClick={() => handleSetPrincipal(fileData.id)}
+                                                            className={`h-7 w-7 rounded-md flex items-center justify-center transition-all shadow-sm ${principal === fileData.id ? 'bg-yellow-400 hover:bg-yellow-500 text-black' : 'bg-white/80 hover:bg-white text-gray-600'}`}
+                                                            onClick={(e) => { e.stopPropagation(); handleSetPrincipal(fileData.id); }}
                                                         >
                                                             <Star className={`h-4 w-4 ${principal === fileData.id ? 'fill-current' : ''}`} />
-                                                        </Button>
-                                                        <Button
+                                                        </button>
+                                                        <button
                                                             type="button"
-                                                            variant="destructive"
-                                                            size="icon"
-                                                            className="h-6 w-6 opacity-70 group-hover:opacity-100 transition-opacity"
-                                                            onClick={() => removeFile(fileData.id)}
+                                                            className="h-7 w-7 rounded-md flex items-center justify-center bg-red-500 hover:bg-red-600 text-white transition-all shadow-sm"
+                                                            onClick={(e) => { e.stopPropagation(); removeFile(fileData.id); }}
                                                         >
                                                             <X className="h-4 w-4" />
-                                                        </Button>
+                                                        </button>
                                                     </div>
                                                 </div>
                                             )}

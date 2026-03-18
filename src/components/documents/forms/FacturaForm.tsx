@@ -15,6 +15,7 @@ interface FacturaFormProps {
   formData: Partial<FacturaData>;
   onChange: (data: Partial<FacturaData>) => void;
   suggestedPrice?: number;
+  empresaIban?: string;
 }
 
 // Generar número de factura único
@@ -28,6 +29,7 @@ export function FacturaForm({
   vehicle,
   customer,
   formData,
+  empresaIban,
   onChange,
   suggestedPrice = 0
 }: FacturaFormProps) {
@@ -58,7 +60,7 @@ export function FacturaForm({
       ivaImporte: Math.round((suggestedPrice - suggestedPrice / 1.21) * 100) / 100,
       totalConIva: suggestedPrice,
       formaPago: 'transferencia',
-      cuentaBancaria: EMPRESA_DATOS.cuentaBancaria,
+      cuentaBancaria: empresaIban || EMPRESA_DATOS.cuentaBancaria,
       ...formData.condiciones
     },
     numeroFactura: formData.numeroFactura || generateInvoiceNumber(),

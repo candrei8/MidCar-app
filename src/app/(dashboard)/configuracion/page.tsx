@@ -43,6 +43,7 @@ const EMPTY_FORM: Omit<EmpresaVendedora, 'id' | 'created_at' | 'updated_at' | 'e
     email: '',
     web: '',
     logo: '',
+    iban: '',
     activa: true,
 }
 
@@ -141,6 +142,7 @@ export default function ConfiguracionPage() {
             email: empresa.email,
             web: empresa.web || '',
             logo: empresa.logo || '',
+            iban: empresa.iban || '',
             activa: empresa.activa,
         })
         setErrors({})
@@ -312,6 +314,12 @@ export default function ConfiguracionPage() {
                                     <div className="flex items-center gap-2">
                                         <span className="material-symbols-outlined text-slate-400 text-[18px]">mail</span>
                                         <p className="text-sm text-slate-600 truncate">{empresa.email}</p>
+                                    </div>
+                                )}
+                                {empresa.iban && (
+                                    <div className="flex items-center gap-2">
+                                        <span className="material-symbols-outlined text-slate-400 text-[18px]">account_balance</span>
+                                        <p className="text-sm text-slate-600 font-mono">{empresa.iban}</p>
                                     </div>
                                 )}
 
@@ -558,6 +566,25 @@ export default function ConfiguracionPage() {
                                     onChange={(e) => updateField('web', e.target.value)}
                                     placeholder="www.empresa.com"
                                 />
+                            </div>
+                        </div>
+
+                        {/* Datos bancarios */}
+                        <div className="space-y-4">
+                            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                Datos bancarios
+                            </h4>
+                            <div className="space-y-2">
+                                <Label>IBAN / Cuenta bancaria</Label>
+                                <Input
+                                    value={formData.iban}
+                                    onChange={(e) => updateField('iban', e.target.value)}
+                                    placeholder="ES12 1234 5678 9012 3456 7890"
+                                    className="font-mono"
+                                />
+                                <p className="text-xs text-slate-400">
+                                    Se usará automáticamente en contratos y facturas
+                                </p>
                             </div>
                         </div>
                     </div>

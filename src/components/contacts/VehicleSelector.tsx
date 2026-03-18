@@ -24,7 +24,7 @@ import { useFilteredData } from "@/hooks/useFilteredData"
 // Helper para obtener imagen válida (excluye URLs de Azure CDN que no existen)
 const getValidImageUrl = (url: string | null | undefined): string => {
     if (!url) {
-        return '/placeholder-car.svg'
+        return '/placeholder-proximamente.svg'
     }
     return url
 }

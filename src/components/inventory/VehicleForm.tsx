@@ -25,6 +25,7 @@ import {
     AlertCircle,
     FileText,
     Save,
+    Camera,
 } from "lucide-react"
 import { MARCAS, MODELOS_POR_MARCA, COMBUSTIBLES, TRANSMISIONES, CARROCERIAS, ETIQUETAS_DGT, TIPOS_DOCUMENTO_VEHICULO, EQUIPAMIENTO_VEHICULO } from "@/lib/constants"
 import { formatCurrency } from "@/lib/utils"
@@ -37,6 +38,7 @@ export interface VehicleFormData {
     matricula: string
     vin: string
     año_matriculacion: string
+    mes_matriculacion: string
     año_fabricacion: string
     kilometraje: string
     combustible: string
@@ -86,6 +88,7 @@ export const initialFormData: VehicleFormData = {
     matricula: "",
     vin: "",
     año_matriculacion: "",
+    mes_matriculacion: "",
     año_fabricacion: "",
     kilometraje: "",
     combustible: "",
@@ -372,12 +375,35 @@ export function VehicleForm({ initialData, onSubmit, isSubmitting = false, onCan
                                 />
                             </div>
                             <div className="space-y-2">
+                                <Label htmlFor="mes_mat">Mes Matriculación</Label>
+                                <select
+                                    id="mes_mat"
+                                    value={formData.mes_matriculacion}
+                                    onChange={(e) => updateField('mes_matriculacion', e.target.value)}
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                >
+                                    <option value="">Mes</option>
+                                    <option value="1">Enero</option>
+                                    <option value="2">Febrero</option>
+                                    <option value="3">Marzo</option>
+                                    <option value="4">Abril</option>
+                                    <option value="5">Mayo</option>
+                                    <option value="6">Junio</option>
+                                    <option value="7">Julio</option>
+                                    <option value="8">Agosto</option>
+                                    <option value="9">Septiembre</option>
+                                    <option value="10">Octubre</option>
+                                    <option value="11">Noviembre</option>
+                                    <option value="12">Diciembre</option>
+                                </select>
+                            </div>
+                            <div className="space-y-2">
                                 <Label htmlFor="año">Año Matriculación <span className="text-destructive">*</span></Label>
                                 <Input
                                     id="año"
                                     type="number"
                                     min="1990"
-                                    max="2025"
+                                    max="2026"
                                     placeholder="2023"
                                     value={formData.año_matriculacion}
                                     onChange={(e) => updateField('año_matriculacion', e.target.value)}
@@ -481,7 +507,7 @@ export function VehicleForm({ initialData, onSubmit, isSubmitting = false, onCan
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {[2, 4, 5, 7, 9].map(n => (
+                                        {[2, 3, 4, 5, 7, 9].map(n => (
                                             <SelectItem key={n} value={n.toString()}>{n}</SelectItem>
                                         ))}
                                     </SelectContent>
@@ -744,6 +770,17 @@ export function VehicleForm({ initialData, onSubmit, isSubmitting = false, onCan
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
+                        {/* Info: fotos opcionales */}
+                        <div className="flex items-start gap-3 p-3 bg-blue-50 border border-blue-100 rounded-lg">
+                            <Camera className="h-5 w-5 text-[#135bec] mt-0.5 shrink-0" />
+                            <div>
+                                <p className="text-sm font-medium text-slate-700">Las fotos son opcionales</p>
+                                <p className="text-xs text-slate-500 mt-0.5">
+                                    Si no subes fotos ahora, se mostrará &quot;Próximamente&quot; en el inventario y la web. Podrás añadirlas más tarde editando el vehículo.
+                                </p>
+                            </div>
+                        </div>
+
                         <PhotoUploader
                             onFilesChange={(files) => updateField('fotos', files)}
                             onPrincipalChange={(id) => updateField('foto_principal', id)}

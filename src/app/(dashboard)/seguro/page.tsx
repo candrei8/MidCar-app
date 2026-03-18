@@ -27,7 +27,7 @@ import {
 // Helper para obtener imagen válida (excluye URLs de Azure CDN que no existen)
 const getValidImageUrl = (url: string | null | undefined): string => {
     if (!url) {
-        return '/placeholder-car.svg'
+        return '/placeholder-proximamente.svg'
     }
     return url
 }
@@ -272,7 +272,7 @@ export default function SeguroPage() {
 
         try {
             // Use the new robust parser
-            const parseResult = await parseInsuranceFile(file)
+            const parseResult = await parseInsuranceFile(file, filteredVehicles)
 
             // Show any parsing errors/warnings
             if (parseResult.errors.length > 0) {
@@ -288,7 +288,7 @@ export default function SeguroPage() {
             }
 
             // Match policies with vehicles
-            const matchResult = matchPoliciesWithVehicles(parseResult.policies)
+            const matchResult = matchPoliciesWithVehicles(parseResult.policies, filteredVehicles)
 
             setImportResult({
                 totalPolicies: parseResult.policies.length,
@@ -307,7 +307,7 @@ export default function SeguroPage() {
         } finally {
             setIsLoading(false)
         }
-    }, [])
+    }, [filteredVehicles])
 
     // Handle file input change
     const handleFileUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -340,43 +340,73 @@ export default function SeguroPage() {
         onDropAccepted: () => setIsDragActive(false),
     })
 
-    // Confirm import - Creates real policies and updates state
+    // Confirm import - Creates real policies in Supabase and updates state
     const handleConfirmImport = async () => {
         if (!importResult) return
         setIsImporting(true)
 
         try {
-            // Create new policies from matched data (in PolicyDB format for state)
-            const newPolicies: PolicyDB[] = importResult.matched.map(match => ({
-                id: `ins-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                vehiculo_id: match.vehicleId,
-                vehiculo_matricula: match.policy.matricula,
-                numero_poliza: match.policy.numeroPoliza,
-                compania_aseguradora: 'AXA',
-                tipo_poliza: (match.policy.tipoPoliza?.toLowerCase().includes('terceros') ? 'terceros_basico' : 'todo_riesgo_franquicia') as PolicyDB['tipo_poliza'],
-                fecha_alta: match.policy.fechaAlta || new Date().toISOString().split('T')[0],
-                fecha_vencimiento: match.policy.fechaVencimiento || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                prima_anual: match.policy.prima || 350,
-                franquicia: 300,
-                tomador_nombre: 'MidCar Concesionario S.L.',
-                tomador_nif: 'B12345678',
-                coberturas: defaultCoverages,
-                estado: 'activa',
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-            }))
+            const savedPolicies: PolicyDB[] = []
+            const errors: string[] = []
 
-            // Update policies state - replace existing for same vehicle or add new
+            for (const match of importResult.matched) {
+                const policyData: Omit<PolicyDB, 'id' | 'created_at' | 'updated_at'> = {
+                    vehiculo_id: match.vehicleId,
+                    vehiculo_matricula: match.matricula,
+                    numero_poliza: match.policy.numeroPoliza,
+                    compania_aseguradora: 'AXA',
+                    tipo_poliza: (match.policy.tipoPoliza?.toLowerCase().includes('terceros') ? 'terceros_basico' : 'todo_riesgo_franquicia') as PolicyDB['tipo_poliza'],
+                    fecha_alta: match.policy.fechaAlta || new Date().toISOString().split('T')[0],
+                    fecha_vencimiento: match.policy.fechaVencimiento || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    prima_anual: match.policy.prima || 350,
+                    franquicia: 300,
+                    tomador_nombre: 'MidCar Concesionario S.L.',
+                    tomador_nif: 'B12345678',
+                    coberturas: defaultCoverages,
+                    estado: 'activa',
+                    created_by: user?.id,
+                    created_by_name: profile?.nombre || user?.email,
+                }
+
+                // Check if policy already exists for this vehicle and update it
+                const existingPolicy = policies.find(p => p.vehiculo_id === match.vehicleId)
+                if (existingPolicy) {
+                    const updated = await updatePolicy(existingPolicy.id, policyData)
+                    if (updated) {
+                        savedPolicies.push(updated)
+                    } else {
+                        errors.push(`Error actualizando póliza para ${match.matricula}`)
+                    }
+                } else {
+                    const created = await createPolicy(policyData)
+                    if (created) {
+                        savedPolicies.push(created)
+                    } else {
+                        errors.push(`Error creando póliza para ${match.matricula}`)
+                    }
+                }
+            }
+
+            // Update local state with saved policies
             setPolicies(prev => {
-                const updatedVehicleIds = new Set(newPolicies.map(p => p.vehiculo_id))
-                const filtered = prev.filter(p => !updatedVehicleIds.has(p.vehiculo_id))
-                return [...filtered, ...newPolicies]
+                const savedIds = new Set(savedPolicies.map(p => p.id))
+                const savedVehicleIds = new Set(savedPolicies.map(p => p.vehiculo_id))
+                const filtered = prev.filter(p => !savedIds.has(p.id) && !savedVehicleIds.has(p.vehiculo_id))
+                return [...filtered, ...savedPolicies]
             })
 
-            // Clear modal and show success
+            // Clear modal and show result
             setShowImportPreview(false)
             setImportResult(null)
-            setParseErrors([{ message: `✅ ${newPolicies.length} pólizas importadas correctamente`, type: 'warning' }])
+
+            if (errors.length > 0) {
+                setParseErrors([
+                    { message: `${savedPolicies.length} pólizas importadas correctamente`, type: 'warning' },
+                    ...errors.map(e => ({ message: e, type: 'error' as const }))
+                ])
+            } else {
+                setParseErrors([{ message: `${savedPolicies.length} pólizas importadas correctamente`, type: 'warning' }])
+            }
 
             // Clear success message after 3 seconds
             setTimeout(() => setParseErrors([]), 3000)

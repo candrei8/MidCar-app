@@ -7,12 +7,18 @@ import { MARCAS, COMBUSTIBLES } from "@/lib/constants"
 import type { Vehicle } from "@/types"
 import { useFilteredData } from "@/hooks/useFilteredData"
 
-// Helper para obtener imagen válida (excluye URLs de Azure CDN que no existen)
+// Helper para obtener imagen válida
 const getValidImageUrl = (url: string | null | undefined): string => {
     if (!url) {
-        return '/placeholder-car.svg'
+        return '/placeholder-proximamente.svg'
     }
     return url
+}
+
+// Helper para detectar si es un placeholder (sin fotos reales)
+const isPlaceholderImage = (url: string | null | undefined): boolean => {
+    if (!url) return true
+    return url.includes('placeholder-')
 }
 
 type StatusFilterType = 'todos' | 'disponible' | 'reservado' | 'vendido'
@@ -371,6 +377,14 @@ const VehicleCard = memo(function VehicleCard({
         })
     }, [vehicle.created_at])
 
+    const hasRealPhotos = !isPlaceholderImage(vehicle.imagen_principal) || (vehicle.imagenes && vehicle.imagenes.length > 0 && vehicle.imagenes.some(img => !isPlaceholderImage(img.url)))
+
+    const displayImageUrl = hasRealPhotos
+        ? (getValidImageUrl(vehicle.imagen_principal) !== '/placeholder-proximamente.svg'
+            ? getValidImageUrl(vehicle.imagen_principal)
+            : getValidImageUrl(vehicle.imagenes?.[0]?.url))
+        : '/placeholder-proximamente.svg'
+
     return (
         <Link href={`/inventario/${vehicle.id}`}>
             <article className="flex flex-col bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md border border-gray-100 cursor-pointer will-change-transform" style={{ transition: 'box-shadow 0.15s ease' }}>
@@ -380,15 +394,27 @@ const VehicleCard = memo(function VehicleCard({
                         className="h-full w-full object-cover"
                         loading="lazy"
                         decoding="async"
-                        src={getValidImageUrl(vehicle.imagen_principal) !== '/placeholder-car.svg'
-                            ? getValidImageUrl(vehicle.imagen_principal)
-                            : getValidImageUrl(vehicle.imagenes?.[0]?.url)}
+                        src={displayImageUrl}
                         alt={`${vehicle.marca} ${vehicle.modelo}`}
                     />
+                    {/* Próximamente Badge - cuando no hay fotos */}
+                    {!hasRealPhotos && (
+                        <div className="absolute inset-0 flex items-end justify-center pb-3">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-[#135bec]/90 px-3 py-1 text-[11px] font-bold text-white backdrop-blur-sm shadow-lg">
+                                <span className="material-symbols-outlined text-[14px]">photo_camera</span>
+                                Próximamente
+                            </span>
+                        </div>
+                    )}
                     {/* Status Badge */}
                     {vehicle.estado !== 'disponible' && (
                         <div className="absolute top-2 right-2">
-                            <span className="inline-flex items-center rounded-md bg-white/90 px-1.5 py-0.5 text-[10px] font-bold uppercase text-[#135bec] backdrop-blur-sm shadow-sm ring-1 ring-black/5">
+                            <span className={cn(
+                                "inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase backdrop-blur-sm shadow-sm ring-1 ring-black/5",
+                                vehicle.estado === 'reservado' ? "bg-amber-500/90 text-white" :
+                                vehicle.estado === 'vendido' ? "bg-slate-600/90 text-white" :
+                                "bg-white/90 text-[#135bec]"
+                            )}>
                                 {badge.text}
                             </span>
                         </div>

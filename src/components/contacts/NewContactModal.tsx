@@ -305,7 +305,7 @@ export function NewContactModal({ open, onClose, onContactCreated }: NewContactM
                                     <div key={v.id} className="flex items-center gap-3 p-2.5 bg-blue-50 border border-blue-200 rounded-lg">
                                         <div
                                             className="w-12 h-12 rounded-lg bg-cover bg-center flex-shrink-0 bg-slate-200"
-                                            style={{ backgroundImage: `url(${v.imagen_principal || '/placeholder-car.svg'})` }}
+                                            style={{ backgroundImage: `url(${v.imagen_principal || '/placeholder-proximamente.svg'})` }}
                                         />
                                         <div className="flex-1 min-w-0">
                                             <p className="font-semibold text-sm text-slate-900 truncate">{v.marca} {v.modelo}</p>

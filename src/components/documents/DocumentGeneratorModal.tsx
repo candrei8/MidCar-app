@@ -239,6 +239,7 @@ export function DocumentGeneratorModal({
 
   const buildCompleteFormData = (): CompraventaData | SenalData | FacturaData | ProformaData => {
     const vendedor = buildVendedorData();
+    const empresaIban = selectedEmpresa?.iban || '';
 
     const base = {
       empresaId: selectedEmpresa?.id,
@@ -247,6 +248,19 @@ export function DocumentGeneratorModal({
       comprador: customer!,
       ...formData
     };
+
+    // Auto-fill cuentaBancaria from empresa IBAN if not already set
+    if (empresaIban) {
+      if ('condiciones' in base && base.condiciones) {
+        const cond = base.condiciones as Record<string, unknown>;
+        if (!cond.cuentaBancaria) {
+          cond.cuentaBancaria = empresaIban;
+        }
+      }
+      if ('cuentaBancaria' in base && !base.cuentaBancaria) {
+        (base as Record<string, unknown>).cuentaBancaria = empresaIban;
+      }
+    }
 
     return base as CompraventaData | SenalData | FacturaData | ProformaData;
   };
@@ -434,6 +448,7 @@ export function DocumentGeneratorModal({
 
   const renderForm = () => {
     const suggestedPrice = vehicle.precio_venta || 0;
+    const empresaIban = selectedEmpresa?.iban || '';
 
     switch (documentType) {
       case 'compraventa':
@@ -444,6 +459,7 @@ export function DocumentGeneratorModal({
             formData={formData as Partial<CompraventaData>}
             onChange={handleFormChange}
             suggestedPrice={suggestedPrice}
+            empresaIban={empresaIban}
           />
         );
       case 'senal':
@@ -454,6 +470,7 @@ export function DocumentGeneratorModal({
             formData={formData as Partial<SenalData>}
             onChange={handleFormChange}
             suggestedPrice={suggestedPrice}
+            empresaIban={empresaIban}
           />
         );
       case 'factura':
@@ -464,6 +481,7 @@ export function DocumentGeneratorModal({
             formData={formData as Partial<FacturaData>}
             onChange={handleFormChange}
             suggestedPrice={suggestedPrice}
+            empresaIban={empresaIban}
           />
         );
       case 'proforma':
@@ -474,6 +492,7 @@ export function DocumentGeneratorModal({
             formData={formData as Partial<ProformaData>}
             onChange={handleFormChange}
             suggestedPrice={suggestedPrice}
+            empresaIban={empresaIban}
           />
         );
       default:

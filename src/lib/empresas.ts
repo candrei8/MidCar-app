@@ -55,6 +55,7 @@ function transformFromDB(data: Record<string, unknown>): EmpresaVendedora {
         email: (data.email as string) || '',
         web: (data.web as string) || '',
         logo: (data.logo as string) || '',
+        iban: (data.iban as string) || '',
         activa: data.activa as boolean,
         es_ejemplo: (data.es_ejemplo as boolean) || false,
         created_at: data.created_at as string,
@@ -178,6 +179,7 @@ export async function createEmpresa(data: Omit<EmpresaVendedora, 'id' | 'created
             email: data.email || null,
             web: data.web || null,
             logo: data.logo || null,
+            iban: data.iban || null,
             activa: data.activa ?? true,
             es_ejemplo: false,
         })
@@ -214,6 +216,7 @@ export async function updateEmpresa(id: string, data: Partial<EmpresaVendedora>)
     if (data.email !== undefined) updates.email = data.email || null
     if (data.web !== undefined) updates.web = data.web || null
     if (data.logo !== undefined) updates.logo = data.logo || null
+    if (data.iban !== undefined) updates.iban = data.iban || null
     if (data.activa !== undefined) updates.activa = data.activa
     updates.updated_at = new Date().toISOString()
 

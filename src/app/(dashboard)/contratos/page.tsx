@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, useCallback } from "react"
 import { formatCurrency, cn } from "@/lib/utils"
 import { useFilteredData } from "@/hooks/useFilteredData"
 import { useAuth } from "@/lib/auth-context"
-import type { Vehicle, Contract, PersonData, ContractEconomics, ContractWarranty, EmpresaVendedora, TipoDocumentoIdentidad, TipoCliente, EstadoITV } from "@/types"
+import type { Vehicle, Contract, PersonData, ContractEconomics, ContractWarranty, EmpresaVendedora, TipoDocumentoIdentidad, TipoCliente, EstadoITV, Contact } from "@/types"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
@@ -42,6 +42,7 @@ import {
     generateContractNumber,
     type ContractDB,
 } from "@/lib/supabase-service"
+import { getContacts } from "@/lib/db/contacts"
 import {
     PROVINCIAS,
     COMUNIDADES_AUTONOMAS,
@@ -120,6 +121,11 @@ export default function ContratosPage() {
     const [fechaContrato, setFechaContrato] = useState(new Date().toISOString().split('T')[0])
     const [lugarFirma, setLugarFirma] = useState('Madrid')
 
+    // Contactos para autocompletar comprador
+    const [contacts, setContacts] = useState<Contact[]>([])
+    const [contactSearchQuery, setContactSearchQuery] = useState('')
+    const [showContactSelector, setShowContactSelector] = useState(false)
+
     // NUEVOS CAMPOS - Empresas vendedoras
     const [empresas, setEmpresas] = useState<EmpresaVendedora[]>([])
     const [selectedEmpresaId, setSelectedEmpresaId] = useState<string>('')
@@ -152,18 +158,20 @@ export default function ContratosPage() {
         return empresas.find(e => e.id === selectedEmpresaId) || null
     }, [selectedEmpresaId, empresas])
 
-    // Load saved contracts and empresas on mount
+    // Load saved contracts, empresas and contacts on mount
     useEffect(() => {
         const loadData = async () => {
             setIsLoadingContracts(true)
             try {
                 await initDefaultEmpresas()
-                const [contracts, empList] = await Promise.all([
+                const [contracts, empList, contactsList] = await Promise.all([
                     getContracts(),
-                    getEmpresasActivas()
+                    getEmpresasActivas(),
+                    getContacts().catch(() => [] as Contact[])
                 ])
                 setSavedContracts(contracts)
                 setEmpresas(empList)
+                setContacts(contactsList)
                 if (empList.length > 0) {
                     setSelectedEmpresaId(empList[0].id)
                 }
@@ -190,6 +198,47 @@ export default function ContratosPage() {
             v.matricula.toLowerCase().includes(query)
         )
     }, [allVehicles, searchQuery])
+
+    // Filtered contacts for the selector
+    const filteredContacts = useMemo(() => {
+        if (!contactSearchQuery) return contacts
+        const q = contactSearchQuery.toLowerCase()
+        return contacts.filter(c =>
+            `${c.nombre || ''} ${c.apellidos || ''}`.toLowerCase().includes(q) ||
+            c.email?.toLowerCase().includes(q) ||
+            c.telefono?.includes(q) ||
+            c.dni_cif?.toLowerCase().includes(q)
+        )
+    }, [contacts, contactSearchQuery])
+
+    // Handle selecting a contact to auto-fill buyer
+    const handleSelectContact = (contact: Contact) => {
+        setComprador({
+            nombre: contact.nombre || '',
+            apellidos: contact.apellidos || '',
+            dni_nie: contact.dni_cif || '',
+            direccion: contact.direccion || '',
+            codigo_postal: contact.codigo_postal || '',
+            municipio: contact.municipio || '',
+            provincia: contact.provincia || '',
+            telefono: contact.telefono || '',
+            email: contact.email || '',
+        })
+        // Auto-detect document type
+        if (contact.dni_cif) {
+            const doc = contact.dni_cif.toUpperCase()
+            if (doc.match(/^[A-HJ-NP-SUVW]\d{7}[A-Z0-9]$/)) {
+                setTipoDocumento('CIF')
+                setTipoCliente('empresa')
+            } else if (doc.match(/^[XYZ]\d{7}[A-Z]$/)) {
+                setTipoDocumento('NIE')
+            } else {
+                setTipoDocumento('DNI')
+            }
+        }
+        setShowContactSelector(false)
+        setContactSearchQuery('')
+    }
 
     // Calcular IVA y total cuando cambia el precio
     useEffect(() => {
@@ -836,6 +885,9 @@ export default function ContratosPage() {
                                             <p className="font-medium text-slate-700">{empresaSeleccionada.razon_social}</p>
                                             <p className="text-slate-500">CIF: {empresaSeleccionada.cif}</p>
                                             <p className="text-slate-500">{empresaSeleccionada.direccion}, {empresaSeleccionada.codigo_postal} {empresaSeleccionada.localidad}</p>
+                                            {empresaSeleccionada.iban && (
+                                                <p className="text-slate-500 font-mono">IBAN: {empresaSeleccionada.iban}</p>
+                                            )}
                                         </div>
                                     )}
                                     {empresas.length === 0 && (
@@ -849,10 +901,62 @@ export default function ContratosPage() {
 
                             {/* Datos del Comprador */}
                             <div className="bg-white rounded-xl p-4 border border-slate-100 shadow-sm">
-                                <h3 className="text-xs font-bold uppercase tracking-wider text-[#135bec] mb-3 flex items-center gap-2">
-                                    <span className="material-symbols-outlined text-[16px]">person</span>
-                                    Datos del Comprador
-                                </h3>
+                                <div className="flex items-center justify-between mb-3">
+                                    <h3 className="text-xs font-bold uppercase tracking-wider text-[#135bec] flex items-center gap-2">
+                                        <span className="material-symbols-outlined text-[16px]">person</span>
+                                        Datos del Comprador
+                                    </h3>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowContactSelector(!showContactSelector)}
+                                        className="text-xs flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-blue-50 text-[#135bec] hover:bg-blue-100 transition-colors font-medium"
+                                    >
+                                        <span className="material-symbols-outlined text-[14px]">contacts</span>
+                                        {showContactSelector ? 'Ocultar' : 'Seleccionar contacto'}
+                                    </button>
+                                </div>
+
+                                {/* Contact Selector */}
+                                {showContactSelector && (
+                                    <div className="mb-4 p-3 bg-blue-50/50 rounded-lg border border-blue-100 space-y-2">
+                                        <div className="relative">
+                                            <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
+                                            <Input
+                                                value={contactSearchQuery}
+                                                onChange={(e) => setContactSearchQuery(e.target.value)}
+                                                placeholder="Buscar por nombre, DNI, email, telefono..."
+                                                className="h-10 pl-9 bg-white"
+                                            />
+                                        </div>
+                                        <div className="max-h-[200px] overflow-y-auto space-y-1">
+                                            {filteredContacts.length === 0 ? (
+                                                <p className="text-xs text-slate-400 text-center py-4">No se encontraron contactos</p>
+                                            ) : (
+                                                filteredContacts.slice(0, 20).map(contact => (
+                                                    <button
+                                                        key={contact.id}
+                                                        type="button"
+                                                        onClick={() => handleSelectContact(contact)}
+                                                        className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-white transition-colors text-left"
+                                                    >
+                                                        <div className="w-8 h-8 rounded-full bg-[#135bec]/10 flex items-center justify-center flex-shrink-0">
+                                                            <span className="material-symbols-outlined text-[#135bec] text-[16px]">person</span>
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-sm font-medium text-slate-800 truncate">
+                                                                {`${contact.nombre || ''} ${contact.apellidos || ''}`.trim() || 'Sin nombre'}
+                                                            </p>
+                                                            <p className="text-xs text-slate-500 truncate">
+                                                                {[contact.dni_cif, contact.telefono, contact.email].filter(Boolean).join(' · ')}
+                                                            </p>
+                                                        </div>
+                                                    </button>
+                                                ))
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
                                 <div className="space-y-3">
                                     {/* Tipo de cliente */}
                                     <div className="grid grid-cols-2 gap-3">
@@ -1421,10 +1525,62 @@ export default function ContratosPage() {
 
                                     {/* Datos del Comprador - Full Width */}
                                     <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-100">
-                                        <h3 className="text-xs font-bold uppercase tracking-wider text-[#135bec] mb-4 flex items-center gap-2">
-                                            <span className="material-symbols-outlined text-[16px]">person</span>
-                                            Datos del Comprador
-                                        </h3>
+                                        <div className="flex items-center justify-between mb-4">
+                                            <h3 className="text-xs font-bold uppercase tracking-wider text-[#135bec] flex items-center gap-2">
+                                                <span className="material-symbols-outlined text-[16px]">person</span>
+                                                Datos del Comprador
+                                            </h3>
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowContactSelector(!showContactSelector)}
+                                                className="text-xs flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-blue-50 text-[#135bec] hover:bg-blue-100 transition-colors font-medium"
+                                            >
+                                                <span className="material-symbols-outlined text-[14px]">contacts</span>
+                                                {showContactSelector ? 'Ocultar' : 'Seleccionar contacto'}
+                                            </button>
+                                        </div>
+
+                                        {/* Contact Selector - Desktop */}
+                                        {showContactSelector && (
+                                            <div className="mb-4 p-3 bg-blue-50/50 rounded-lg border border-blue-100 space-y-2">
+                                                <div className="relative">
+                                                    <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
+                                                    <Input
+                                                        value={contactSearchQuery}
+                                                        onChange={(e) => setContactSearchQuery(e.target.value)}
+                                                        placeholder="Buscar por nombre, DNI, email, telefono..."
+                                                        className="h-10 pl-9 bg-white"
+                                                    />
+                                                </div>
+                                                <div className="max-h-[200px] overflow-y-auto space-y-1">
+                                                    {filteredContacts.length === 0 ? (
+                                                        <p className="text-xs text-slate-400 text-center py-4">No se encontraron contactos</p>
+                                                    ) : (
+                                                        filteredContacts.slice(0, 20).map(contact => (
+                                                            <button
+                                                                key={contact.id}
+                                                                type="button"
+                                                                onClick={() => handleSelectContact(contact)}
+                                                                className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-white transition-colors text-left"
+                                                            >
+                                                                <div className="w-8 h-8 rounded-full bg-[#135bec]/10 flex items-center justify-center flex-shrink-0">
+                                                                    <span className="material-symbols-outlined text-[#135bec] text-[16px]">person</span>
+                                                                </div>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <p className="text-sm font-medium text-slate-800 truncate">
+                                                                        {`${contact.nombre || ''} ${contact.apellidos || ''}`.trim() || 'Sin nombre'}
+                                                                    </p>
+                                                                    <p className="text-xs text-slate-500 truncate">
+                                                                        {[contact.dni_cif, contact.telefono, contact.email].filter(Boolean).join(' · ')}
+                                                                    </p>
+                                                                </div>
+                                                            </button>
+                                                        ))
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+
                                         <div className="grid grid-cols-3 gap-4">
                                             <div className="space-y-2">
                                                 <Label>Nombre *</Label>

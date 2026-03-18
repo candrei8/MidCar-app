@@ -30,7 +30,7 @@ export function VehicleAdGenerator({ vehicle, open, onClose }: FlyerGeneratorPro
     // Usar placeholder si no hay imagen válida
     const vehicleImage = getValidImageUrl(vehicle.imagen_principal) ||
         getValidImageUrl(vehicle.imagenes?.[0]?.url)
-    const imageUrl = vehicleImage || '/placeholder-car.svg'
+    const imageUrl = vehicleImage || '/placeholder-proximamente.svg'
 
     // Fuel type display
     const fuelDisplay: Record<string, string> = {

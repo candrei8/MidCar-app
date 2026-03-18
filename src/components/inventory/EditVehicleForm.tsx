@@ -9,6 +9,7 @@ import { VehicleForm, VehicleFormData } from "@/components/inventory/VehicleForm
 import { getVehicleById, updateVehicle } from "@/lib/supabase-service"
 import { uploadVehicleImage, deleteVehicleImage } from "@/lib/vehicle-image-service"
 import { useToast } from "@/components/ui/toast"
+import { invalidateDataCache } from "@/hooks/useFilteredData"
 
 interface EditVehicleFormProps {
     vehicleId: string
@@ -38,7 +39,7 @@ export function EditVehicleForm({ vehicleId }: EditVehicleFormProps) {
             const rawImages = vehicle.imagenes || []
             const imageUrls = rawImages.map((img: any) =>
                 typeof img === 'string' ? img : img.url || img.preview || ''
-            ).filter((url: string) => url && url !== '/placeholder-car.svg')
+            ).filter((url: string) => url && url !== '/placeholder-proximamente.svg')
 
             // Find which image is marked as principal in the DB
             const principalImg = rawImages.find((img: any) =>
@@ -56,7 +57,7 @@ export function EditVehicleForm({ vehicleId }: EditVehicleFormProps) {
             }));
 
             // Add principal image if not in list
-            if (vehicle.imagen_principal && vehicle.imagen_principal !== '/placeholder-car.svg' && !imageUrls.includes(vehicle.imagen_principal)) {
+            if (vehicle.imagen_principal && vehicle.imagen_principal !== '/placeholder-proximamente.svg' && !imageUrls.includes(vehicle.imagen_principal)) {
                 fotos.unshift({
                     id: 'principal-existing',
                     name: 'Foto Principal',
@@ -80,6 +81,7 @@ export function EditVehicleForm({ vehicleId }: EditVehicleFormProps) {
             matricula: vehicle.matricula,
             vin: vehicle.vin,
             año_matriculacion: vehicle.año_matriculacion.toString(),
+            mes_matriculacion: vehicle.mes_matriculacion?.toString() || '',
             año_fabricacion: vehicle.año_fabricacion.toString(),
             kilometraje: vehicle.kilometraje.toString(),
             combustible: vehicle.combustible,
@@ -121,7 +123,7 @@ export function EditVehicleForm({ vehicleId }: EditVehicleFormProps) {
         try {
             // Process images: separate existing (have preview URL) from new (have file)
             const imagenesArray: { url: string; es_principal: boolean; orden: number }[] = []
-            let imagenPrincipal = '/placeholder-car.svg'
+            let imagenPrincipal = '/placeholder-proximamente.svg'
 
             if (formData.fotos && formData.fotos.length > 0) {
                 // We need a stockId for new image uploads
@@ -172,6 +174,7 @@ export function EditVehicleForm({ vehicleId }: EditVehicleFormProps) {
                 matricula: formData.matricula,
                 vin: formData.vin,
                 año_matriculacion: parseInt(formData.año_matriculacion) || 0,
+                mes_matriculacion: parseInt(formData.mes_matriculacion) || undefined,
                 año_fabricacion: parseInt(formData.año_fabricacion) || 0,
                 kilometraje: parseInt(formData.kilometraje) || 0,
                 combustible: formData.combustible as any,
@@ -206,7 +209,8 @@ export function EditVehicleForm({ vehicleId }: EditVehicleFormProps) {
             const result = await updateVehicle(vehicleId, updates)
 
             if (result) {
-                // Dispatch update event
+                // Invalidar cache y notificar
+                invalidateDataCache()
                 window.dispatchEvent(new CustomEvent('midcar-data-updated', { detail: { type: 'vehicles' } }))
                 // Show success and redirect
                 addToast('Vehículo actualizado correctamente', 'success')

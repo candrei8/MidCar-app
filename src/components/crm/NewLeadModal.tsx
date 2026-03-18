@@ -242,7 +242,7 @@ export function NewLeadModal({ open, onClose }: NewLeadModalProps) {
                                 <div className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                                     <div
                                         className="w-14 h-14 rounded-lg bg-cover bg-center flex-shrink-0 bg-slate-200"
-                                        style={{ backgroundImage: `url(${selectedVehicle.imagen_principal || '/placeholder-car.svg'})` }}
+                                        style={{ backgroundImage: `url(${selectedVehicle.imagen_principal || '/placeholder-proximamente.svg'})` }}
                                     />
                                     <div className="flex-1 min-w-0">
                                         <p className="font-semibold text-sm text-slate-900">{selectedVehicle.marca} {selectedVehicle.modelo}</p>
@@ -282,7 +282,7 @@ export function NewLeadModal({ open, onClose }: NewLeadModalProps) {
                                                 >
                                                     <div
                                                         className="w-10 h-10 rounded-md bg-cover bg-center flex-shrink-0 bg-slate-200"
-                                                        style={{ backgroundImage: `url(${v.imagen_principal || '/placeholder-car.svg'})` }}
+                                                        style={{ backgroundImage: `url(${v.imagen_principal || '/placeholder-proximamente.svg'})` }}
                                                     />
                                                     <div className="flex-1 min-w-0">
                                                         <p className="font-medium text-sm text-slate-900 truncate">{v.marca} {v.modelo}</p>
