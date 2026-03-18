@@ -424,6 +424,9 @@ export const NIE_REGEX = /^[XYZ][0-9]{7}[A-Z]$/i
 // CIF español: Letra + 7 dígitos + letra/dígito
 export const CIF_REGEX = /^[ABCDEFGHJNPQRSUVW][0-9]{7}[0-9A-J]$/i
 
+// CIF, NIF (DNI) o NIE - acepta cualquiera de los tres formatos
+export const CIF_NIF_NIE_REGEX = /^([ABCDEFGHJNPQRSUVW][0-9]{7}[0-9A-J]|[0-9]{8}[A-Z]|[XYZ][0-9]{7}[A-Z])$/i
+
 // Código postal español: 5 dígitos
 export const CP_REGEX = /^[0-9]{5}$/
 

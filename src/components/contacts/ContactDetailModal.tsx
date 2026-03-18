@@ -12,10 +12,10 @@ import { cn, formatDate, formatCurrency } from "@/lib/utils"
 import { Contact, Vehicle } from "@/types"
 import { useFilteredData } from "@/hooks/useFilteredData"
 import { ESTADOS_BACKOFFICE, ORIGENES_CONTACTO } from "@/lib/constants"
-import { deleteContact } from "@/lib/supabase-service"
+import { deleteContact, updateContact } from "@/lib/supabase-service"
 import { useToast } from "@/components/ui/toast"
 
-// Modales de acción (se mantienen logicamente, visualmente se activan desde los botones nuevos)
+// Modales de acción
 import { NewInteractionModal, InteractionData } from "./NewInteractionModal"
 import { AddTaskModal, TaskData } from "./AddTaskModal"
 import { SetPriorityModal } from "./SetPriorityModal"
@@ -23,6 +23,7 @@ import { PostponeContactModal } from "./PostponeContactModal"
 import { AssignCommercialModal } from "./AssignCommercialModal"
 import { DocumentModal } from "./DocumentModal"
 import { EditContactModal } from "./EditContactModal"
+import { VehicleSelector } from "./VehicleSelector"
 
 // Helper para verificar si una URL de imagen es válida (excluye Azure CDN que no existe)
 const isValidImageUrl = (url: string | null | undefined): boolean => {
@@ -62,6 +63,7 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
     const [showEditModal, setShowEditModal] = useState(false)
+    const [showVehicleSelector, setShowVehicleSelector] = useState(false)
     const [currentContact, setCurrentContact] = useState<Contact>(contact)
 
     const handleDelete = async () => {
@@ -84,10 +86,33 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
         }
     }
 
-    // Obtener vehículos
-    const contactVehicles = contact.vehiculos_interes
+    // Obtener vehículos del contacto actual
+    const contactVehicles = (currentContact.vehiculos_interes || [])
         .map(id => vehicles.find(v => v.id === id))
         .filter(Boolean) as Vehicle[]
+
+    // Añadir vehículos al contacto
+    const handleAddVehicles = async (vehicleIds: string[]) => {
+        const updatedIds = [...new Set([...(currentContact.vehiculos_interes || []), ...vehicleIds])]
+        const result = await updateContact(currentContact.id, { vehiculos_interes: updatedIds } as any)
+        if (result) {
+            setCurrentContact(prev => ({ ...prev, vehiculos_interes: updatedIds }))
+            addToast(`${vehicleIds.length} vehículo${vehicleIds.length > 1 ? 's' : ''} añadido${vehicleIds.length > 1 ? 's' : ''}`, 'success')
+        } else {
+            addToast('Error al añadir vehículos', 'error')
+        }
+        setShowVehicleSelector(false)
+    }
+
+    // Quitar vehículo del contacto
+    const handleRemoveVehicle = async (vehicleId: string) => {
+        const updatedIds = (currentContact.vehiculos_interes || []).filter(id => id !== vehicleId)
+        const result = await updateContact(currentContact.id, { vehiculos_interes: updatedIds } as any)
+        if (result) {
+            setCurrentContact(prev => ({ ...prev, vehiculos_interes: updatedIds }))
+            addToast('Vehículo eliminado del contacto', 'success')
+        }
+    }
 
     // Handlers (simplificados para la demo visual, manteniendo lógica básica)
     const handleSaveInteraction = (data: InteractionData) => {
@@ -370,49 +395,55 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
 
                             {activeTab === 'vehiculos' && (
                                 <div className="space-y-4">
-                                    <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
-                                        {contactVehicles.length > 0 ? contactVehicles.map(vehicle => (
-                                            <div key={vehicle.id} className="w-64 flex-shrink-0 bg-white dark:bg-[#1c1c1e] rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden group">
-                                                <div className="h-32 bg-cover bg-center relative" style={{ backgroundImage: `url(${getValidImageUrl(vehicle.imagen_principal)})` }}>
-                                                    <div className="absolute top-2 right-2 bg-black/50 text-white text-[10px] font-bold px-2 py-0.5 rounded backdrop-blur-sm uppercase">{vehicle.estado}</div>
-                                                </div>
-                                                <div className="p-3">
-                                                    <h4 className="font-bold text-black dark:text-white">{vehicle.marca} {vehicle.modelo}</h4>
-                                                    <p className="text-xs text-[#3c3c4399] dark:text-[#ebebf599] mb-2">{vehicle.tipo_motor || vehicle.combustible} • {vehicle.año_matriculacion} • {vehicle.kilometraje.toLocaleString()}km</p>
-                                                    <div className="flex justify-between items-center">
-                                                        <span className="text-[#135bec] font-bold text-lg">{formatCurrency(vehicle.precio_venta)}</span>
-                                                        <button className="bg-gray-100 dark:bg-gray-700 p-1.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600">
-                                                            <span className="material-symbols-outlined text-gray-600 dark:text-gray-300 text-sm">visibility</span>
+                                    {/* Botón añadir vehículo */}
+                                    <button
+                                        onClick={() => setShowVehicleSelector(true)}
+                                        className="w-full flex items-center justify-center gap-2 p-3 rounded-xl border-2 border-dashed border-[#135bec]/30 text-[#135bec] font-semibold text-sm hover:bg-blue-50 hover:border-[#135bec]/50 transition-all active:scale-[0.98]"
+                                    >
+                                        <span className="material-symbols-outlined text-xl">add</span>
+                                        Asignar vehículo del inventario
+                                    </button>
+
+                                    {/* Vehículos asignados */}
+                                    {contactVehicles.length > 0 ? (
+                                        <div className="space-y-3">
+                                            {contactVehicles.map(vehicle => (
+                                                <div key={vehicle.id} className="flex items-center gap-3 p-3 bg-white dark:bg-[#1c1c1e] rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                                                    <div
+                                                        className="w-16 h-16 rounded-lg bg-cover bg-center bg-gray-100 flex-shrink-0"
+                                                        style={{ backgroundImage: `url(${getValidImageUrl(vehicle.imagen_principal)})` }}
+                                                    />
+                                                    <div className="flex-1 min-w-0">
+                                                        <h4 className="font-bold text-sm text-black dark:text-white truncate">{vehicle.marca} {vehicle.modelo}</h4>
+                                                        <p className="text-xs text-gray-500 truncate">{vehicle.combustible} • {vehicle.año_matriculacion} • {vehicle.kilometraje.toLocaleString()} km</p>
+                                                        <span className="text-[#135bec] font-bold text-sm">{formatCurrency(vehicle.precio_venta)}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1 flex-shrink-0">
+                                                        <span className={cn(
+                                                            "text-[10px] font-bold px-2 py-0.5 rounded-full uppercase",
+                                                            vehicle.estado === 'disponible' ? "bg-green-100 text-green-700"
+                                                                : vehicle.estado === 'reservado' ? "bg-amber-100 text-amber-700"
+                                                                : "bg-slate-100 text-slate-600"
+                                                        )}>
+                                                            {vehicle.estado}
+                                                        </span>
+                                                        <button
+                                                            onClick={() => handleRemoveVehicle(vehicle.id)}
+                                                            className="h-8 w-8 flex items-center justify-center rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                                                            title="Quitar vehículo"
+                                                        >
+                                                            <span className="material-symbols-outlined text-lg">close</span>
                                                         </button>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        )) : (
-                                            <div className="col-span-full p-8 text-center text-muted-foreground bg-white dark:bg-[#1c1c1e] rounded-xl border border-dashed border-gray-200">
-                                                <span className="material-symbols-outlined text-4xl mb-2 opacity-50">no_crash</span>
-                                                <p>No hay vehículos asociados</p>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {vehicles.length > 0 && (
-                                        <>
-                                            <h3 className="text-lg font-bold text-black dark:text-white mt-6 mb-3">Otros vehículos disponibles</h3>
-                                            <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
-                                                {vehicles.filter(v => v.estado === 'disponible').slice(0, 3).map(vehicle => (
-                                                    <div key={vehicle.id} className="w-64 flex-shrink-0 bg-white dark:bg-[#1c1c1e] rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden group">
-                                                        <div className="h-32 bg-cover bg-center relative" style={{ backgroundImage: `url(${getValidImageUrl(vehicle.imagen_principal)})` }}>
-                                                        </div>
-                                                        <div className="p-3">
-                                                            <h4 className="font-bold text-black dark:text-white">{vehicle.marca} {vehicle.modelo}</h4>
-                                                            <div className="flex justify-between items-center mt-2">
-                                                                <span className="text-gray-500 font-bold">{formatCurrency(vehicle.precio_venta)}</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="p-8 text-center text-muted-foreground bg-white dark:bg-[#1c1c1e] rounded-xl border border-dashed border-gray-200">
+                                            <span className="material-symbols-outlined text-4xl mb-2 opacity-50">no_crash</span>
+                                            <p className="text-sm">No hay vehículos asociados</p>
+                                            <p className="text-xs text-gray-400 mt-1">Pulsa el botón de arriba para asignar vehículos</p>
+                                        </div>
                                     )}
                                 </div>
                             )}
@@ -457,6 +488,14 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
             <NewInteractionModal open={showInteractionModal} onClose={() => setShowInteractionModal(false)} contactId={currentContact.id} contactName={`${currentContact.nombre}`} onSave={handleSaveInteraction} />
             <AddTaskModal open={showTaskModal} onClose={() => setShowTaskModal(false)} contactId={currentContact.id} contactName={`${currentContact.nombre}`} onSave={handleSaveTask} />
             <DocumentModal open={showDocumentModal} onClose={() => setShowDocumentModal(false)} type={documentType} contact={currentContact} vehicle={contactVehicles[0]} onGenerate={() => { }} />
+
+            {/* Vehicle Selector Modal */}
+            <VehicleSelector
+                open={showVehicleSelector}
+                onClose={() => setShowVehicleSelector(false)}
+                onSelect={handleAddVehicles}
+                excludeIds={currentContact.vehiculos_interes || []}
+            />
 
             {/* Edit Contact Modal */}
             <EditContactModal

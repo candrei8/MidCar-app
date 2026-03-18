@@ -12,7 +12,6 @@ import { LogOut } from "lucide-react"
 const desktopNavItems = [
     { href: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
     { href: '/inventario', label: 'Inventario', icon: 'directions_car' },
-    { href: '/crm', label: 'CRM', icon: 'group' },
     { href: '/contactos', label: 'Contactos', icon: 'contacts' },
     { href: '/seguro', label: 'Seguros', icon: 'shield' },
     { href: '/gestion-web', label: 'Gestión Web', icon: 'language' },

@@ -17,11 +17,6 @@ const navItems = [
         icon: 'directions_car'
     },
     {
-        href: '/crm',
-        label: 'CRM',
-        icon: 'group'
-    },
-    {
         href: '/contactos',
         label: 'Contactos',
         icon: 'contacts'

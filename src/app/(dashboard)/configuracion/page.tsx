@@ -19,7 +19,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { PROVINCIAS, CIF_REGEX, EMAIL_REGEX } from "@/lib/constants"
+import { PROVINCIAS, CIF_NIF_NIE_REGEX, EMAIL_REGEX } from "@/lib/constants"
 import {
     getEmpresas,
     createEmpresa,
@@ -83,14 +83,12 @@ export default function ConfiguracionPage() {
             newErrors.nombre_comercial = 'El nombre comercial es obligatorio'
         }
 
-        if (!formData.razon_social.trim()) {
-            newErrors.razon_social = 'La razón social es obligatoria'
-        }
+        // Razón social es opcional (autónomos pueden no tenerla)
 
         if (!formData.cif.trim()) {
-            newErrors.cif = 'El CIF es obligatorio'
-        } else if (!CIF_REGEX.test(formData.cif.toUpperCase())) {
-            newErrors.cif = 'El formato del CIF no es válido'
+            newErrors.cif = 'El CIF/NIF/NIE es obligatorio'
+        } else if (!CIF_NIF_NIE_REGEX.test(formData.cif.toUpperCase())) {
+            newErrors.cif = 'El formato del CIF/NIF/NIE no es válido'
         }
 
         if (!formData.direccion.trim()) {
@@ -447,11 +445,11 @@ export default function ConfiguracionPage() {
                                     )}
                                 </div>
                                 <div className="space-y-2">
-                                    <Label>CIF *</Label>
+                                    <Label>CIF / NIF / NIE *</Label>
                                     <Input
                                         value={formData.cif}
                                         onChange={(e) => updateField('cif', e.target.value.toUpperCase())}
-                                        placeholder="Ej: B12345678"
+                                        placeholder="Ej: B12345678 o X1234567A"
                                         maxLength={9}
                                         className={cn("font-mono", errors.cif ? 'border-red-500' : '')}
                                     />
@@ -459,7 +457,7 @@ export default function ConfiguracionPage() {
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <Label>Razón social *</Label>
+                                <Label>Razón social</Label>
                                 <Input
                                     value={formData.razon_social}
                                     onChange={(e) => updateField('razon_social', e.target.value)}

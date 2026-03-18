@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import jsPDF from "jspdf"
+import { FullViewModal } from "@/components/auth/FullViewModal"
 import type { Vehicle, Contact } from "@/types"
 
 // Función para regenerar PDF de contrato desde datos guardados
@@ -471,6 +472,10 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
 
+    // Password modal for edit access
+    const [showEditPasswordModal, setShowEditPasswordModal] = useState(false)
+    const [pendingEditNavigation, setPendingEditNavigation] = useState(false)
+
     const handleDeleteVehicle = async () => {
         if (!vehicle) return
         setIsDeleting(true)
@@ -580,6 +585,15 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
         thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
     }, [currentImageIndex])
 
+    // Navigate to edit page after unlocking full view
+    useEffect(() => {
+        if (pendingEditNavigation && isFullView && vehicle) {
+            setPendingEditNavigation(false)
+            setShowEditPasswordModal(false)
+            router.push(`/inventario/${vehicle.id}/editar`)
+        }
+    }, [isFullView, pendingEditNavigation, vehicle, router])
+
     // Touch swipe handlers for mobile hero
     const handleTouchStart = useCallback((e: React.TouchEvent) => {
         touchStartRef.current = e.touches[0].clientX
@@ -624,6 +638,16 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
     // Verificar si el usuario puede editar este vehículo
     // Puede editar si es el creador O si tiene acceso a la vista completa (isFullView)
     const canEdit = vehicle.created_by === user?.id || isFullView
+
+    // Handle edit click - show password if no permission
+    const handleEditClick = () => {
+        if (canEdit) {
+            router.push(`/inventario/${vehicle.id}/editar`)
+        } else {
+            setPendingEditNavigation(true)
+            setShowEditPasswordModal(true)
+        }
+    }
 
     // Get all equipment for this vehicle
     const vehicleEquipment = Object.entries(EQUIPAMIENTO_VEHICULO).flatMap(([_, category]) =>
@@ -673,11 +697,11 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
                                 <DropdownMenuItem onClick={() => setShowShareModal(true)} className="gap-2 cursor-pointer">
                                     <span className="material-symbols-outlined text-base">share</span> Compartir
                                 </DropdownMenuItem>
+                                <DropdownMenuItem onClick={handleEditClick} className="gap-2 cursor-pointer">
+                                    <span className="material-symbols-outlined text-base">edit</span> Editar
+                                </DropdownMenuItem>
                                 {canEdit && (
                                     <>
-                                        <DropdownMenuItem onClick={() => router.push(`/inventario/${vehicle.id}/editar`)} className="gap-2 cursor-pointer">
-                                            <span className="material-symbols-outlined text-base">edit</span> Editar
-                                        </DropdownMenuItem>
                                         <DropdownMenuSeparator className="bg-border/10" />
                                         {vehicle.estado !== 'disponible' && (
                                             <DropdownMenuItem onClick={() => handleStatusChange('disponible')} className="gap-2 cursor-pointer">
@@ -797,22 +821,21 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
                             <span className="material-symbols-outlined text-[18px]">share</span>
                             Compartir
                         </button>
+                        <button
+                            onClick={handleEditClick}
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors text-sm font-medium"
+                        >
+                            <span className="material-symbols-outlined text-[18px]">edit</span>
+                            Editar
+                        </button>
                         {canEdit && (
-                            <>
-                                <Link href={`/inventario/${vehicle.id}/editar`}>
-                                    <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors text-sm font-medium">
-                                        <span className="material-symbols-outlined text-[18px]">edit</span>
-                                        Editar
-                                    </button>
-                                </Link>
-                                <button
-                                    onClick={() => setShowDeleteConfirm(true)}
-                                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors text-sm font-medium"
-                                >
-                                    <span className="material-symbols-outlined text-[18px]">delete</span>
-                                    Eliminar
-                                </button>
-                            </>
+                            <button
+                                onClick={() => setShowDeleteConfirm(true)}
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors text-sm font-medium"
+                            >
+                                <span className="material-symbols-outlined text-[18px]">delete</span>
+                                Eliminar
+                            </button>
                         )}
                     </div>
                 </div>
@@ -1293,6 +1316,15 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
                 vehicle={vehicle}
                 open={showShareModal}
                 onClose={() => setShowShareModal(false)}
+            />
+
+            {/* Password modal for edit access */}
+            <FullViewModal
+                open={showEditPasswordModal}
+                onClose={() => {
+                    setShowEditPasswordModal(false)
+                    setPendingEditNavigation(false)
+                }}
             />
 
             {/* Delete Confirmation Dialog */}

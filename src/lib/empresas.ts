@@ -169,7 +169,7 @@ export async function createEmpresa(data: Omit<EmpresaVendedora, 'id' | 'created
         .from('empresas')
         .insert({
             nombre_comercial: data.nombre_comercial,
-            razon_social: data.razon_social,
+            razon_social: data.razon_social || null,
             cif: data.cif,
             direccion: data.direccion,
             codigo_postal: data.codigo_postal,
@@ -189,7 +189,7 @@ export async function createEmpresa(data: Omit<EmpresaVendedora, 'id' | 'created
     if (error) {
         console.error('Error creating empresa:', error)
         if (error.code === '23505') { // Unique constraint violation
-            throw new Error('Ya existe una empresa con ese CIF')
+            throw new Error('Ya existe una empresa con ese CIF/NIF/NIE')
         }
         return null
     }
@@ -230,7 +230,7 @@ export async function updateEmpresa(id: string, data: Partial<EmpresaVendedora>)
     if (error) {
         console.error('Error updating empresa:', error)
         if (error.code === '23505') {
-            throw new Error('Ya existe otra empresa con ese CIF')
+            throw new Error('Ya existe otra empresa con ese CIF/NIF/NIE')
         }
         return null
     }

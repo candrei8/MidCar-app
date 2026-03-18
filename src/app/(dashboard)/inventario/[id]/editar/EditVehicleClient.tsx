@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, ShieldAlert } from "lucide-react"
+import { ArrowLeft, Lock } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { QuickEditForm } from "@/components/inventory/QuickEditForm"
 import { getVehicleById } from "@/lib/supabase-service"
 import { useAuth } from "@/lib/auth-context"
+import { FullViewModal } from "@/components/auth/FullViewModal"
 import type { Vehicle } from "@/types"
 
 interface EditVehicleClientProps {
@@ -20,6 +21,7 @@ export function EditVehicleClient({ id }: EditVehicleClientProps) {
 
     const [vehicle, setVehicle] = useState<Vehicle | null>(null)
     const [isLoading, setIsLoading] = useState(true)
+    const [showPasswordModal, setShowPasswordModal] = useState(false)
 
     // Load vehicle from Supabase
     useEffect(() => {
@@ -78,7 +80,7 @@ export function EditVehicleClient({ id }: EditVehicleClientProps) {
     // Puede editar si es el creador O si tiene acceso a la vista completa (isFullView)
     const canEdit = vehicle.created_by === user?.id || isFullView
 
-    // Si el usuario no puede editar, mostrar mensaje de acceso denegado
+    // Si el usuario no puede editar, mostrar pantalla para introducir contraseña
     if (!canEdit) {
         return (
             <div className="space-y-6 animate-in px-4">
@@ -93,24 +95,32 @@ export function EditVehicleClient({ id }: EditVehicleClientProps) {
                 </div>
 
                 <div className="flex flex-col items-center justify-center py-12 px-4">
-                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30 mb-6">
-                        <ShieldAlert className="h-10 w-10 text-red-600 dark:text-red-400" />
+                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/30 mb-6">
+                        <Lock className="h-10 w-10 text-indigo-600 dark:text-indigo-400" />
                     </div>
                     <h1 className="text-xl font-bold text-foreground mb-2 text-center">
-                        No tienes permiso para editar
+                        Introduce la contraseña para editar
                     </h1>
-                    <p className="text-muted-foreground text-center max-w-md mb-2">
-                        Solo el creador de este vehículo puede editarlo.
+                    <p className="text-muted-foreground text-center max-w-md mb-6">
+                        Para editar este vehículo necesitas acceso de visión completa.
                     </p>
-                    {vehicle.created_by_name && (
-                        <p className="text-sm text-muted-foreground">
-                            Creado por: <span className="font-medium text-primary">{vehicle.created_by_name}</span>
-                        </p>
-                    )}
-                    <Link href={`/inventario/${id}`} className="mt-6">
-                        <Button size="lg" className="h-12 px-6">Volver al vehículo</Button>
+                    <Button
+                        size="lg"
+                        className="h-12 px-8 gap-2"
+                        onClick={() => setShowPasswordModal(true)}
+                    >
+                        <Lock className="h-4 w-4" />
+                        Introducir contraseña
+                    </Button>
+                    <Link href={`/inventario/${id}`} className="mt-4">
+                        <Button variant="ghost" size="sm">Volver al vehículo</Button>
                     </Link>
                 </div>
+
+                <FullViewModal
+                    open={showPasswordModal}
+                    onClose={() => setShowPasswordModal(false)}
+                />
             </div>
         )
     }

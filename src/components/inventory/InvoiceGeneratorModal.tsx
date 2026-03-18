@@ -82,8 +82,8 @@ export function InvoiceGeneratorModal({ vehicle, open, onOpenChange, onSuccess }
     const [fechaVencimiento, setFechaVencimiento] = useState('')
     const [concepto, setConcepto] = useState(`Venta de vehículo ${vehicle.marca} ${vehicle.modelo} - ${vehicle.matricula}`)
 
-    // Importes
-    const [baseImponible, setBaseImponible] = useState<number>(vehicle.precio_venta)
+    // Importes - precio_venta ya incluye IVA, lo usamos como total
+    const [precioTotal, setPrecioTotal] = useState<number>(vehicle.precio_venta)
     const [descuento, setDescuento] = useState<number>(0)
     const [ivaPorcentaje, setIvaPorcentaje] = useState<number>(21)
 
@@ -92,10 +92,11 @@ export function InvoiceGeneratorModal({ vehicle, open, onOpenChange, onSuccess }
     const [iban, setIban] = useState('')
     const [notas, setNotas] = useState('')
 
-    // Cálculos
-    const baseConDescuento = useMemo(() => baseImponible - descuento, [baseImponible, descuento])
-    const ivaImporte = useMemo(() => (baseConDescuento * ivaPorcentaje) / 100, [baseConDescuento, ivaPorcentaje])
-    const totalFactura = useMemo(() => baseConDescuento + ivaImporte, [baseConDescuento, ivaImporte])
+    // Cálculos - extraer base imponible del precio con IVA incluido
+    const baseImponible = useMemo(() => Math.round(precioTotal / (1 + ivaPorcentaje / 100) * 100) / 100, [precioTotal, ivaPorcentaje])
+    const baseConDescuento = useMemo(() => Math.round((baseImponible - descuento) * 100) / 100, [baseImponible, descuento])
+    const ivaImporte = useMemo(() => Math.round(baseConDescuento * ivaPorcentaje) / 100, [baseConDescuento, ivaPorcentaje])
+    const totalFactura = useMemo(() => Math.round((baseConDescuento + ivaImporte) * 100) / 100, [baseConDescuento, ivaImporte])
 
     // Empresa seleccionada
     const empresaSeleccionada = useMemo(() => {
@@ -125,7 +126,7 @@ export function InvoiceGeneratorModal({ vehicle, open, onOpenChange, onSuccess }
 
     // Update when vehicle changes
     useEffect(() => {
-        setBaseImponible(vehicle.precio_venta)
+        setPrecioTotal(vehicle.precio_venta)
         setConcepto(`Venta de vehículo ${vehicle.marca} ${vehicle.modelo} - ${vehicle.matricula}`)
     }, [vehicle])
 
@@ -142,7 +143,7 @@ export function InvoiceGeneratorModal({ vehicle, open, onOpenChange, onSuccess }
             )
             setTipoCliente((contrato.comprador_tipo as TipoCliente) || 'particular')
             if (contrato.precio_venta) {
-                setBaseImponible(contrato.precio_venta)
+                setPrecioTotal(contrato.precio_venta)
             }
         }
     }, [selectedContratoId, contratos])
@@ -281,6 +282,10 @@ export function InvoiceGeneratorModal({ vehicle, open, onOpenChange, onSuccess }
                 doc.setTextColor(220, 38, 38)
                 addText('Descuento', margin + 5, y)
                 addText(`-${formatCurrency(descuento)}`, pageWidth - margin - 5, y, { align: 'right' })
+                y += 8
+                doc.setTextColor(0)
+                addText('Subtotal', margin + 5, y)
+                addText(formatCurrency(baseConDescuento), pageWidth - margin - 5, y, { align: 'right' })
             }
 
             // ===== RESUMEN FISCAL =====
@@ -587,11 +592,11 @@ export function InvoiceGeneratorModal({ vehicle, open, onOpenChange, onSuccess }
                         <div className="space-y-2 sm:space-y-3">
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
                                 <div className="space-y-1">
-                                    <Label className="text-[10px] sm:text-xs text-slate-500">Base Imponible</Label>
+                                    <Label className="text-[10px] sm:text-xs text-slate-500">Precio (IVA incluido)</Label>
                                     <Input
                                         type="number"
-                                        value={baseImponible || ''}
-                                        onChange={(e) => setBaseImponible(parseFloat(e.target.value) || 0)}
+                                        value={precioTotal || ''}
+                                        onChange={(e) => setPrecioTotal(parseFloat(e.target.value) || 0)}
                                         className="h-9 sm:h-10 text-sm"
                                     />
                                 </div>
@@ -625,7 +630,7 @@ export function InvoiceGeneratorModal({ vehicle, open, onOpenChange, onSuccess }
                             <div className="p-2 sm:p-3 bg-slate-50 rounded-lg space-y-1.5 sm:space-y-2">
                                 <div className="flex justify-between text-xs sm:text-sm">
                                     <span className="text-slate-600">Base imponible:</span>
-                                    <span>{formatCurrency(baseImponible)}</span>
+                                    <span>{formatCurrency(baseConDescuento)}</span>
                                 </div>
                                 {descuento > 0 && (
                                     <div className="flex justify-between text-xs sm:text-sm text-red-600">

@@ -268,8 +268,8 @@ export function NewLeadModal({ open, onClose }: NewLeadModalProps) {
                                         className="pl-9"
                                     />
                                     {showVehicleDropdown && (
-                                        <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-[240px] overflow-y-auto">
-                                            {availableVehicles.slice(0, 8).map(v => (
+                                        <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-[300px] overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
+                                            {availableVehicles.map(v => (
                                                 <button
                                                     key={v.id}
                                                     type="button"
