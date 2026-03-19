@@ -365,13 +365,10 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
                                                     <h4 className="text-base font-bold text-black dark:text-white">Vehículo de interés</h4>
                                                 </div>
                                                 <div className="flex gap-3 items-center bg-gray-50 dark:bg-gray-800/50 p-2 rounded-lg border border-gray-100 dark:border-gray-700">
-                                                    <div className="w-12 h-12 rounded-md bg-cover bg-center bg-gray-200" style={{ backgroundImage: isValidImageUrl(selectedVehicleFromContact(contactVehicles)?.imagen_principal) ? `url(${selectedVehicleFromContact(contactVehicles)?.imagen_principal})` : 'none' }}>
-                                                        {!isValidImageUrl(selectedVehicleFromContact(contactVehicles)?.imagen_principal) && (
-                                                            <div className="w-full h-full flex items-center justify-center">
-                                                                <span className="material-symbols-outlined text-gray-400">directions_car</span>
-                                                            </div>
-                                                        )}
-                                                    </div>
+                                                    <div
+                                                        className="w-14 h-14 rounded-lg bg-cover bg-center bg-gray-100 flex-shrink-0"
+                                                        style={{ backgroundImage: `url(${getValidImageUrl(selectedVehicleFromContact(contactVehicles)?.imagen_principal)})` }}
+                                                    />
                                                     <div>
                                                         <p className="text-sm font-bold dark:text-white">{selectedVehicleFromContact(contactVehicles)?.marca} {selectedVehicleFromContact(contactVehicles)?.modelo}</p>
                                                         <p className="text-xs text-gray-500 dark:text-gray-400">{formatCurrency(selectedVehicleFromContact(contactVehicles)?.precio_venta || 0)}</p>
