@@ -29,9 +29,9 @@ export function invalidateDataCache() {
 }
 
 export function useFilteredData() {
-    const { user, profile } = useAuth()
+    const { user, profile, loading: authLoading } = useAuth()
     const [refreshKey, setRefreshKey] = useState(0)
-    const [isLoading, setIsLoading] = useState(dataCache.lastFetch === 0)
+    const [isLoading, setIsLoading] = useState(true)
     const mountedRef = useRef(true)
 
     // Data state - inicializa con cache si existe
@@ -69,11 +69,15 @@ export function useFilteredData() {
                 getContactsStats(),
             ])
 
-            // Actualizar cache global
-            dataCache.vehicles = vehiclesData
-            dataCache.leadsStats = leadsStatsData
-            dataCache.contactsStats = contactsStatsData
-            dataCache.lastFetch = Date.now()
+            // Solo cachear si los datos no están vacíos (evitar cachear errores de auth)
+            const hasData = vehiclesData.length > 0 || (leadsStatsData && leadsStatsData.total > 0) || (contactsStatsData && contactsStatsData.total > 0)
+
+            if (hasData || force) {
+                dataCache.vehicles = vehiclesData
+                dataCache.leadsStats = leadsStatsData
+                dataCache.contactsStats = contactsStatsData
+                dataCache.lastFetch = Date.now()
+            }
 
             if (mountedRef.current) {
                 setAllVehicles(vehiclesData)
@@ -94,10 +98,13 @@ export function useFilteredData() {
         return () => { mountedRef.current = false }
     }, [])
 
-    // Cargar datos iniciales
+    // Esperar a que auth esté listo antes de cargar datos
+    // Re-cargar cuando cambie el usuario (login/logout/token refresh)
     useEffect(() => {
-        loadData()
-    }, [loadData])
+        if (authLoading) return // No cargar hasta que auth esté listo
+        invalidateDataCache()
+        loadData(true)
+    }, [authLoading, currentUserId, loadData])
 
     // Recargar cuando cambie refreshKey (forzar)
     useEffect(() => {
