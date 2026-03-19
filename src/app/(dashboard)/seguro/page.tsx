@@ -146,8 +146,7 @@ function polizaToPolicyDB(poliza: Partial<PolizaSeguro>, vehiculo?: Vehicle): Om
 }
 
 export default function SeguroPage() {
-    // Obtener vehículos filtrados por vista (Mi Vista / Visión Completa)
-    const { vehicles: filteredVehicles, isFullView } = useFilteredData()
+    const { vehicles: filteredVehicles } = useFilteredData()
     const { user, profile } = useAuth()
 
     // State - Cargar pólizas desde Supabase

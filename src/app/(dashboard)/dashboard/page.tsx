@@ -61,7 +61,7 @@ export default function DashboardPage() {
     const data = useMemo(() => getDashboardData(), [])
 
     // Obtener datos filtrados por usuario (Mi Vista / Visión Completa)
-    const { stats: filteredStats, isFullView } = useFilteredData()
+    const { stats: filteredStats } = useFilteredData()
 
     // Métricas de leads desde stats (count-only queries — sin cargar todos los leads)
     const filteredLeadMetrics = useMemo(() => {
@@ -156,10 +156,10 @@ export default function DashboardPage() {
         })
     }
 
-    const brands = isFullView ? data.brands : []
-    const activity = isFullView ? data.activity : []
+    const brands = data.brands
+    const activity = data.activity
     const alerts = realAlerts // USAMOS ALERTAS REALES
-    const chartData = isFullView ? data.chartData : { salesOverTime: [], leadsOverTime: [] }
+    const chartData = data.chartData
 
     // Usar métricas de leads filtradas por usuario
     const leads = filteredLeadMetrics

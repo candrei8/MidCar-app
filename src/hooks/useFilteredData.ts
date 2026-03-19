@@ -29,7 +29,7 @@ export function invalidateDataCache() {
 }
 
 export function useFilteredData() {
-    const { user, profile, isFullView } = useAuth()
+    const { user, profile } = useAuth()
     const [refreshKey, setRefreshKey] = useState(0)
     const [isLoading, setIsLoading] = useState(dataCache.lastFetch === 0)
     const mountedRef = useRef(true)
@@ -123,13 +123,8 @@ export function useFilteredData() {
         setRefreshKey(prev => prev + 1)
     }, [])
 
-    // VEHICLES - Filtrado por usuario o vista completa
-    // Vehicles without created_by (imported data) are always visible
-    const vehicles = useMemo((): Vehicle[] => {
-        if (isFullView) return allVehicles
-        if (!currentUserId) return []
-        return allVehicles.filter(v => !v.created_by || v.created_by === currentUserId)
-    }, [isFullView, currentUserId, allVehicles])
+    // VEHICLES - Todos los vehículos visibles para todos
+    const vehicles = allVehicles
 
     // CLIENTS - derived from vehicles (for header search - small set)
     const contacts = EMPTY_CONTACTS // contacts no longer bulk-loaded; use getContactsPage()
@@ -247,7 +242,6 @@ export function useFilteredData() {
         clients,
         vehicles,
         stats,
-        isFullView,
         isLoading,
         currentUserId,
         userName: profile ? `${profile.nombre} ${profile.apellidos}` : 'Usuario',

@@ -6,7 +6,6 @@ import { cn } from "@/lib/utils"
 import { useState, useEffect, useRef } from "react"
 import { useAuth } from "@/lib/auth-context"
 import { useFilteredData } from "@/hooks/useFilteredData"
-import { ViewToggle } from "@/components/auth/ViewToggle"
 import { LogOut } from "lucide-react"
 
 const desktopNavItems = [
@@ -30,7 +29,7 @@ type SearchResult = {
 export function Header() {
     const pathname = usePathname()
     const router = useRouter()
-    const { profile, signOut, isFullView } = useAuth()
+    const { profile, signOut } = useAuth()
     const { vehicles, clients } = useFilteredData()
     const [searchQuery, setSearchQuery] = useState("")
     const [searchResults, setSearchResults] = useState<SearchResult[]>([])
@@ -150,7 +149,7 @@ export function Header() {
                                 Hola, {profile?.nombre || 'Usuario'}
                             </h2>
                             <p className="text-sm text-slate-500 font-medium">
-                                {isFullView ? 'Visión Completa' : 'Mi Vista'}
+                                MidCar
                             </p>
                         </div>
                     </div>
@@ -167,7 +166,6 @@ export function Header() {
                                 {showMobileSearch ? 'close' : 'search'}
                             </span>
                         </button>
-                        <ViewToggle />
                     </div>
                 </div>
 
@@ -321,9 +319,6 @@ export function Header() {
                             </div>
                         )}
                     </div>
-
-                    {/* View Toggle */}
-                    <ViewToggle />
 
                     {/* User */}
                     <div ref={userMenuRef} className="relative flex items-center gap-3 pl-4 border-l border-slate-200">

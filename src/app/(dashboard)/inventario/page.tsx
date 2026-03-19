@@ -34,8 +34,7 @@ export default function InventarioPage() {
     const [yearFilter, setYearFilter] = useState<YearRangeType>("todos")
     const [showFilters, setShowFilters] = useState(false)
 
-    // Obtener vehículos filtrados por vista (Mi Vista vacío / Visión Completa con datos)
-    const { vehicles: baseVehicles, isFullView } = useFilteredData()
+    const { vehicles: baseVehicles } = useFilteredData()
 
     // Count active filters
     const activeFiltersCount = useMemo(() => {
