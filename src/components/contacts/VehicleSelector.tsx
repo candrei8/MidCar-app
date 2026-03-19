@@ -4,6 +4,11 @@ import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
+    Dialog,
+    DialogContent,
+    DialogTitle,
+} from "@/components/ui/dialog"
+import {
     Search,
     Car,
     Check,
@@ -70,18 +75,13 @@ export function VehicleSelector({ open, onClose, onSelect, excludeIds = [] }: Ve
         onClose()
     }
 
-    if (!open) return null
-
     return (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
-            {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/50" onClick={handleClose} />
+        <Dialog open={open} onOpenChange={handleClose}>
+            <DialogContent className="max-w-[600px] h-[85vh] sm:h-[80vh] p-0 flex flex-col gap-0 overflow-hidden">
+                <DialogTitle className="sr-only">Seleccionar Vehículos</DialogTitle>
 
-            {/* Modal */}
-            <div className="relative w-full sm:max-w-[600px] h-[85vh] sm:h-auto sm:max-h-[80vh] bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 sm:slide-in-from-bottom-0 duration-200">
-
-                {/* Header - fixed */}
-                <div className="flex items-center justify-between p-4 border-b border-gray-100">
+                {/* Header */}
+                <div className="flex items-center justify-between p-4 border-b border-gray-100 shrink-0">
                     <div className="flex items-center gap-2">
                         <Car className="h-5 w-5 text-[#135bec]" />
                         <h2 className="text-lg font-bold text-slate-900">Seleccionar Vehículos</h2>
@@ -94,8 +94,8 @@ export function VehicleSelector({ open, onClose, onSelect, excludeIds = [] }: Ve
                     </button>
                 </div>
 
-                {/* Search - fixed */}
-                <div className="p-4 pb-2">
+                {/* Search */}
+                <div className="p-4 pb-2 shrink-0">
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                         <Input
@@ -114,7 +114,7 @@ export function VehicleSelector({ open, onClose, onSelect, excludeIds = [] }: Ve
                 </div>
 
                 {/* Scrollable vehicle list */}
-                <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 pb-2" style={{ WebkitOverflowScrolling: 'touch' }}>
+                <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-2">
                     <div className="space-y-2">
                         {filteredVehicles.map((vehicle) => {
                             const isSelected = selectedIds.includes(vehicle.id)
@@ -189,8 +189,8 @@ export function VehicleSelector({ open, onClose, onSelect, excludeIds = [] }: Ve
                     </div>
                 </div>
 
-                {/* Footer - fixed */}
-                <div className="flex gap-3 p-4 border-t border-gray-100 bg-white">
+                {/* Footer */}
+                <div className="flex gap-3 p-4 border-t border-gray-100 bg-white shrink-0">
                     <Button variant="outline" onClick={handleClose} className="flex-1 sm:flex-none">
                         Cancelar
                     </Button>
@@ -203,7 +203,7 @@ export function VehicleSelector({ open, onClose, onSelect, excludeIds = [] }: Ve
                         Añadir {selectedIds.length > 0 ? `(${selectedIds.length})` : ''}
                     </Button>
                 </div>
-            </div>
-        </div>
+            </DialogContent>
+        </Dialog>
     )
 }
