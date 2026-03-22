@@ -1083,6 +1083,18 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
                                 </div>
                                 <div className="border-t border-gray-100 dark:border-gray-700 pt-3">
                                     <div className="flex justify-between">
+                                        <span className="text-gray-500">Precio venta</span>
+                                        <span className="font-medium">{formatCurrency(vehicle.precio_venta)}</span>
+                                    </div>
+                                </div>
+                                {vehicle.descuento > 0 && (
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-500">Descuento</span>
+                                        <span className="font-medium text-red-500">-{formatCurrency(vehicle.descuento)}</span>
+                                    </div>
+                                )}
+                                <div className="border-t border-gray-100 dark:border-gray-700 pt-3">
+                                    <div className="flex justify-between">
                                         <span className="font-semibold">Margen bruto</span>
                                         <span className={cn("font-bold", margen > 0 ? "text-green-600" : "text-red-600")}>
                                             {formatCurrency(margen)} ({margenPorcentaje.toFixed(1)}%)
