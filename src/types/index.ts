@@ -102,7 +102,7 @@ export interface VehicleDocument {
     vehiculo_id: string
     nombre: string
     tipo: string  // ficha_tecnica, permiso_circulacion, itv, contrato, etc.
-    url: string   // base64 data URL
+    url: string   // Storage URL
     fecha_subida: string
 }
 

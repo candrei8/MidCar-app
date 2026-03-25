@@ -32,15 +32,20 @@ import {
     Trash2,
     Plus,
     ImageIcon,
+    Download,
+    Eye,
+    Paperclip,
 } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { MARCAS, MODELOS_POR_MARCA, COMBUSTIBLES, TRANSMISIONES, CARROCERIAS, ETIQUETAS_DGT, EQUIPAMIENTO_VEHICULO } from "@/lib/constants"
 import { formatCurrency, cn } from "@/lib/utils"
 import { getVehicleById, updateVehicle } from "@/lib/supabase-service"
 import { uploadVehicleImage, deleteVehicleImage } from "@/lib/vehicle-image-service"
+import { uploadVehicleDocument, deleteVehicleDocument } from "@/lib/vehicle-document-service"
 import { useDropzone } from "react-dropzone"
 import { invalidateDataCache } from "@/hooks/useFilteredData"
-import type { Vehicle, VehicleImage } from "@/types"
+import { TIPOS_DOCUMENTO_VEHICULO } from "@/lib/constants"
+import type { Vehicle, VehicleImage, VehicleDocument } from "@/types"
 
 interface QuickEditFormProps {
     vehicleId: string
@@ -213,6 +218,21 @@ export function QuickEditForm({ vehicleId, onSave, onCancel }: QuickEditFormProp
     const [isUploadingPhotos, setIsUploadingPhotos] = useState(false)
     const galleryInitRef = useRef(false)
 
+    // Document state
+    interface DocFile {
+        id: string
+        nombre: string
+        tipo: string // ficha_tecnica, permiso_circulacion, etc.
+        url: string
+        file?: File // only for new documents
+        isExisting: boolean
+        fecha_subida: string
+    }
+    const [documents, setDocuments] = useState<DocFile[]>([])
+    const [docsToDelete, setDocsToDelete] = useState<string[]>([])
+    const docsInitRef = useRef(false)
+    const docInputRef = useRef<HTMLInputElement>(null)
+
     // Load vehicle from Supabase
     useEffect(() => {
         const loadVehicle = async () => {
@@ -268,6 +288,22 @@ export function QuickEditForm({ vehicleId, onSave, onCancel }: QuickEditFormProp
         }
     }, [originalVehicle])
 
+    // Initialize documents from loaded vehicle
+    useEffect(() => {
+        if (originalVehicle && !docsInitRef.current) {
+            docsInitRef.current = true
+            const docs: DocFile[] = (originalVehicle.documentos || []).map((doc: any, index: number) => ({
+                id: doc.id || `existing-doc-${index}`,
+                nombre: doc.nombre || 'Documento',
+                tipo: doc.tipo || 'otro',
+                url: doc.url,
+                isExisting: true,
+                fecha_subida: doc.fecha_subida || new Date().toISOString(),
+            }))
+            setDocuments(docs)
+        }
+    }, [originalVehicle])
+
     // Check if form has changes (include photo changes)
     const hasPhotoChanges = useMemo(() => {
         if (!originalVehicle) return false
@@ -279,11 +315,19 @@ export function QuickEditForm({ vehicleId, onSave, onCancel }: QuickEditFormProp
         return hasNewPhotos || hasDeletedPhotos || hasOrderChange
     }, [originalVehicle, galleryPhotos, photosToDelete])
 
+    // Check if documents have changes
+    const hasDocChanges = useMemo(() => {
+        if (!originalVehicle) return false
+        const hasNewDocs = documents.some(d => !d.isExisting)
+        const hasDeletedDocs = docsToDelete.length > 0
+        return hasNewDocs || hasDeletedDocs
+    }, [originalVehicle, documents, docsToDelete])
+
     // Check if form has changes
     const hasChanges = useMemo(() => {
         if (!formData || !originalVehicle) return false
-        return JSON.stringify(formData) !== JSON.stringify(originalVehicle) || hasPhotoChanges
-    }, [formData, originalVehicle, hasPhotoChanges])
+        return JSON.stringify(formData) !== JSON.stringify(originalVehicle) || hasPhotoChanges || hasDocChanges
+    }, [formData, originalVehicle, hasPhotoChanges, hasDocChanges])
 
     // Update a field
     const updateField = useCallback(<K extends keyof Vehicle>(field: K, value: Vehicle[K]) => {
@@ -312,8 +356,12 @@ export function QuickEditForm({ vehicleId, onSave, onCancel }: QuickEditFormProp
             setPhotosToDelete([])
             // Revoke new photo URLs
             galleryPhotos.filter(p => !p.isExisting).forEach(p => URL.revokeObjectURL(p.url))
+            // Reset documents
+            docsInitRef.current = false
+            setDocsToDelete([])
+            documents.filter(d => !d.isExisting).forEach(d => URL.revokeObjectURL(d.url))
         }
-    }, [originalVehicle, galleryPhotos])
+    }, [originalVehicle, galleryPhotos, documents])
 
     // Add new photos to gallery
     const addPhotosToGallery = useCallback((acceptedFiles: File[]) => {
@@ -388,6 +436,37 @@ export function QuickEditForm({ vehicleId, onSave, onCancel }: QuickEditFormProp
         maxSize: 5 * 1024 * 1024,
     })
 
+    // Add document files
+    const addDocumentFiles = useCallback((files: FileList | File[], docType: string) => {
+        const fileArray = Array.from(files)
+        setDocuments(prev => {
+            const newDocs: DocFile[] = fileArray.map((file, i) => ({
+                id: `new-doc-${Date.now()}-${i}-${Math.random()}`,
+                nombre: file.name,
+                tipo: docType,
+                url: URL.createObjectURL(file),
+                file,
+                isExisting: false,
+                fecha_subida: new Date().toISOString(),
+            }))
+            return [...prev, ...newDocs]
+        })
+    }, [])
+
+    // Remove document
+    const removeDocument = useCallback((docId: string) => {
+        setDocuments(prev => {
+            const doc = prev.find(d => d.id === docId)
+            if (!doc) return prev
+            if (doc.isExisting) {
+                queueMicrotask(() => setDocsToDelete(d => [...d, doc.url]))
+            } else {
+                setTimeout(() => URL.revokeObjectURL(doc.url), 0)
+            }
+            return prev.filter(d => d.id !== docId)
+        })
+    }, [])
+
     // Save changes
     const handleSave = useCallback(async () => {
         if (!formData) return
@@ -434,10 +513,37 @@ export function QuickEditForm({ vehicleId, onSave, onCancel }: QuickEditFormProp
                 await deleteVehicleImage(urlToDelete)
             }
 
+            // Process document changes
+            const documentosArray: VehicleDocument[] = []
+            for (const doc of documents) {
+                let url: string
+                if (doc.isExisting) {
+                    url = doc.url
+                } else if (doc.file) {
+                    url = await uploadVehicleDocument(doc.file, stockId, doc.tipo)
+                } else {
+                    continue
+                }
+                documentosArray.push({
+                    id: doc.id,
+                    vehiculo_id: vehicleId,
+                    nombre: doc.nombre,
+                    tipo: doc.tipo,
+                    url,
+                    fecha_subida: doc.fecha_subida,
+                })
+            }
+
+            // Delete removed documents from storage
+            for (const urlToDelete of docsToDelete) {
+                await deleteVehicleDocument(urlToDelete)
+            }
+
             const updates = {
                 ...formData,
                 imagenes: imagenesArray.length > 0 ? imagenesArray : formData.imagenes,
                 imagen_principal: imagenesArray.length > 0 ? imagenPrincipal : formData.imagen_principal,
+                documentos: documentosArray,
             }
 
             const updatedVehicle = await updateVehicle(vehicleId, updates)
@@ -447,8 +553,10 @@ export function QuickEditForm({ vehicleId, onSave, onCancel }: QuickEditFormProp
                 window.dispatchEvent(new CustomEvent('midcar-data-updated', { detail: { type: 'vehicles' } }))
                 setOriginalVehicle(updatedVehicle)
                 setPhotosToDelete([])
-                // Reset gallery init so it reloads from updated vehicle
+                setDocsToDelete([])
+                // Reset gallery/docs init so it reloads from updated vehicle
                 galleryInitRef.current = false
+                docsInitRef.current = false
                 setShowSaveSuccess(true)
                 setTimeout(() => {
                     setShowSaveSuccess(false)
@@ -462,7 +570,7 @@ export function QuickEditForm({ vehicleId, onSave, onCancel }: QuickEditFormProp
         }
 
         setIsSaving(false)
-    }, [formData, vehicleId, onSave, galleryPhotos, photosToDelete])
+    }, [formData, vehicleId, onSave, galleryPhotos, photosToDelete, documents, docsToDelete])
 
     // Calculate financials
     const financials = useMemo(() => {
@@ -1043,6 +1151,153 @@ export function QuickEditForm({ vehicleId, onSave, onCancel }: QuickEditFormProp
                         <p className="text-xs text-muted-foreground">
                             Este texto aparecera en la ficha del vehiculo en la web publica.
                         </p>
+                    </div>
+                </Section>
+
+                {/* Documentos del Vehículo */}
+                <Section title="Documentos" icon={Paperclip} defaultOpen={false} badge={documents.length || undefined}>
+                    <div className="space-y-4">
+                        <p className="text-sm text-muted-foreground">
+                            Sube documentos del vehículo: ficha técnica, permiso de circulación, ITV, facturas, etc.
+                            Puedes subir PDFs o hacer fotos directamente desde el móvil.
+                        </p>
+
+                        {/* Document list */}
+                        {documents.length > 0 && (
+                            <div className="space-y-2">
+                                {documents.map((doc) => {
+                                    const tipoLabel = TIPOS_DOCUMENTO_VEHICULO.find(t => t.value === doc.tipo)?.label || doc.tipo
+                                    const isImage = doc.nombre.match(/\.(jpg|jpeg|png|webp|heic)$/i) || (doc.file?.type.startsWith('image/'))
+                                    return (
+                                        <div
+                                            key={doc.id}
+                                            className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-800"
+                                        >
+                                            {/* Thumbnail or icon */}
+                                            {isImage ? (
+                                                <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700 flex-shrink-0">
+                                                    <img src={doc.url} alt={doc.nombre} className="w-full h-full object-cover" />
+                                                </div>
+                                            ) : (
+                                                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                                    <FileText className="h-6 w-6 text-primary" />
+                                                </div>
+                                            )}
+
+                                            {/* Info */}
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium text-foreground truncate">{doc.nombre}</p>
+                                                <p className="text-xs text-muted-foreground">{tipoLabel}</p>
+                                                {!doc.isExisting && (
+                                                    <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[10px] font-medium">
+                                                        Nuevo
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {/* Actions */}
+                                            <div className="flex items-center gap-1 flex-shrink-0">
+                                                {doc.isExisting && (
+                                                    <>
+                                                        <a
+                                                            href={doc.url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="w-9 h-9 rounded-lg flex items-center justify-center text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                                                            title="Ver"
+                                                        >
+                                                            <Eye className="h-4 w-4" />
+                                                        </a>
+                                                        <a
+                                                            href={doc.url}
+                                                            download={doc.nombre}
+                                                            className="w-9 h-9 rounded-lg flex items-center justify-center text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                                                            title="Descargar"
+                                                        >
+                                                            <Download className="h-4 w-4" />
+                                                        </a>
+                                                    </>
+                                                )}
+                                                <button
+                                                    onClick={() => removeDocument(doc.id)}
+                                                    className="w-9 h-9 rounded-lg flex items-center justify-center text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                                                    title="Eliminar"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        )}
+
+                        {/* Upload area */}
+                        <div className="space-y-3">
+                            {/* Document type selector + upload */}
+                            {TIPOS_DOCUMENTO_VEHICULO.map((tipo) => {
+                                const existingDocs = documents.filter(d => d.tipo === tipo.value)
+                                const hasDoc = existingDocs.length > 0
+                                return (
+                                    <div key={tipo.value} className="flex items-center justify-between gap-2 py-2 border-b border-gray-100 dark:border-gray-800 last:border-0">
+                                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                                            {hasDoc ? (
+                                                <div className="w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0">
+                                                    <Check className="h-3.5 w-3.5 text-green-600" />
+                                                </div>
+                                            ) : (
+                                                <div className="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
+                                                    <FileText className="h-3.5 w-3.5 text-gray-400" />
+                                                </div>
+                                            )}
+                                            <span className={cn(
+                                                "text-sm truncate",
+                                                hasDoc ? "font-medium text-foreground" : "text-muted-foreground"
+                                            )}>
+                                                {tipo.label}
+                                                {tipo.required && <span className="text-red-400 ml-1">*</span>}
+                                            </span>
+                                        </div>
+                                        <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium cursor-pointer hover:bg-primary/20 transition-colors active:scale-95 touch-manipulation">
+                                            <Upload className="h-3.5 w-3.5" />
+                                            Subir
+                                            <input
+                                                type="file"
+                                                className="hidden"
+                                                accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"
+                                                multiple
+                                                onChange={(e) => {
+                                                    if (e.target.files && e.target.files.length > 0) {
+                                                        addDocumentFiles(e.target.files, tipo.value)
+                                                    }
+                                                    e.target.value = ''
+                                                }}
+                                            />
+                                        </label>
+                                    </div>
+                                )
+                            })}
+                        </div>
+
+                        {/* Quick add - camera photo */}
+                        <div className="pt-2">
+                            <label className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 text-sm font-medium text-muted-foreground cursor-pointer hover:border-primary/50 hover:text-primary transition-colors active:scale-[0.98] touch-manipulation">
+                                <Camera className="h-4 w-4" />
+                                Hacer foto de documento
+                                <input
+                                    type="file"
+                                    className="hidden"
+                                    accept="image/*"
+                                    capture="environment"
+                                    onChange={(e) => {
+                                        if (e.target.files && e.target.files.length > 0) {
+                                            addDocumentFiles(e.target.files, 'otro')
+                                        }
+                                        e.target.value = ''
+                                    }}
+                                />
+                            </label>
+                        </div>
                     </div>
                 </Section>
 

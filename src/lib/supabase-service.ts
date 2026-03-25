@@ -155,7 +155,7 @@ function transformVehicleFromDB(dbVehicle: Record<string, unknown>): Vehicle {
         fecha_itv_vencimiento: dbVehicle.fecha_itv_vencimiento as string | undefined,
         imagen_principal: (dbVehicle.imagen_principal as string) || '/placeholder-proximamente.svg',
         imagenes: Array.isArray(dbVehicle.imagenes) ? (dbVehicle.imagenes as any[]) : [],
-        documentos: [], // Documents are stored separately
+        documentos: Array.isArray(dbVehicle.documentos) ? (dbVehicle.documentos as any[]) : [],
         url_web: dbVehicle.url_web as string | undefined,
         datos_sincronizados: dbVehicle.datos_sincronizados as boolean | undefined,
         ultima_sincronizacion: dbVehicle.ultima_sincronizacion as string | undefined,
@@ -219,6 +219,7 @@ function transformVehicleToDB(vehicle: Partial<Vehicle>): Record<string, unknown
     if (vehicle.ultima_sincronizacion !== undefined) dbVehicle.ultima_sincronizacion = vehicle.ultima_sincronizacion || null
     if (vehicle.equipamiento !== undefined) dbVehicle.equipamiento = vehicle.equipamiento || []
     if (vehicle.imagenes !== undefined) dbVehicle.imagenes = vehicle.imagenes || []
+    if (vehicle.documentos !== undefined) dbVehicle.documentos = vehicle.documentos || []
     if (vehicle.descripcion !== undefined) dbVehicle.descripcion = vehicle.descripcion || null
     if (vehicle.created_by !== undefined) dbVehicle.created_by = vehicle.created_by
     if (vehicle.created_by_name !== undefined) dbVehicle.created_by_name = vehicle.created_by_name

@@ -19,21 +19,32 @@ export const normalizeMatricula = (mat: string): string => {
     return String(mat).toUpperCase().replace(/[\s\-\.]/g, '').trim()
 }
 
+// Strip accents/diacritics for fuzzy matching (á→a, ñ→n, etc.)
+function stripAccents(str: string): string {
+    return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+}
+
 // Common column name mappings (Spanish & English)
+// All values should be lowercase and accent-free for matching
 const COLUMN_MAPPINGS: Record<string, string[]> = {
-    matricula: ['matricula', 'matrícula', 'plate', 'license_plate', 'license plate', 'registro', 'vehiculo_matricula', 'placa'],
-    numeroPoliza: ['poliza', 'póliza', 'numero_poliza', 'nº poliza', 'policy_number', 'policy', 'n_poliza', 'num_poliza', 'npoliza', 'no poliza'],
-    tipoPoliza: ['tipo', 'tipo_poliza', 'type', 'policy_type', 'cobertura', 'coverage', 'modalidad'],
-    fechaAlta: ['fecha_alta', 'fecha alta', 'alta', 'start_date', 'inicio', 'fecha_inicio', 'vigencia_desde', 'desde'],
-    fechaVencimiento: ['fecha_vencimiento', 'vencimiento', 'expiry', 'expiry_date', 'end_date', 'fin', 'fecha_fin', 'vigencia_hasta', 'hasta', 'caducidad', 'vence'],
-    prima: ['prima', 'prima_anual', 'cost', 'premium', 'amount', 'importe', 'precio', 'coste'],
-    marcaModelo: ['marca', 'modelo', 'marca_modelo', 'vehicle', 'vehiculo', 'vehículo', 'coche', 'car'],
-    aseguradora: ['aseguradora', 'compania', 'compañia', 'insurance_company', 'company', 'proveedor'],
+    matricula: ['matricula', 'plate', 'license_plate', 'license plate', 'registro', 'vehiculo_matricula', 'placa', 'mat'],
+    numeroPoliza: ['poliza', 'numero_poliza', 'n poliza', 'no poliza', 'policy_number', 'policy', 'n_poliza', 'num_poliza', 'npoliza', 'contrato', 'numero contrato', 'n contrato', 'referencia'],
+    tipoPoliza: ['tipo', 'tipo_poliza', 'type', 'policy_type', 'cobertura', 'coverage', 'modalidad', 'producto', 'ramo', 'garantia'],
+    fechaAlta: ['fecha_alta', 'fecha alta', 'alta', 'start_date', 'inicio', 'fecha_inicio', 'vigencia_desde', 'desde', 'efecto', 'fecha efecto', 'f efecto', 'f_efecto', 'fecha inicio', 'emision', 'fecha emision'],
+    fechaVencimiento: ['fecha_vencimiento', 'vencimiento', 'expiry', 'expiry_date', 'end_date', 'fin', 'fecha_fin', 'vigencia_hasta', 'hasta', 'caducidad', 'vence', 'fecha vencimiento', 'f vencimiento', 'f_vencimiento', 'renovacion', 'fecha renovacion'],
+    prima: ['prima', 'prima_anual', 'prima anual', 'prima total', 'prima neta', 'cost', 'premium', 'amount', 'importe', 'precio', 'coste', 'total', 'recibo', 'importe recibo', 'importe total'],
+    marcaModelo: ['marca', 'modelo', 'marca_modelo', 'vehicle', 'vehiculo', 'coche', 'car', 'descripcion vehiculo', 'desc vehiculo'],
+    aseguradora: ['aseguradora', 'compania', 'insurance_company', 'company', 'proveedor', 'entidad'],
+}
+
+// Normalize a column name for comparison: lowercase, strip accents, remove non-alphanumeric (except spaces)
+function normalizeColumnName(name: string): string {
+    return stripAccents(name.toLowerCase().trim()).replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim()
 }
 
 // Find matching column name in row keys
 function findColumnKey(rowKeys: string[], targetField: string): string | null {
-    const normalizedKeys = rowKeys.map(k => k.toLowerCase().trim().replace(/[^\w\s]/g, ''))
+    const normalizedKeys = rowKeys.map(k => normalizeColumnName(k))
     const mappings = COLUMN_MAPPINGS[targetField] || []
 
     for (const mapping of mappings) {
@@ -41,8 +52,9 @@ function findColumnKey(rowKeys: string[], targetField: string): string | null {
         if (idx >= 0) return rowKeys[idx]
     }
 
-    // Also check exact match
-    const exactIdx = normalizedKeys.findIndex(k => k === targetField.toLowerCase())
+    // Also check exact match on target field name
+    const normalizedTarget = normalizeColumnName(targetField)
+    const exactIdx = normalizedKeys.findIndex(k => k === normalizedTarget)
     if (exactIdx >= 0) return rowKeys[exactIdx]
 
     return null
@@ -147,12 +159,44 @@ export async function parseInsuranceFile(file: File, vehicles: Vehicle[] = []): 
         const workbook = XLSX.read(data, {
             cellDates: true,
             dateNF: 'dd/mm/yyyy',
-            raw: false
         })
 
         const sheetName = workbook.SheetNames[0]
         const worksheet = workbook.Sheets[sheetName]
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '' })
+
+        // First try: standard parse (first row = headers)
+        let jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '' })
+        let headerRowOffset = 0
+
+        // If the first row doesn't look like it has a matricula column,
+        // try scanning for the real header row (AXA and other insurers
+        // often have info/title rows above the data table)
+        if (jsonData.length > 0) {
+            const firstRow = jsonData[0] as Record<string, any>
+            const rowKeys = Object.keys(firstRow)
+            const testMatricula = findColumnKey(rowKeys, 'matricula')
+
+            if (!testMatricula && jsonData.length > 1) {
+                // Scan raw sheet rows to find the actual header row
+                const rawData = XLSX.utils.sheet_to_json<string[]>(worksheet, { header: 1, defval: '' })
+                for (let i = 0; i < Math.min(rawData.length, 15); i++) {
+                    const row = rawData[i]
+                    if (!Array.isArray(row)) continue
+                    const cellValues = row.map(c => String(c))
+                    // Check if this row contains a matricula-like header
+                    const hasMatricula = cellValues.some(c => {
+                        const norm = normalizeColumnName(c)
+                        return norm.includes('matricula') || norm === 'mat' || norm.includes('license')
+                    })
+                    if (hasMatricula) {
+                        // Re-parse using this row as header
+                        jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '', range: i })
+                        headerRowOffset = i
+                        break
+                    }
+                }
+            }
+        }
 
         if (jsonData.length === 0) {
             return {
@@ -165,9 +209,13 @@ export async function parseInsuranceFile(file: File, vehicles: Vehicle[] = []): 
             }
         }
 
-        // Get column keys from first row
+        // Get column keys from first data row
         const firstRow = jsonData[0] as Record<string, any>
         const rowKeys = Object.keys(firstRow)
+
+        if (headerRowOffset > 0) {
+            errors.push(`Se detectaron ${headerRowOffset} filas de encabezado antes de los datos (formato AXA/aseguradora).`)
+        }
 
         // Find column mappings
         const matriculaKey = findColumnKey(rowKeys, 'matricula')
