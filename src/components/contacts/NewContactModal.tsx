@@ -195,7 +195,7 @@ export function NewContactModal({ open, onClose, onContactCreated }: NewContactM
                 </DialogHeader>
 
                 {/* Form */}
-                <div className="px-5 sm:px-6 py-5 sm:py-6 space-y-5">
+                <div className="px-5 sm:px-6 py-5 sm:py-6 space-y-5 overflow-hidden">
                     {/* Nombre y Apellidos */}
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-2">
@@ -302,7 +302,7 @@ export function NewContactModal({ open, onClose, onContactCreated }: NewContactM
                         {selectedVehicles.length > 0 && (
                             <div className="space-y-2">
                                 {selectedVehicles.map(v => (
-                                    <div key={v.id} className="flex items-center gap-3 p-2.5 bg-blue-50 border border-blue-200 rounded-lg">
+                                    <div key={v.id} className="flex items-center gap-3 p-2.5 bg-blue-50 border border-blue-200 rounded-lg overflow-hidden">
                                         <div
                                             className="w-12 h-12 rounded-lg bg-cover bg-center flex-shrink-0 bg-slate-200"
                                             style={{ backgroundImage: `url(${v.imagen_principal || '/placeholder-proximamente.svg'})` }}
