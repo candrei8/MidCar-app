@@ -174,7 +174,7 @@ export function EditVehicleForm({ vehicleId }: EditVehicleFormProps) {
                 matricula: formData.matricula,
                 vin: formData.vin,
                 año_matriculacion: parseInt(formData.año_matriculacion) || 0,
-                mes_matriculacion: parseInt(formData.mes_matriculacion) || undefined,
+                mes_matriculacion: formData.mes_matriculacion ? parseInt(formData.mes_matriculacion) : undefined,
                 año_fabricacion: parseInt(formData.año_fabricacion) || 0,
                 kilometraje: parseInt(formData.kilometraje) || 0,
                 combustible: formData.combustible as any,

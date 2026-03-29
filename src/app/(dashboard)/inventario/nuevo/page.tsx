@@ -38,7 +38,7 @@ function NuevoVehiculoContent() {
                     'Diesel': 'diesel',
                     'Electric': 'electrico',
                     'Hybrid': 'hibrido',
-                    'Plug-in Hybrid': 'hibrido_enchufable',
+                    'Plug-in Hybrid': 'hibrido',
                 }
 
                 // Map transmission
@@ -194,7 +194,7 @@ function NuevoVehiculoContent() {
             version: formData.version || '',
             año_fabricacion: parseInt(formData.año_fabricacion) || parseInt(formData.año_matriculacion) || 2024,
             año_matriculacion: parseInt(formData.año_matriculacion) || 2024,
-            mes_matriculacion: parseInt(formData.mes_matriculacion) || undefined,
+            mes_matriculacion: formData.mes_matriculacion ? parseInt(formData.mes_matriculacion) : undefined,
             tipo_motor: formData.combustible || 'gasolina',
             cilindrada: parseInt(formData.cilindrada) || 0,
             potencia_cv: parseInt(formData.potencia_cv) || 0,
@@ -233,8 +233,8 @@ function NuevoVehiculoContent() {
             equipamiento: formData.equipamiento || [],
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-            created_by: user?.id || undefined,
-            created_by_name: profile ? `${profile.nombre} ${profile.apellidos}`.trim() : user?.email || undefined,
+            created_by: user?.id,
+            created_by_name: profile ? `${profile.nombre} ${profile.apellidos}`.trim() : user?.email,
         }
 
         // Guardar en Supabase

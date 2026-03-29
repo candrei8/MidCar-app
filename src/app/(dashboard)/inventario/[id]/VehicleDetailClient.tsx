@@ -737,10 +737,23 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
                 >
                     {galleryImages.length > 0 ? (
                         <>
-                            <div
-                                className="w-full h-full bg-center bg-cover bg-no-repeat transition-all duration-300"
-                                style={{ backgroundImage: `url("${galleryImages[currentImageIndex]?.url || ''}")` }}
-                            />
+                            <div className="w-full h-full relative transition-all duration-300">
+                                <img
+                                    src={galleryImages[currentImageIndex]?.url || ''}
+                                    alt={galleryImages[currentImageIndex]?.label || 'Foto'}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                        const target = e.currentTarget
+                                        target.style.display = 'none'
+                                        const fallback = target.nextElementSibling as HTMLElement
+                                        if (fallback) fallback.style.display = 'flex'
+                                    }}
+                                />
+                                <div className="w-full h-full flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-slate-100 gap-3 absolute inset-0" style={{ display: 'none' }}>
+                                    <span className="material-symbols-outlined text-[#135bec]/40 text-6xl">broken_image</span>
+                                    <span className="text-sm text-slate-400">Imagen no disponible</span>
+                                </div>
+                            </div>
                             {galleryImages.length > 1 && (
                                 <>
                                     {/* Prev/Next arrows */}
@@ -849,10 +862,23 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
                         <div className="relative aspect-[16/10] rounded-2xl overflow-hidden bg-gray-200 dark:bg-gray-800 shadow-lg">
                             {galleryImages.length > 0 ? (
                                 <>
-                                    <div
-                                        className="w-full h-full bg-center bg-cover bg-no-repeat transition-all duration-300"
-                                        style={{ backgroundImage: `url("${galleryImages[currentImageIndex]?.url || ''}")` }}
-                                    />
+                                    <div className="w-full h-full relative transition-all duration-300">
+                                        <img
+                                            src={galleryImages[currentImageIndex]?.url || ''}
+                                            alt={galleryImages[currentImageIndex]?.label || 'Foto'}
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                const target = e.currentTarget
+                                                target.style.display = 'none'
+                                                const fallback = target.nextElementSibling as HTMLElement
+                                                if (fallback) fallback.style.display = 'flex'
+                                            }}
+                                        />
+                                        <div className="w-full h-full flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-slate-100 gap-3 absolute inset-0" style={{ display: 'none' }}>
+                                            <span className="material-symbols-outlined text-[#135bec]/40 text-6xl">broken_image</span>
+                                            <span className="text-sm text-slate-400">Imagen no disponible</span>
+                                        </div>
+                                    </div>
                                     {galleryImages.length > 1 && (
                                         <>
                                             <button
@@ -901,13 +927,19 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
                                         key={idx}
                                         onClick={() => setCurrentImageIndex(idx)}
                                         className={cn(
-                                            "w-24 h-20 rounded-lg bg-cover bg-center cursor-pointer transition-all shrink-0 border-2",
+                                            "w-24 h-20 rounded-lg overflow-hidden cursor-pointer transition-all shrink-0 border-2 bg-gray-100",
                                             currentImageIndex === idx
                                                 ? "border-primary ring-2 ring-primary/30 scale-105"
                                                 : "border-transparent hover:border-gray-300 dark:hover:border-gray-600"
                                         )}
-                                        style={{ backgroundImage: `url("${img.url}")` }}
-                                    />
+                                    >
+                                        <img
+                                            src={img.url}
+                                            alt={img.label}
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => { e.currentTarget.src = '/placeholder-proximamente.svg' }}
+                                        />
+                                    </div>
                                 ))}
                             </div>
                         )}
@@ -2136,11 +2168,17 @@ function MobileContent({
                             {galleryImages.map((img: any, idx: number) => (
                                 <div key={idx} className="flex flex-col gap-2 w-28 shrink-0 cursor-pointer group" onClick={() => setCurrentImageIndex(idx)}>
                                     <div
-                                        className={cn("w-full aspect-[3/4] bg-cover bg-center rounded-lg shadow-sm transition-all border",
+                                        className={cn("w-full aspect-[3/4] rounded-lg shadow-sm transition-all border overflow-hidden bg-gray-100",
                                             currentImageIndex === idx ? "border-primary ring-2 ring-primary/30" : "border-transparent"
                                         )}
-                                        style={{ backgroundImage: `url("${img.url}")` }}
-                                    />
+                                    >
+                                        <img
+                                            src={img.url}
+                                            alt={img.label}
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => { e.currentTarget.src = '/placeholder-proximamente.svg' }}
+                                        />
+                                    </div>
                                     <p className="text-center text-xs font-semibold text-gray-700">{img.label}</p>
                                 </div>
                             ))}

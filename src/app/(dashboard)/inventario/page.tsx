@@ -56,12 +56,23 @@ export default function InventarioPage() {
             if (brandFilter !== "todos" && vehicle.marca !== brandFilter) return false
             if (fuelFilter !== "todos" && vehicle.combustible !== fuelFilter) return false
 
-            // Search filter
+            // Search filter - busca en todos los campos relevantes del vehículo
             if (searchQuery) {
                 const matchesSearch =
                     vehicle.marca.toLowerCase().includes(searchLower) ||
                     vehicle.modelo.toLowerCase().includes(searchLower) ||
-                    vehicle.matricula.toLowerCase().includes(searchLower)
+                    vehicle.matricula.toLowerCase().includes(searchLower) ||
+                    vehicle.version?.toLowerCase().includes(searchLower) ||
+                    vehicle.vin?.toLowerCase().includes(searchLower) ||
+                    vehicle.stock_id?.toLowerCase().includes(searchLower) ||
+                    vehicle.color_exterior?.toLowerCase().includes(searchLower) ||
+                    vehicle.combustible?.toLowerCase().includes(searchLower) ||
+                    vehicle.transmision?.toLowerCase().includes(searchLower) ||
+                    vehicle.tipo_carroceria?.toLowerCase().includes(searchLower) ||
+                    vehicle.etiqueta_dgt?.toLowerCase().includes(searchLower) ||
+                    String(vehicle.año_matriculacion).includes(searchLower) ||
+                    String(vehicle.potencia_cv).includes(searchLower) ||
+                    String(vehicle.kilometraje).includes(searchLower)
                 if (!matchesSearch) return false
             }
 
@@ -153,7 +164,7 @@ export default function InventarioPage() {
                         </div>
                         <input
                             className="flex w-full bg-transparent border-none text-base font-medium placeholder:text-slate-400 focus:ring-0 text-slate-900 h-full p-0 pr-4"
-                            placeholder="Buscar marca, modelo..."
+                            placeholder="Buscar marca, modelo, matrícula, color..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -395,6 +406,7 @@ const VehicleCard = memo(function VehicleCard({
                         decoding="async"
                         src={displayImageUrl}
                         alt={`${vehicle.marca} ${vehicle.modelo}`}
+                        onError={(e) => { e.currentTarget.src = '/placeholder-proximamente.svg' }}
                     />
                     {/* Próximamente Badge - cuando no hay fotos */}
                     {!hasRealPhotos && (

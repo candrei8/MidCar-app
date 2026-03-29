@@ -57,6 +57,8 @@ export async function createVehicle(vehicle: Omit<Vehicle, 'id'>): Promise<Vehic
 
     const dbVehicle = transformVehicleToDB(vehicle)
 
+    console.log('Creating vehicle - payload keys:', Object.keys(dbVehicle))
+
     const { data, error } = await supabase
         .from('vehicles')
         .insert(dbVehicle)
@@ -64,7 +66,7 @@ export async function createVehicle(vehicle: Omit<Vehicle, 'id'>): Promise<Vehic
         .single()
 
     if (error) {
-        console.error('Error creating vehicle:', error)
+        console.error('Error creating vehicle:', error.message, '| Details:', error.details, '| Hint:', error.hint, '| Code:', error.code)
         return null
     }
 
@@ -84,7 +86,7 @@ export async function updateVehicle(id: string, updates: Partial<Vehicle>): Prom
         .single()
 
     if (error) {
-        console.error('Error updating vehicle:', error)
+        console.error('Error updating vehicle:', error.message, '| Details:', error.details, '| Hint:', error.hint, '| Code:', error.code)
         return null
     }
 
@@ -122,6 +124,7 @@ function transformVehicleFromDB(dbVehicle: Record<string, unknown>): Vehicle {
         version: (dbVehicle.version as string) || '',
         año_fabricacion: (dbVehicle.año_fabricacion as number) || 0,
         año_matriculacion: (dbVehicle.año_matriculacion as number) || 0,
+        mes_matriculacion: (dbVehicle.mes_matriculacion as number) || undefined,
         tipo_motor: (dbVehicle.tipo_motor as string) || '',
         cilindrada: (dbVehicle.cilindrada as number) || 0,
         potencia_cv: (dbVehicle.potencia_cv as number) || 0,
@@ -184,15 +187,16 @@ function transformVehicleToDB(vehicle: Partial<Vehicle>): Record<string, unknown
     if (vehicle.version !== undefined) dbVehicle.version = vehicle.version || null
     if (vehicle.año_fabricacion !== undefined) dbVehicle.año_fabricacion = vehicle.año_fabricacion
     if (vehicle.año_matriculacion !== undefined) dbVehicle.año_matriculacion = vehicle.año_matriculacion
+    if (vehicle.mes_matriculacion !== undefined && vehicle.mes_matriculacion !== null) dbVehicle.mes_matriculacion = vehicle.mes_matriculacion
     if (vehicle.tipo_motor !== undefined) dbVehicle.tipo_motor = vehicle.tipo_motor || null
     if (vehicle.cilindrada !== undefined) dbVehicle.cilindrada = vehicle.cilindrada
     if (vehicle.potencia_cv !== undefined) dbVehicle.potencia_cv = vehicle.potencia_cv
     if (vehicle.potencia_kw !== undefined) dbVehicle.potencia_kw = vehicle.potencia_kw
-    if (vehicle.combustible !== undefined) dbVehicle.combustible = vehicle.combustible
+    if (vehicle.combustible !== undefined) dbVehicle.combustible = vehicle.combustible || null
     if (vehicle.consumo_mixto !== undefined) dbVehicle.consumo_mixto = vehicle.consumo_mixto
     if (vehicle.emisiones_co2 !== undefined) dbVehicle.emisiones_co2 = vehicle.emisiones_co2
-    if (vehicle.etiqueta_dgt !== undefined) dbVehicle.etiqueta_dgt = vehicle.etiqueta_dgt
-    if (vehicle.transmision !== undefined) dbVehicle.transmision = vehicle.transmision
+    if (vehicle.etiqueta_dgt !== undefined) dbVehicle.etiqueta_dgt = vehicle.etiqueta_dgt || null
+    if (vehicle.transmision !== undefined) dbVehicle.transmision = vehicle.transmision || null
     if (vehicle.num_marchas !== undefined) dbVehicle.num_marchas = vehicle.num_marchas
     if (vehicle.traccion !== undefined) dbVehicle.traccion = vehicle.traccion || null
     if (vehicle.tipo_carroceria !== undefined) dbVehicle.tipo_carroceria = vehicle.tipo_carroceria || null

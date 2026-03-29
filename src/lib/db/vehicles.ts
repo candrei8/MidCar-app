@@ -125,7 +125,7 @@ export async function searchVehicles(query: string) {
     const { data, error } = await supabase
         .from('vehicles')
         .select('*')
-        .or(`marca.ilike.%${query}%,modelo.ilike.%${query}%,matricula.ilike.%${query}%`)
+        .or(`marca.ilike.%${query}%,modelo.ilike.%${query}%,matricula.ilike.%${query}%,version.ilike.%${query}%,vin.ilike.%${query}%,stock_id.ilike.%${query}%,color_exterior.ilike.%${query}%,combustible.ilike.%${query}%`)
         .order('created_at', { ascending: false })
 
     if (error) {

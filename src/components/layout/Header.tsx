@@ -88,7 +88,13 @@ export function Header() {
                 if (
                     v.marca.toLowerCase().includes(query) ||
                     v.modelo.toLowerCase().includes(query) ||
-                    v.matricula.toLowerCase().includes(query)
+                    v.matricula.toLowerCase().includes(query) ||
+                    v.version?.toLowerCase().includes(query) ||
+                    v.vin?.toLowerCase().includes(query) ||
+                    v.stock_id?.toLowerCase().includes(query) ||
+                    v.color_exterior?.toLowerCase().includes(query) ||
+                    v.combustible?.toLowerCase().includes(query) ||
+                    String(v.año_matriculacion).includes(query)
                 ) {
                     results.push({
                         id: v.id,
