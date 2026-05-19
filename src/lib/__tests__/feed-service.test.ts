@@ -26,6 +26,7 @@ import {
 const sampleVehicle: VehicleFeedInput = {
     id: 'uuid-1',
     stock_id: 'MC-0001',
+    matricula: '1234 ABC',
     vin: 'WVWZZZ1KZAW123456',
     estado: 'disponible',
     incluir_en_feed: true,
@@ -181,19 +182,29 @@ describe('buildItemLink', () => {
             .toBe('https://midcar.es/coches/volkswagen-golf-2019')
     })
 
-    it('falls back to slug when url_web is missing', () => {
+    it('falls back to /vehiculos/{matricula} when url_web is missing', () => {
         expect(buildItemLink({ ...sampleVehicle, url_web: null }, 'https://midcar.es'))
-            .toBe('https://midcar.es/coches/volkswagen-golf-2019-mc-0001')
+            .toBe('https://midcar.es/vehiculos/1234ABC')
+    })
+
+    it('strips spaces and uppercases the matricula in the fallback', () => {
+        expect(buildItemLink({ ...sampleVehicle, url_web: null, matricula: '  9876 xyz ' }, 'https://midcar.es'))
+            .toBe('https://midcar.es/vehiculos/9876XYZ')
+    })
+
+    it('falls back to slug when both url_web and matricula are missing', () => {
+        expect(buildItemLink({ ...sampleVehicle, url_web: null, matricula: null }, 'https://midcar.es'))
+            .toBe('https://midcar.es/vehiculos/volkswagen-golf-2019-mc-0001')
     })
 
     it('ignores non-http url_web', () => {
         expect(buildItemLink({ ...sampleVehicle, url_web: 'javascript:alert(1)' }, 'https://midcar.es'))
-            .toBe('https://midcar.es/coches/volkswagen-golf-2019-mc-0001')
+            .toBe('https://midcar.es/vehiculos/1234ABC')
     })
 
     it('strips trailing slashes from siteUrl', () => {
         expect(buildItemLink({ ...sampleVehicle, url_web: null }, 'https://midcar.es///'))
-            .toBe('https://midcar.es/coches/volkswagen-golf-2019-mc-0001')
+            .toBe('https://midcar.es/vehiculos/1234ABC')
     })
 })
 
@@ -293,6 +304,7 @@ describe('serializeItem', () => {
         expect(xml).toContain('<g:mpn>WVWZZZ1KZAW123456</g:mpn>')
         expect(xml).toContain('<g:identifier_exists>no</g:identifier_exists>')
         expect(xml).toContain('<title><![CDATA[Volkswagen Golf 2019 1.6 TDI Comfortline]]></title>')
+        // sampleVehicle has url_web set, which takes priority over the matricula fallback.
         expect(xml).toContain('<link>https://midcar.es/coches/volkswagen-golf-2019</link>')
     })
 

@@ -47,6 +47,7 @@ export interface VehicleImageInput {
 export interface VehicleFeedInput {
     id: string
     stock_id: string
+    matricula?: string | null
     vin?: string | null
     estado: string
     incluir_en_feed?: boolean
@@ -112,6 +113,7 @@ export const FULL_FEED_HARD_LIMIT = 5000
 const FEED_VEHICLE_FIELDS = `
   id,
   stock_id,
+  matricula,
   vin,
   estado,
   incluir_en_feed,
@@ -203,10 +205,21 @@ export function buildItemTitle(v: VehicleFeedInput): string {
     return title.slice(0, MAX_TITLE_LENGTH - 3).trimEnd() + '...'
 }
 
-/** Canonical link: prefer `url_web` if HTTP/HTTPS, fallback to `${siteUrl}/coches/${slug}`. */
+/**
+ * Canonical link rules (in order):
+ *   1. `url_web` if it's HTTP/HTTPS (manually set per-vehicle in the CRM).
+ *   2. `${siteUrl}/vehiculos/{matricula-sin-espacios}` — same path used by the
+ *      printed QR codes (PrintableAd, ShareModal) so we stay consistent with
+ *      midcar.es's public vehicle pages.
+ *   3. Final fallback `${siteUrl}/vehiculos/{slug}` only when the vehicle
+ *      has no matricula (should not happen — column is NOT NULL).
+ */
 export function buildItemLink(v: VehicleFeedInput, siteUrl: string): string {
     if (v.url_web && /^https?:\/\//i.test(v.url_web)) return v.url_web
-    return `${siteUrl.replace(/\/+$/, '')}/coches/${buildItemSlug(v)}`
+    const base = siteUrl.replace(/\/+$/, '')
+    const matricula = (v.matricula || '').replace(/\s+/g, '').toUpperCase()
+    if (matricula) return `${base}/vehiculos/${matricula}`
+    return `${base}/vehiculos/${buildItemSlug(v)}`
 }
 
 /**
