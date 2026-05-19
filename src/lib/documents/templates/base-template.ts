@@ -88,12 +88,19 @@ export class BaseDocumentTemplate {
     return false;
   }
 
+  // Cuando es true, las nuevas páginas no añaden la banda corporativa MidCar
+  // en la cabecera. Útil para plantillas que reproducen un diseño "limpio"
+  // (factura, proforma, contratos).
+  protected suppressCorporateHeader: boolean = false;
+
   // Añadir nueva página
   protected addNewPage(): void {
     this.doc.addPage();
     this.pageNumber++;
     this.currentY = this.style.margins.top;
-    this.addHeader();
+    if (!this.suppressCorporateHeader) {
+      this.addHeader();
+    }
   }
 
   // Header con logo y datos de empresa
@@ -144,9 +151,14 @@ export class BaseDocumentTemplate {
     this.currentY = 45;
   }
 
+  // Reserva espacio en el pie para banda de identificador MidCar
+  protected reserveIdentifierStrip(): void {
+    this.style.margins.bottom = Math.max(this.style.margins.bottom, 32);
+  }
+
   // Footer con número de página
   protected addFooter(): void {
-    const footerY = this.pageHeight - 10;
+    const footerY = this.pageHeight - 28;
 
     this.setFont(8, 'normal');
     this.setTextColor([128, 128, 128]);
@@ -400,6 +412,87 @@ export class BaseDocumentTemplate {
       month: 'long',
       year: 'numeric'
     });
+  }
+
+  // ===========================================================================
+  // Watermark difuso (FACTURA, PROFORMA, CONTRATO, SEÑAL)
+  // ===========================================================================
+  protected addWatermark(text: string): void {
+    const totalPages = (this.doc as unknown as { internal: { getNumberOfPages: () => number } }).internal.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      this.doc.setPage(i);
+      const gs = (this.doc as unknown as {
+        GState?: new (opts: { opacity: number }) => unknown;
+        setGState?: (gs: unknown) => void;
+      });
+      let restoreOpacity: (() => void) | null = null;
+      if (gs.GState && gs.setGState) {
+        const original = new gs.GState({ opacity: 1 });
+        const faded = new gs.GState({ opacity: 0.08 });
+        gs.setGState(faded);
+        restoreOpacity = () => gs.setGState!(original);
+      }
+      this.setFont(110, 'bold');
+      this.setTextColor([180, 180, 180]);
+      const angle = -35;
+      this.doc.text(text, this.pageWidth / 2, this.pageHeight / 2 + 20, {
+        align: 'center',
+        angle
+      } as unknown as { align: 'center'; angle: number });
+      if (restoreOpacity) restoreOpacity();
+    }
+    this.setTextColor(this.style.secondaryColor);
+  }
+
+  // ===========================================================================
+  // Identificador único MidCar + QR en banda inferior (todas las páginas)
+  // ===========================================================================
+  protected addMidCarIdentifierStrip(identifier: string, qrDataUrl?: string): void {
+    const totalPages = (this.doc as unknown as { internal: { getNumberOfPages: () => number } }).internal.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      this.doc.setPage(i);
+
+      const stripHeight = 24;
+      const stripY = this.pageHeight - stripHeight;
+
+      // Banda de fondo
+      this.setFillColor([245, 247, 250]);
+      this.doc.rect(0, stripY, this.pageWidth, stripHeight, 'F');
+      this.doc.setDrawColor(220, 226, 234);
+      this.doc.line(0, stripY, this.pageWidth, stripY);
+
+      // Texto izquierdo
+      const textX = this.style.margins.left;
+      this.setFont(8, 'bold');
+      this.setTextColor(this.style.primaryColor);
+      this.doc.text('DOCUMENTO VERIFICABLE MIDCAR', textX, stripY + 6);
+
+      this.setFont(7, 'normal');
+      this.setTextColor([90, 100, 115]);
+      this.doc.text(`Identificador único: ${identifier}`, textX, stripY + 11);
+      this.doc.text(
+        'Escanee el código QR o visite la URL para validar la autenticidad de este documento.',
+        textX,
+        stripY + 15
+      );
+      this.setFont(7, 'bold');
+      this.setTextColor(this.style.secondaryColor);
+      this.doc.text(`Verificación: https://midcar.es/v/${identifier}`, textX, stripY + 19);
+
+      // QR a la derecha
+      if (qrDataUrl) {
+        try {
+          const qrSize = 20;
+          const qrX = this.pageWidth - this.style.margins.right - qrSize;
+          const qrY = stripY + 2;
+          this.doc.addImage(qrDataUrl, 'PNG', qrX, qrY, qrSize, qrSize);
+        } catch (err) {
+          console.error('Error añadiendo QR al PDF:', err);
+        }
+      }
+
+      this.setTextColor(this.style.secondaryColor);
+    }
   }
 
   // Generar y descargar PDF

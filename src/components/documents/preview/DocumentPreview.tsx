@@ -11,10 +11,10 @@ import {
   ProformaData
 } from '@/lib/documents/document-types';
 import { DOCUMENT_TYPES } from '@/lib/documents/constants';
-import { generateCompraventaPDF } from '@/lib/documents/templates/compraventa-template';
-import { generateSenalPDF } from '@/lib/documents/templates/senal-template';
-import { generateFacturaPDF } from '@/lib/documents/templates/factura-template';
-import { generateProformaPDF } from '@/lib/documents/templates/proforma-template';
+import { generateCompraventaPDFWithQR } from '@/lib/documents/templates/compraventa-template';
+import { generateSenalPDFWithQR } from '@/lib/documents/templates/senal-template';
+import { generateFacturaPDFWithQR } from '@/lib/documents/templates/factura-template';
+import { generateProformaPDFWithQR } from '@/lib/documents/templates/proforma-template';
 
 interface DocumentPreviewProps {
   documentType: DocumentType;
@@ -42,28 +42,25 @@ export function DocumentPreview({
     generatePreview();
   }, [documentType, formData]);
 
+  const buildTemplate = async () => {
+    switch (documentType) {
+      case 'compraventa':
+        return generateCompraventaPDFWithQR(formData as CompraventaData);
+      case 'senal':
+        return generateSenalPDFWithQR(formData as SenalData);
+      case 'factura':
+        return generateFacturaPDFWithQR(formData as FacturaData);
+      case 'proforma':
+        return generateProformaPDFWithQR(formData as ProformaData);
+      default:
+        throw new Error('Tipo de documento no soportado');
+    }
+  };
+
   const generatePreview = async () => {
     try {
       setError(null);
-      let template;
-
-      switch (documentType) {
-        case 'compraventa':
-          template = generateCompraventaPDF(formData as CompraventaData);
-          break;
-        case 'senal':
-          template = generateSenalPDF(formData as SenalData);
-          break;
-        case 'factura':
-          template = generateFacturaPDF(formData as FacturaData);
-          break;
-        case 'proforma':
-          template = generateProformaPDF(formData as ProformaData);
-          break;
-        default:
-          throw new Error('Tipo de documento no soportado');
-      }
-
+      const template = await buildTemplate();
       const dataUrl = template.getDataUrl();
       setPreviewUrl(dataUrl);
     } catch (err) {
@@ -72,30 +69,24 @@ export function DocumentPreview({
     }
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     try {
-      let template;
+      const template = await buildTemplate();
       let filename = '';
-
       switch (documentType) {
         case 'compraventa':
-          template = generateCompraventaPDF(formData as CompraventaData);
           filename = `Contrato_Compraventa_${(formData as CompraventaData).vehiculo.matricula}.pdf`;
           break;
         case 'senal':
-          template = generateSenalPDF(formData as SenalData);
           filename = `Contrato_Senal_${(formData as SenalData).vehiculo.matricula}.pdf`;
           break;
         case 'factura':
-          template = generateFacturaPDF(formData as FacturaData);
           filename = `Factura_${(formData as FacturaData).numeroFactura}.pdf`;
           break;
         case 'proforma':
-          template = generateProformaPDF(formData as ProformaData);
           filename = `Proforma_${(formData as ProformaData).numeroProforma}.pdf`;
           break;
       }
-
       template.download(filename);
       onDownload();
     } catch (err) {

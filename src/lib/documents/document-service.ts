@@ -11,6 +11,7 @@ import {
   FacturaData,
   ProformaData
 } from './document-types';
+import { buildDocumentIdentifier } from './identifier';
 
 // ============================================================================
 // TIPOS DE RESPUESTA
@@ -97,11 +98,21 @@ export async function saveContrato(data: CompraventaData): Promise<DocumentRespo
 
   try {
     const numeroContrato = await getNextDocumentNumber('compraventa');
+    const midcarIdentifier =
+      data.identifier ||
+      buildDocumentIdentifier({
+        type: 'compraventa',
+        numeroDocumento: numeroContrato,
+        vin: data.vehiculo.bastidor,
+        dni: data.comprador.dni,
+        fecha: data.fechaContrato
+      });
 
     const { data: result, error } = await supabase
       .from('contratos')
       .insert({
         numero_contrato: numeroContrato,
+        midcar_identifier: midcarIdentifier,
         empresa_id: data.empresaId,
         empresa_nombre: data.vendedor.nombreEmpresa || data.vendedor.nombre,
         empresa_cif: data.vendedor.cifEmpresa || data.vendedor.dni,
@@ -155,11 +166,21 @@ export async function saveSenal(data: SenalData): Promise<DocumentResponse<strin
 
   try {
     const numeroSenal = await getNextDocumentNumber('senal');
+    const midcarIdentifier =
+      data.identifier ||
+      buildDocumentIdentifier({
+        type: 'senal',
+        numeroDocumento: numeroSenal,
+        vin: data.vehiculo.bastidor,
+        dni: data.comprador.dni,
+        fecha: data.fechaContrato
+      });
 
     const { data: result, error } = await supabase
       .from('senales')
       .insert({
         numero_senal: numeroSenal,
+        midcar_identifier: midcarIdentifier,
         empresa_id: data.empresaId,
         empresa_nombre: data.vendedor.nombreEmpresa || data.vendedor.nombre,
         empresa_cif: data.vendedor.cifEmpresa || data.vendedor.dni,
@@ -210,11 +231,21 @@ export async function saveFactura(data: FacturaData): Promise<DocumentResponse<s
 
   try {
     const numeroFactura = data.numeroFactura || await getNextDocumentNumber('factura');
+    const midcarIdentifier =
+      data.identifier ||
+      buildDocumentIdentifier({
+        type: 'factura',
+        numeroDocumento: numeroFactura,
+        vin: data.vehiculo.bastidor,
+        dni: data.comprador.dni,
+        fecha: data.fechaFactura
+      });
 
     const { data: result, error } = await supabase
       .from('facturas')
       .insert({
         numero_factura: numeroFactura,
+        midcar_identifier: midcarIdentifier,
         empresa_id: data.empresaId,
         empresa_nombre: data.vendedor.nombreEmpresa || data.vendedor.nombre,
         empresa_cif: data.vendedor.cifEmpresa || data.vendedor.dni,
@@ -261,6 +292,15 @@ export async function saveProforma(data: ProformaData): Promise<DocumentResponse
 
   try {
     const numeroProforma = data.numeroProforma || await getNextDocumentNumber('proforma');
+    const midcarIdentifier =
+      data.identifier ||
+      buildDocumentIdentifier({
+        type: 'proforma',
+        numeroDocumento: numeroProforma,
+        vin: data.vehiculo.bastidor,
+        dni: data.comprador.dni,
+        fecha: data.fechaProforma
+      });
 
     // Calcular fecha de expiración
     const fechaProforma = new Date(data.fechaProforma);
@@ -271,6 +311,7 @@ export async function saveProforma(data: ProformaData): Promise<DocumentResponse
       .from('proformas')
       .insert({
         numero_proforma: numeroProforma,
+        midcar_identifier: midcarIdentifier,
         empresa_id: data.empresaId,
         empresa_nombre: data.vendedor.nombreEmpresa || data.vendedor.nombre,
         empresa_cif: data.vendedor.cifEmpresa || data.vendedor.dni,

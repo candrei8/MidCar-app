@@ -76,6 +76,29 @@ export interface CompraventaData {
     manuales: boolean;
     otros?: string;
   };
+  // Equipamiento V.O. del contrato de compraventa
+  equipamiento?: {
+    fichaTecnica: boolean;
+    garantia: boolean;
+    chaleco: boolean;
+    antena: boolean;
+    ruedaRepuesto: boolean;
+    kitReparacion: boolean;
+    llaveRuedas: boolean;
+    llaveAntirrobo: boolean;
+    gancho: boolean;
+    gato: boolean;
+    triangulos: boolean;
+    tapacubos: boolean;
+  };
+  // Manifestaciones del comprador
+  examinadoPersonalmente?: boolean;
+  probadoVehiculo?: boolean;
+  // Datos de ITV
+  fechaITV?: string;
+  resultadoITV?: 'FAVORABLE' | 'DESFAVORABLE' | 'CONDICIONADA';
+  proximaITV?: string;
+  numLlaves?: number;
   documentacion: {
     fichaInspeccionTecnica: boolean;
     permisoCirculacion: boolean;
@@ -84,6 +107,9 @@ export interface CompraventaData {
   clausulasAdicionales?: string;
   fechaContrato: string;
   lugarContrato: string;
+  numeroContrato?: string;
+  identifier?: string;
+  qrDataUrl?: string;
 }
 
 export interface SenalData {
@@ -100,6 +126,10 @@ export interface SenalData {
   observaciones?: string;
   fechaContrato: string;
   lugarContrato: string;
+  horaContrato?: string;
+  numeroSenal?: string;
+  identifier?: string;
+  qrDataUrl?: string;
 }
 
 export interface FacturaData {
@@ -111,6 +141,8 @@ export interface FacturaData {
   numeroFactura: string;
   fechaFactura: string;
   conceptoAdicional?: string;
+  identifier?: string;
+  qrDataUrl?: string;
 }
 
 export interface ProformaData extends FacturaData {
