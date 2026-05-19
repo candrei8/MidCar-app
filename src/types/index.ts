@@ -9,6 +9,7 @@ export interface Vehicle {
     estado: 'disponible' | 'reservado' | 'vendido' | 'taller' | 'baja'
     destacado: boolean
     en_oferta: boolean
+    incluir_en_feed?: boolean
 
     // Basic Info
     marca: string

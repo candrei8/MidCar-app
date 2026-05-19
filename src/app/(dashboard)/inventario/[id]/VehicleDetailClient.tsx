@@ -19,6 +19,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
+import { feedExclusionReasons } from "@/lib/feed-service"
 import jsPDF from "jspdf"
 import { FullViewModal } from "@/components/auth/FullViewModal"
 import type { Vehicle, Contact } from "@/types"
@@ -489,6 +491,22 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
             addToast('Error al eliminar el vehículo', 'error')
             setIsDeleting(false)
             setShowDeleteConfirm(false)
+        }
+    }
+
+    // Toggle "include in Google Merchant feed" for this vehicle.
+    const handleToggleFeed = async (next: boolean) => {
+        if (!vehicle) return
+        const previous = vehicle.incluir_en_feed ?? true
+        // Optimistic update
+        setVehicle({ ...vehicle, incluir_en_feed: next })
+        const updated = await updateVehicle(vehicle.id, { incluir_en_feed: next })
+        if (updated) {
+            invalidateDataCache()
+            addToast(next ? 'Vehículo incluido en feed Google' : 'Vehículo excluido del feed Google', 'success')
+        } else {
+            setVehicle({ ...vehicle, incluir_en_feed: previous })
+            addToast('No se pudo actualizar el feed', 'error')
         }
     }
 
@@ -1072,6 +1090,61 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
                                 )}
                             </div>
                         </div>
+
+                        {/* Publicación en feed Google Merchant */}
+                        {(() => {
+                            const feedEnabled = vehicle.incluir_en_feed !== false
+                            const reasons = feedExclusionReasons({
+                                id: vehicle.id,
+                                stock_id: vehicle.stock_id,
+                                vin: vehicle.vin,
+                                estado: vehicle.estado,
+                                incluir_en_feed: feedEnabled,
+                                marca: vehicle.marca,
+                                modelo: vehicle.modelo,
+                                precio_venta: vehicle.precio_venta,
+                                imagen_principal: vehicle.imagen_principal,
+                            })
+                            const blockedByData = reasons.filter(r => r !== 'marcado como excluido del feed')
+                            return (
+                                <div className="bg-white dark:bg-surface-dark rounded-xl border border-gray-100 dark:border-gray-800 p-4 shadow-sm">
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="flex items-start gap-3 min-w-0">
+                                            <span className="material-symbols-outlined text-[20px] text-[#135bec] mt-0.5">rss_feed</span>
+                                            <div className="min-w-0">
+                                                <p className="text-sm font-semibold text-slate-900">Publicar en Google Merchant</p>
+                                                <p className="text-xs text-slate-500 mt-0.5">
+                                                    {feedEnabled
+                                                        ? blockedByData.length === 0
+                                                            ? 'Aparecerá en el feed XML de Google.'
+                                                            : 'Activado, pero no cumple los requisitos mínimos.'
+                                                        : 'No se publicará en Google.'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        {canEdit ? (
+                                            <Switch
+                                                checked={feedEnabled}
+                                                onCheckedChange={handleToggleFeed}
+                                                aria-label="Incluir en feed Google Merchant"
+                                            />
+                                        ) : (
+                                            <span className={cn(
+                                                "text-[10px] px-2 py-0.5 rounded-full font-semibold",
+                                                feedEnabled ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-600"
+                                            )}>
+                                                {feedEnabled ? 'ACTIVO' : 'INACTIVO'}
+                                            </span>
+                                        )}
+                                    </div>
+                                    {feedEnabled && blockedByData.length > 0 && (
+                                        <div className="mt-3 p-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
+                                            <strong>Falta:</strong> {blockedByData.join(', ')}.
+                                        </div>
+                                    )}
+                                </div>
+                            )
+                        })()}
 
                         {/* Quick Specs */}
                         <div className="grid grid-cols-4 gap-3">

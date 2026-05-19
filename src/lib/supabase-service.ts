@@ -160,6 +160,7 @@ function transformVehicleFromDB(dbVehicle: Record<string, unknown>): Vehicle {
         imagenes: Array.isArray(dbVehicle.imagenes) ? (dbVehicle.imagenes as any[]) : [],
         documentos: Array.isArray(dbVehicle.documentos) ? (dbVehicle.documentos as any[]) : [],
         url_web: dbVehicle.url_web as string | undefined,
+        incluir_en_feed: dbVehicle.incluir_en_feed === undefined ? true : Boolean(dbVehicle.incluir_en_feed),
         datos_sincronizados: dbVehicle.datos_sincronizados as boolean | undefined,
         ultima_sincronizacion: dbVehicle.ultima_sincronizacion as string | undefined,
         equipamiento: (dbVehicle.equipamiento as string[]) || [],
@@ -219,6 +220,7 @@ function transformVehicleToDB(vehicle: Partial<Vehicle>): Record<string, unknown
     if (vehicle.fecha_itv_vencimiento !== undefined) dbVehicle.fecha_itv_vencimiento = vehicle.fecha_itv_vencimiento || null
     if (vehicle.imagen_principal !== undefined) dbVehicle.imagen_principal = vehicle.imagen_principal || null
     if (vehicle.url_web !== undefined) dbVehicle.url_web = vehicle.url_web || null
+    if (vehicle.incluir_en_feed !== undefined) dbVehicle.incluir_en_feed = vehicle.incluir_en_feed
     if (vehicle.datos_sincronizados !== undefined) dbVehicle.datos_sincronizados = vehicle.datos_sincronizados
     if (vehicle.ultima_sincronizacion !== undefined) dbVehicle.ultima_sincronizacion = vehicle.ultima_sincronizacion || null
     if (vehicle.equipamiento !== undefined) dbVehicle.equipamiento = vehicle.equipamiento || []

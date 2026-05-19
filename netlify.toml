@@ -1,0 +1,18 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Scheduled function: regenerates the Google Merchant XML feed daily.
+# Schedule is in UTC (02:00 UTC ≈ 03:00 Madrid CET / 04:00 Madrid CEST).
+[functions."regenerate-feed"]
+  schedule = "0 2 * * *"
+
+# Optional clean alias: /feeds/merchant.xml → /api/feeds/merchant.xml
+[[redirects]]
+  from = "/feeds/merchant.xml"
+  to = "/api/feeds/merchant.xml"
+  status = 200
+  force = true

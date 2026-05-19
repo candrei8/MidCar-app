@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -228,10 +229,18 @@ export default function ConfiguracionPage() {
                             Configura las empresas que aparecerán en contratos y facturas
                         </p>
                     </div>
-                    <Button onClick={handleOpenCreate} className="bg-[#135bec] hover:bg-blue-700">
-                        <span className="material-symbols-outlined mr-2 text-[18px]">add</span>
-                        Nueva Empresa
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        <Link href="/configuracion/google-merchant">
+                            <Button variant="outline" className="border-slate-300">
+                                <span className="material-symbols-outlined mr-2 text-[18px]">rss_feed</span>
+                                Feed Google Merchant
+                            </Button>
+                        </Link>
+                        <Button onClick={handleOpenCreate} className="bg-[#135bec] hover:bg-blue-700">
+                            <span className="material-symbols-outlined mr-2 text-[18px]">add</span>
+                            Nueva Empresa
+                        </Button>
+                    </div>
                 </div>
             </header>
 
