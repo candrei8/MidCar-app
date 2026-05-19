@@ -182,29 +182,25 @@ describe('buildItemLink', () => {
             .toBe('https://midcar.es/coches/volkswagen-golf-2019')
     })
 
-    it('falls back to /vehiculos/{matricula} when url_web is missing', () => {
+    it('falls back to /vehiculos/{slug} when url_web is missing', () => {
         expect(buildItemLink({ ...sampleVehicle, url_web: null }, 'https://midcar.es'))
-            .toBe('https://midcar.es/vehiculos/1234ABC')
-    })
-
-    it('strips spaces and uppercases the matricula in the fallback', () => {
-        expect(buildItemLink({ ...sampleVehicle, url_web: null, matricula: '  9876 xyz ' }, 'https://midcar.es'))
-            .toBe('https://midcar.es/vehiculos/9876XYZ')
-    })
-
-    it('falls back to slug when both url_web and matricula are missing', () => {
-        expect(buildItemLink({ ...sampleVehicle, url_web: null, matricula: null }, 'https://midcar.es'))
             .toBe('https://midcar.es/vehiculos/volkswagen-golf-2019-mc-0001')
+    })
+
+    it('never exposes the matricula in the public URL', () => {
+        const link = buildItemLink({ ...sampleVehicle, url_web: null, matricula: '1234 ABC' }, 'https://midcar.es')
+        expect(link).not.toContain('1234')
+        expect(link).not.toContain('ABC')
     })
 
     it('ignores non-http url_web', () => {
         expect(buildItemLink({ ...sampleVehicle, url_web: 'javascript:alert(1)' }, 'https://midcar.es'))
-            .toBe('https://midcar.es/vehiculos/1234ABC')
+            .toBe('https://midcar.es/vehiculos/volkswagen-golf-2019-mc-0001')
     })
 
     it('strips trailing slashes from siteUrl', () => {
         expect(buildItemLink({ ...sampleVehicle, url_web: null }, 'https://midcar.es///'))
-            .toBe('https://midcar.es/vehiculos/1234ABC')
+            .toBe('https://midcar.es/vehiculos/volkswagen-golf-2019-mc-0001')
     })
 })
 

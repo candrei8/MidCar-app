@@ -208,17 +208,15 @@ export function buildItemTitle(v: VehicleFeedInput): string {
 /**
  * Canonical link rules (in order):
  *   1. `url_web` if it's HTTP/HTTPS (manually set per-vehicle in the CRM).
- *   2. `${siteUrl}/vehiculos/{matricula-sin-espacios}` — same path used by the
- *      printed QR codes (PrintableAd, ShareModal) so we stay consistent with
- *      midcar.es's public vehicle pages.
- *   3. Final fallback `${siteUrl}/vehiculos/{slug}` only when the vehicle
- *      has no matricula (should not happen — column is NOT NULL).
+ *   2. `${siteUrl}/vehiculos/{slug}` where slug = `marca-modelo-año-stockid`.
+ *
+ * The matricula is deliberately NOT used in the public URL: it would expose
+ * personal data (the Spanish license plate identifies the vehicle's titular
+ * via DGT) on a feed indexed by Google. Stock_id is internal and safe.
  */
 export function buildItemLink(v: VehicleFeedInput, siteUrl: string): string {
     if (v.url_web && /^https?:\/\//i.test(v.url_web)) return v.url_web
     const base = siteUrl.replace(/\/+$/, '')
-    const matricula = (v.matricula || '').replace(/\s+/g, '').toUpperCase()
-    if (matricula) return `${base}/vehiculos/${matricula}`
     return `${base}/vehiculos/${buildItemSlug(v)}`
 }
 
