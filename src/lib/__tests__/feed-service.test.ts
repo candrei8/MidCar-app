@@ -9,7 +9,6 @@ import {
     wrapCdata,
     sanitizeText,
     formatPrice,
-    buildItemSlug,
     buildItemTitle,
     buildItemLink,
     buildItemDescription,
@@ -131,35 +130,6 @@ describe('formatPrice', () => {
 })
 
 // ---------------------------------------------------------------------------
-// buildItemSlug
-// ---------------------------------------------------------------------------
-describe('buildItemSlug', () => {
-    it('builds a kebab-case slug matching midcar.es format', () => {
-        expect(buildItemSlug({
-            marca: 'Volkswagen',
-            modelo: 'Golf',
-            año_matriculacion: 2019,
-        })).toBe('volkswagen-golf-2019')
-    })
-
-    it('strips accents and collapses special chars', () => {
-        expect(buildItemSlug({
-            marca: 'Citroën',
-            modelo: 'C4 Picasso',
-            año_matriculacion: 2020,
-        })).toBe('citroen-c4-picasso-2020')
-    })
-
-    it('reproduces the Fiat Fiorino slug seen on midcar.es', () => {
-        expect(buildItemSlug({
-            marca: 'Fiat',
-            modelo: 'Fiorino 1.3Mjet E6+ 80Cv IVA y garantía Incl Etiqueta C',
-            año_matriculacion: 2018,
-        })).toBe('fiat-fiorino-1-3mjet-e6-80cv-iva-y-garantia-incl-etiqueta-c-2018')
-    })
-})
-
-// ---------------------------------------------------------------------------
 // buildItemTitle
 // ---------------------------------------------------------------------------
 describe('buildItemTitle', () => {
@@ -188,9 +158,9 @@ describe('buildItemLink', () => {
             .toBe('https://midcar.es/coches/volkswagen-golf-2019')
     })
 
-    it('falls back to /vehiculos/{slug} when url_web is missing', () => {
+    it('falls back to /vehiculos/{stock_id} when url_web is missing', () => {
         expect(buildItemLink({ ...sampleVehicle, url_web: null }, 'https://midcar.es'))
-            .toBe('https://midcar.es/vehiculos/volkswagen-golf-2019')
+            .toBe('https://midcar.es/vehiculos/MC-0001')
     })
 
     it('never exposes the matricula in the public URL', () => {
@@ -201,12 +171,12 @@ describe('buildItemLink', () => {
 
     it('ignores non-http url_web', () => {
         expect(buildItemLink({ ...sampleVehicle, url_web: 'javascript:alert(1)' }, 'https://midcar.es'))
-            .toBe('https://midcar.es/vehiculos/volkswagen-golf-2019')
+            .toBe('https://midcar.es/vehiculos/MC-0001')
     })
 
     it('strips trailing slashes from siteUrl', () => {
         expect(buildItemLink({ ...sampleVehicle, url_web: null }, 'https://midcar.es///'))
-            .toBe('https://midcar.es/vehiculos/volkswagen-golf-2019')
+            .toBe('https://midcar.es/vehiculos/MC-0001')
     })
 })
 

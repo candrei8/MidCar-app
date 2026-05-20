@@ -183,29 +183,6 @@ export function formatPrice(amount: number): string {
     return `${n.toFixed(2)} EUR`
 }
 
-/**
- * Build the slug exactly as midcar.es generates it in
- * `Midcar-web/src/lib/vehicles-service.ts` → `transformToWebFormat`:
- *   `${marca}-${modelo}-${año_matriculacion}` → lowercase + NFD strip diacritics
- *   → collapse non-alphanumeric to `-` → trim.
- *
- * Reproducing it byte-for-byte is what lets the public URLs in the feed
- * resolve on midcar.es without storing a slug column in the DB.
- *
- * Note: collisions are possible when two vehicles share marca+modelo+año.
- * That's a pre-existing limitation of midcar.es (6 such pairs in current
- * inventory) — fixable on the web side by including stock_id in the slug.
- */
-export function buildItemSlug(v: Pick<VehicleFeedInput, 'marca' | 'modelo' | 'año_matriculacion'>): string {
-    return `${v.marca ?? ''}-${v.modelo ?? ''}-${v.año_matriculacion ?? ''}`
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[̀-ͯ]/g, '')
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/-+/g, '-')
-        .replace(/^-|-$/g, '')
-}
-
 /** Title: "Marca Modelo Año Version", truncated to MAX_TITLE_LENGTH. */
 export function buildItemTitle(v: VehicleFeedInput): string {
     const parts = [v.marca, v.modelo, v.año_matriculacion?.toString(), v.version]
@@ -218,7 +195,10 @@ export function buildItemTitle(v: VehicleFeedInput): string {
 /**
  * Canonical link rules (in order):
  *   1. `url_web` if it's HTTP/HTTPS (manually set per-vehicle in the CRM).
- *   2. `${siteUrl}/vehiculos/{slug}` where slug = `marca-modelo-año-stockid`.
+ *   2. `${siteUrl}/vehiculos/${stock_id}` — matches the form midcar.es publishes
+ *      in its own sitemap, so feed and sitemap share one canonical URL per
+ *      vehicle. `stock_id` is unique, so no collisions are possible (the
+ *      marca-modelo-año slug used to collide for 6 pairs in inventory).
  *
  * The matricula is deliberately NOT used in the public URL: it would expose
  * personal data (the Spanish license plate identifies the vehicle's titular
@@ -227,7 +207,7 @@ export function buildItemTitle(v: VehicleFeedInput): string {
 export function buildItemLink(v: VehicleFeedInput, siteUrl: string): string {
     if (v.url_web && /^https?:\/\//i.test(v.url_web)) return v.url_web
     const base = siteUrl.replace(/\/+$/, '')
-    return `${base}/vehiculos/${buildItemSlug(v)}`
+    return `${base}/vehiculos/${v.stock_id}`
 }
 
 /**
