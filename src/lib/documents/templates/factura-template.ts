@@ -116,10 +116,17 @@ export class FacturaTemplate extends BaseDocumentTemplate {
     this.doc.line(rightBlockX, startY, rightBlockX, startY + 28);
     this.doc.setLineWidth(0.2);
 
-    this.renderFacturarABlock(leftBlockX + 4, startY, this.data.comprador, 'Cliente:', { caps: false });
-    this.renderFacturarABlock(rightBlockX + 4, startY, this.data.comprador, 'Facturar a:', { caps: true });
+    const labels = this.getFacturarABlockLabels();
+    this.renderFacturarABlock(leftBlockX + 4, startY, this.data.comprador, labels.left, { caps: false });
+    this.renderFacturarABlock(rightBlockX + 4, startY, this.data.comprador, labels.right, { caps: true });
 
     this.currentY = startY + 32;
+  }
+
+  // Hook: la factura usa "Facturar a:" en ambos bloques (PDF de referencia).
+  // La proforma sobreescribe a "Cliente:" / "Facturar a:".
+  protected getFacturarABlockLabels(): { left: string; right: string } {
+    return { left: 'Facturar a:', right: 'Facturar a:' };
   }
 
   protected renderFacturarABlock(
