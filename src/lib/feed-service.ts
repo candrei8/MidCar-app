@@ -183,15 +183,25 @@ export function formatPrice(amount: number): string {
     return `${n.toFixed(2)} EUR`
 }
 
-/** Build a kebab-case URL slug without accents. */
-export function buildItemSlug(v: Pick<VehicleFeedInput, 'marca' | 'modelo' | 'año_matriculacion' | 'stock_id'>): string {
-    const raw = [v.marca, v.modelo, v.año_matriculacion, v.stock_id]
-        .filter(Boolean)
-        .join('-')
-    return raw
+/**
+ * Build the slug exactly as midcar.es generates it in
+ * `Midcar-web/src/lib/vehicles-service.ts` → `transformToWebFormat`:
+ *   `${marca}-${modelo}-${año_matriculacion}` → lowercase + NFD strip diacritics
+ *   → collapse non-alphanumeric to `-` → trim.
+ *
+ * Reproducing it byte-for-byte is what lets the public URLs in the feed
+ * resolve on midcar.es without storing a slug column in the DB.
+ *
+ * Note: collisions are possible when two vehicles share marca+modelo+año.
+ * That's a pre-existing limitation of midcar.es (6 such pairs in current
+ * inventory) — fixable on the web side by including stock_id in the slug.
+ */
+export function buildItemSlug(v: Pick<VehicleFeedInput, 'marca' | 'modelo' | 'año_matriculacion'>): string {
+    return `${v.marca ?? ''}-${v.modelo ?? ''}-${v.año_matriculacion ?? ''}`
         .toLowerCase()
-        .normalize('NFD').replace(/[̀-ͯ]/g, '')
-        .replace(/[^a-z0-9-]+/g, '-')
+        .normalize('NFD')
+        .replace(/[̀-ͯ]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
         .replace(/-+/g, '-')
         .replace(/^-|-$/g, '')
 }
