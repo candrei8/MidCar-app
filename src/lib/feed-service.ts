@@ -183,11 +183,11 @@ export function formatPrice(amount: number): string {
     return `${n.toFixed(2)} EUR`
 }
 
-/** Title: "Marca Modelo Año Version", truncated to MAX_TITLE_LENGTH. */
+/** Title: "Marca Modelo Año Version", sanitized + truncated to MAX_TITLE_LENGTH. */
 export function buildItemTitle(v: VehicleFeedInput): string {
     const parts = [v.marca, v.modelo, v.año_matriculacion?.toString(), v.version]
         .filter((p): p is string => Boolean(p && String(p).trim()))
-    const title = parts.join(' ').trim()
+    const title = sanitizeText(parts.join(' '))
     if (title.length <= MAX_TITLE_LENGTH) return title
     return title.slice(0, MAX_TITLE_LENGTH - 3).trimEnd() + '...'
 }
@@ -285,7 +285,8 @@ export function serializeItem(v: VehicleFeedInput, siteUrl: string): string {
     const description = buildItemDescription(v)
     const link = buildItemLink(v, siteUrl)
     const availability = v.estado === 'disponible' ? 'in_stock' : 'out_of_stock'
-    const productType = `Vehículos > Coches de ocasión > ${v.marca}`
+    const brand = sanitizeText(v.marca || '')
+    const productType = `Vehículos > Coches de ocasión > ${brand}`
     const mpn = (v.vin && v.vin.trim()) || v.stock_id
 
     const seenUrls = new Set<string>([v.imagen_principal as string])
@@ -313,7 +314,7 @@ export function serializeItem(v: VehicleFeedInput, siteUrl: string): string {
         `      <link>${escapeXml(link)}</link>`,
         `      <g:image_link>${escapeXml(v.imagen_principal as string)}</g:image_link>`,
         additionalImages,
-        `      <g:brand>${wrapCdata(v.marca)}</g:brand>`,
+        `      <g:brand>${wrapCdata(brand)}</g:brand>`,
         `      <g:mpn>${escapeXml(mpn)}</g:mpn>`,
         `      <g:condition>used</g:condition>`,
         `      <g:availability>${availability}</g:availability>`,
@@ -334,6 +335,7 @@ export function buildFeedXml(items: string[], channelMeta: ChannelMeta = FEED_CH
     <title>${wrapCdata(channelMeta.title)}</title>
     <link>${escapeXml(channelMeta.link)}</link>
     <description>${wrapCdata(channelMeta.description)}</description>
+    <language>es-ES</language>
 ${itemsBlock}
   </channel>
 </rss>

@@ -325,6 +325,22 @@ describe('serializeItem', () => {
         }, siteUrl)
         expect(xml).toContain('<link>https://midcar.es/coche?id=1&amp;ref=facebook</link>')
     })
+
+    it('never lets HTML tags leak into a CDATA payload', () => {
+        const xml = serializeItem({
+            ...sampleVehicle,
+            descripcion: '<p>Coche <b>impecable</b>, ITV recién pasada y un solo propietario nacional.</p>',
+            version: '<script>alert(1)</script> 1.6 TDI',
+            marca: '<img src=x onerror=alert(1)> Volkswagen',
+        }, siteUrl)
+        const cdataPayloads = Array.from(xml.matchAll(/<!\[CDATA\[([\s\S]*?)\]\]>/g)).map(m => m[1])
+        expect(cdataPayloads.length).toBeGreaterThan(0)
+        // Literal `>` is allowed (product_type uses it as a hierarchy separator),
+        // but anything that opens an HTML tag (`<tag`, `</tag`) must be gone.
+        for (const payload of cdataPayloads) {
+            expect(payload).not.toMatch(/<\/?[a-zA-Z]/)
+        }
+    })
 })
 
 // ---------------------------------------------------------------------------
@@ -338,6 +354,11 @@ describe('buildFeedXml', () => {
         expect(xml).toContain('<channel>')
         expect(xml).toContain('</channel>')
         expect(xml).toContain('</rss>')
+    })
+
+    it('declares language es-ES in the channel', () => {
+        const xml = buildFeedXml([], FEED_CHANNEL_META)
+        expect(xml).toContain('<language>es-ES</language>')
     })
 
     it('embeds items', () => {
