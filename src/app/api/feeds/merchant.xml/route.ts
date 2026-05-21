@@ -44,6 +44,10 @@ export async function GET(request: NextRequest) {
                 ...corsHeaders(),
                 'Content-Type': 'application/xml; charset=utf-8',
                 'Cache-Control': cacheControl,
+                // Netlify's edge cache strips unknown query params before forwarding
+                // to the function. Without this, ?test=true never reaches the route
+                // and every caller gets the full feed under one shared cache entry.
+                'Netlify-Vary': 'query=test',
                 'X-Feed-Item-Count': String(itemCount),
                 'X-Feed-Test-Mode': testMode ? 'true' : 'false',
             },
