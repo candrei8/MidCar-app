@@ -1,6 +1,4 @@
 import { NextRequest } from 'next/server'
-import { readFile } from 'node:fs/promises'
-import path from 'node:path'
 import {
     buildMerchantFeed,
     buildFeedXml,
@@ -8,7 +6,15 @@ import {
     resolveSiteUrl,
 } from '@/lib/feed-service'
 
-// We read searchParams (?test=true), so the route must be dynamic.
+// The build script writes the rendered feed XML into this module so it gets
+// bundled with the lambda. No filesystem reads at runtime, no risk of the
+// /public asset not being available, no scraping under request timeout.
+import {
+    MERCHANT_FEED_XML,
+    MERCHANT_FEED_ITEM_COUNT,
+    MERCHANT_FEED_GENERATED_AT,
+} from '@/lib/generated/merchant-feed'
+
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const runtime = 'nodejs'
@@ -23,27 +29,6 @@ function corsHeaders() {
 
 export async function OPTIONS() {
     return new Response(null, { status: 204, headers: corsHeaders() })
-}
-
-/**
- * Read the build-time generated feed XML if present. Tries the standard
- * Next.js public-dir location and the Netlify standalone fallback.
- */
-async function readStaticFeed(): Promise<string | null> {
-    const candidates = [
-        path.join(process.cwd(), 'public', 'feeds', 'merchant.xml'),
-        path.join(process.cwd(), '.next', 'standalone', 'public', 'feeds', 'merchant.xml'),
-        path.join(process.cwd(), '.next', 'server', 'public', 'feeds', 'merchant.xml'),
-    ]
-    for (const p of candidates) {
-        try {
-            const xml = await readFile(p, 'utf8')
-            if (xml.includes('<item>')) return xml
-        } catch {
-            // file not found / unreadable — try the next candidate
-        }
-    }
-    return null
 }
 
 export async function GET(request: NextRequest) {
@@ -83,40 +68,18 @@ export async function GET(request: NextRequest) {
         }
     }
 
-    // Production: always serve the build-time static file. Reading it is
-    // sub-millisecond, so the request never approaches the Netlify timeout.
-    // If the file is somehow missing, return a well-formed empty feed
-    // (Google handles an empty feed gracefully — it just shows no products
-    // for this refresh). The build script's `prebuild` step is what
-    // refreshes the file.
-    const staticXml = await readStaticFeed()
-    if (staticXml) {
-        const itemCount = (staticXml.match(/<item>/g) || []).length
-        return new Response(staticXml, {
-            status: 200,
-            headers: {
-                ...corsHeaders(),
-                'Content-Type': 'application/xml; charset=utf-8',
-                'Cache-Control': 'public, max-age=300, s-maxage=86400, stale-while-revalidate=3600',
-                'Netlify-Vary': 'query=test',
-                'X-Feed-Item-Count': String(itemCount),
-                'X-Feed-Test-Mode': 'false',
-                'X-Feed-Source': 'static',
-            },
-        })
-    }
-
-    console.warn('[feed] static file not found — serving empty fallback')
-    const fallback = buildFeedXml([], { ...FEED_CHANNEL_META, link: resolveSiteUrl() })
-    return new Response(fallback, {
+    // Production: serve the build-bundled XML. Constant-time, no I/O.
+    return new Response(MERCHANT_FEED_XML, {
         status: 200,
         headers: {
             ...corsHeaders(),
             'Content-Type': 'application/xml; charset=utf-8',
-            'Cache-Control': 'no-store, max-age=0',
-            'X-Feed-Item-Count': '0',
+            'Cache-Control': 'public, max-age=300, s-maxage=86400, stale-while-revalidate=3600',
+            'Netlify-Vary': 'query=test',
+            'X-Feed-Item-Count': String(MERCHANT_FEED_ITEM_COUNT),
             'X-Feed-Test-Mode': 'false',
-            'X-Feed-Source': 'empty-fallback',
+            'X-Feed-Source': 'bundled',
+            'X-Feed-Generated-At': MERCHANT_FEED_GENERATED_AT,
         },
     })
 }
