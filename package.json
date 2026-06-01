@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node scripts/build-merchant-feed.mjs",
     "build": "next build",
+    "build:feed": "node scripts/build-merchant-feed.mjs",
     "start": "next start",
     "lint": "next lint",
     "test": "jest",

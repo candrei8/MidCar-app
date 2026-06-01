@@ -1,4 +1,6 @@
 import { NextRequest } from 'next/server'
+import { readFile } from 'node:fs/promises'
+import path from 'node:path'
 import {
     buildMerchantFeed,
     buildFeedXml,
@@ -16,6 +18,26 @@ export const runtime = 'nodejs'
 /** Netlify default would be 10 s; bumped because cold-start regeneration
  *  hits ~95 midcar.net fichas and the rendered XML can take 15-20 s. */
 export const maxDuration = 26
+
+/**
+ * Read the build-time generated feed XML if present. Tries the standard
+ * Next.js public-dir location and the Netlify standalone fallback.
+ */
+async function readStaticFeed(): Promise<string | null> {
+    const candidates = [
+        path.join(process.cwd(), 'public', 'feeds', 'merchant.xml'),
+        path.join(process.cwd(), '.next', 'standalone', 'public', 'feeds', 'merchant.xml'),
+    ]
+    for (const p of candidates) {
+        try {
+            const xml = await readFile(p, 'utf8')
+            if (xml.includes('<item>')) return xml
+        } catch {
+            // file not found / unreadable — try the next candidate
+        }
+    }
+    return null
+}
 
 function corsHeaders() {
     return {
@@ -66,7 +88,28 @@ export async function GET(request: NextRequest) {
         }
     }
 
-    // ── Production: serve the persisted cache; rebuild only if it's empty ─────
+    // ── Production: serve the pre-rendered static file shipped by the build ──
+    // `scripts/build-merchant-feed.mjs` writes public/feeds/merchant.xml on
+    // every Netlify deploy; reading it here is ~1 ms and avoids the 10 s
+    // function timeout that scraping 95 fichas would hit.
+    const staticXml = await readStaticFeed()
+    if (staticXml) {
+        const itemCount = (staticXml.match(/<item>/g) || []).length
+        return new Response(staticXml, {
+            status: 200,
+            headers: {
+                ...corsHeaders(),
+                'Content-Type': 'application/xml; charset=utf-8',
+                'Cache-Control': 'public, max-age=300, s-maxage=86400, stale-while-revalidate=3600',
+                'Netlify-Vary': 'query=test',
+                'X-Feed-Item-Count': String(itemCount),
+                'X-Feed-Test-Mode': 'false',
+                'X-Feed-Source': 'static',
+            },
+        })
+    }
+
+    // ── Fallback: try the Supabase cache (legacy path, kept for resilience) ──
     const cached = await getCachedFeedXml('merchant')
     if (cached && cached.itemCount > 0) {
         return new Response(cached.xml, {
