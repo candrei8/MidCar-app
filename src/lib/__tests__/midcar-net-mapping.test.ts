@@ -1,12 +1,11 @@
 import {
     normalizePlate,
-    getMidcarNetPlateIndex,
+    getMidcarNetVisibleEntries,
     fetchMidcarNetMapping,
     _resetMidcarNetCache,
     type MidcarNetEntry,
 } from '@/lib/midcar-net-mapping'
 
-// We control `fetch` per test via this shared mock.
 const originalFetch = globalThis.fetch
 beforeEach(() => {
     _resetMidcarNetCache()
@@ -26,11 +25,11 @@ function mockFetchOnce(body: unknown, init?: { ok?: boolean; status?: number }) 
 }
 
 const sample: MidcarNetEntry[] = [
-    { id: 'a', url: 'https://www.midcar.net/audi-a4-2018-a', title: 'Audi', make: 'Audi', model: 'A4', year: 2018, price: 0, vehicleStatus: 0, visible: true, plate: '1234ABC' },
-    { id: 'b', url: 'https://www.midcar.net/bmw-2020-b',    title: 'BMW',  make: 'Bmw',  model: '5', year: 2020, price: 0, vehicleStatus: 1, visible: true, plate: '5678-XYZ' },
-    { id: 'c', url: 'https://www.midcar.net/sold-2010-c',   title: 'Old',  make: 'Seat', model: 'Ibiza', year: 2010, price: 0, vehicleStatus: 2, visible: true, plate: '9999AAA' },
-    { id: 'd', url: 'https://www.midcar.net/hidden-2021-d', title: 'Hid',  make: 'Ford', model: 'Focus', year: 2021, price: 0, vehicleStatus: 0, visible: false, plate: '1111BBB' },
-    { id: 'e', url: 'https://www.midcar.net/noplate-2022-e', title: 'NP', make: 'Kia',  model: 'Picanto', year: 2022, price: 0, vehicleStatus: 0, visible: true, plate: null },
+    { id: 'a', url: 'https://www.midcar.net/audi-a4-2018-a',  title: 'Audi A4',     make: 'Audi', model: 'A4',     year: 2018, price: 15000, vehicleStatus: 0, visible: true,  plate: '1234ABC' },
+    { id: 'b', url: 'https://www.midcar.net/bmw-2020-b',      title: 'BMW Serie 5', make: 'Bmw',  model: 'Serie 5',year: 2020, price: 25000, vehicleStatus: 1, visible: true,  plate: '5678-XYZ' },
+    { id: 'c', url: 'https://www.midcar.net/sold-2010-c',     title: 'Old',         make: 'Seat', model: 'Ibiza',  year: 2010, price: 5000,  vehicleStatus: 2, visible: true,  plate: '9999AAA' },
+    { id: 'd', url: 'https://www.midcar.net/hidden-2021-d',   title: 'Hid',         make: 'Ford', model: 'Focus',  year: 2021, price: 10000, vehicleStatus: 0, visible: false, plate: '1111BBB' },
+    { id: 'e', url: 'https://www.midcar.net/noplate-2022-e',  title: 'NP',          make: 'Kia',  model: 'Picanto',year: 2022, price: 8000,  vehicleStatus: 0, visible: true,  plate: null },
 ]
 
 // ---------------------------------------------------------------------------
@@ -54,65 +53,42 @@ describe('normalizePlate', () => {
 })
 
 // ---------------------------------------------------------------------------
-// getMidcarNetPlateIndex
+// getMidcarNetVisibleEntries
 // ---------------------------------------------------------------------------
-describe('getMidcarNetPlateIndex', () => {
-    it('indexes only visible + vehicleStatus 0|1 with a plate', async () => {
+describe('getMidcarNetVisibleEntries', () => {
+    it('returns only visible + vehicleStatus 0|1 (en venta / reservado)', async () => {
         mockFetchOnce(sample)
-        const idx = await getMidcarNetPlateIndex()
-        // a (status 0, visible, plate) ✓
-        // b (status 1, visible, plate, dashed)  ✓
-        // c (status 2 = sold) ✗
-        // d (visible=false) ✗
-        // e (plate=null) ✗
-        expect(idx.size).toBe(2)
-        expect(idx.get('1234ABC')).toBe('https://www.midcar.net/audi-a4-2018-a')
-        expect(idx.get('5678XYZ')).toBe('https://www.midcar.net/bmw-2020-b')
+        const entries = await getMidcarNetVisibleEntries()
+        // a (status 0, visible) ✓, b (status 1, visible) ✓, e (plate null but still visible+venta) ✓
+        // c (status 2 = sold) ✗, d (visible=false) ✗
+        expect(entries.map(e => e.id).sort()).toEqual(['a', 'b', 'e'])
     })
 
     it('caches the result across consecutive calls', async () => {
         const fetchMock = jest.fn().mockResolvedValue({ ok: true, status: 200, json: async () => sample })
         globalThis.fetch = fetchMock as unknown as typeof fetch
-        await getMidcarNetPlateIndex()
-        await getMidcarNetPlateIndex()
-        await getMidcarNetPlateIndex()
+        await getMidcarNetVisibleEntries()
+        await getMidcarNetVisibleEntries()
+        await getMidcarNetVisibleEntries()
         expect(fetchMock).toHaveBeenCalledTimes(1)
     })
 
-    it('returns an empty map on fetch error without a warm cache', async () => {
+    it('returns an empty list on fetch error without a warm cache', async () => {
         globalThis.fetch = jest.fn().mockRejectedValue(new Error('boom')) as unknown as typeof fetch
-        const idx = await getMidcarNetPlateIndex()
-        expect(idx.size).toBe(0)
-    })
-
-    it('returns the stale cache when a refresh fails', async () => {
-        mockFetchOnce(sample)
-        const first = await getMidcarNetPlateIndex()
-        expect(first.size).toBe(2)
-        // Force a refresh attempt by busting the cache, then have fetch fail.
-        _resetMidcarNetCache()
-        // Re-prime cache via a successful fetch so we have something to "go stale".
-        mockFetchOnce(sample)
-        await getMidcarNetPlateIndex()
-        // Now expire the in-memory TTL by mocking Date.now further in the future
-        // — we just clear and have the next fetch fail; in that case we expect
-        // an empty map (no cache at module scope after _resetMidcarNetCache).
-        _resetMidcarNetCache()
-        globalThis.fetch = jest.fn().mockRejectedValue(new Error('boom')) as unknown as typeof fetch
-        const after = await getMidcarNetPlateIndex()
-        expect(after.size).toBe(0)
+        const entries = await getMidcarNetVisibleEntries()
+        expect(entries).toEqual([])
     })
 
     it('returns empty on non-200 HTTP', async () => {
         mockFetchOnce({ message: 'bad request' }, { ok: false, status: 400 })
-        const idx = await getMidcarNetPlateIndex()
-        expect(idx.size).toBe(0)
+        const entries = await getMidcarNetVisibleEntries()
+        expect(entries).toEqual([])
     })
 
     it('returns empty when body is not an array', async () => {
         mockFetchOnce({ data: [] })
-        const idx = await getMidcarNetPlateIndex()
-        expect(idx.size).toBe(0)
+        const entries = await getMidcarNetVisibleEntries()
+        expect(entries).toEqual([])
     })
 })
 

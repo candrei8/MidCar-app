@@ -9,7 +9,8 @@
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import { supabase } from './supabase'
-import { getMidcarNetPlateIndex, normalizePlate } from './midcar-net-mapping'
+import { getMidcarNetVisibleEntries, type MidcarNetEntry } from './midcar-net-mapping'
+import { scrapeMidcarNetPage, type ScrapedVehicleFields } from './midcar-net-scraper'
 
 /**
  * Server-side client with the service_role key — bypasses RLS so the cron
@@ -194,31 +195,15 @@ export function buildItemTitle(v: VehicleFeedInput): string {
 }
 
 /**
- * Canonical link rules (in order):
- *   1. `url_web` if it's HTTP/HTTPS (manually set per-vehicle in the CRM).
- *   2. midcar.net URL matched via normalized plate (`opts.plateToUrl`), so
- *      Google Shopping sends customers to the dealer-platform listing.
- *   3. `${siteUrl}/vehiculos/${stock_id}` — fallback on midcar.es; matches
- *      the form midcar.es publishes in its own sitemap. `stock_id` is unique,
- *      so the marca-modelo-año collision (6 pairs in inventory) doesn't bite.
+ * Legacy CRM-side link builder. The live feed no longer goes through this
+ * path (it ships midcar.net URLs directly from `serializeMidcarNetItem`).
+ * Kept while the dashboard and tests still reference the CRM-shaped helpers.
  *
- * The matricula is consumed for the lookup but deliberately NOT emitted in
- * the public URL: it would expose personal data (the Spanish license plate
- * identifies the vehicle's titular via DGT) on a feed indexed by Google.
+ *   1. `url_web` if it's HTTP/HTTPS.
+ *   2. `${siteUrl}/vehiculos/${stock_id}` — STK-form, matches midcar.es.
  */
-export function buildItemLink(
-    v: VehicleFeedInput,
-    siteUrl: string,
-    opts?: { plateToUrl?: Map<string, string> },
-): string {
+export function buildItemLink(v: VehicleFeedInput, siteUrl: string): string {
     if (v.url_web && /^https?:\/\//i.test(v.url_web)) return v.url_web
-    if (opts?.plateToUrl && v.matricula) {
-        const plate = normalizePlate(v.matricula)
-        if (plate) {
-            const mapped = opts.plateToUrl.get(plate)
-            if (mapped) return mapped
-        }
-    }
     const base = siteUrl.replace(/\/+$/, '')
     return `${base}/vehiculos/${v.stock_id}`
 }
@@ -287,12 +272,12 @@ export function isEligibleForFeed(v: VehicleFeedInput): boolean {
     return feedExclusionReasons(v).length === 0
 }
 
-/** Serialize one vehicle as a single `<item>` block (no leading indent beyond 4 spaces). */
-export function serializeItem(
-    v: VehicleFeedInput,
-    siteUrl: string,
-    opts?: { plateToUrl?: Map<string, string> },
-): string {
+/**
+ * Legacy CRM-side `<item>` serializer. The live feed pipeline now serializes
+ * directly from midcar.net entries (`serializeMidcarNetItem`). Kept while
+ * existing tests and helpers still reference it.
+ */
+export function serializeItem(v: VehicleFeedInput, siteUrl: string): string {
     const precioBase = Number(v.precio_venta) || 0
     const descuento = Math.max(0, Number(v.descuento) || 0)
     const precioEfectivo = Math.max(0, precioBase - descuento)
@@ -300,7 +285,7 @@ export function serializeItem(
 
     const title = buildItemTitle(v)
     const description = buildItemDescription(v)
-    const link = buildItemLink(v, siteUrl, opts)
+    const link = buildItemLink(v, siteUrl)
     const availability = v.estado === 'disponible' ? 'in_stock' : 'out_of_stock'
     const brand = sanitizeText(v.marca || '')
     const productType = `Vehículos > Coches de ocasión > ${brand}`
@@ -372,55 +357,87 @@ export function resolveSiteUrl(override?: string): string {
 }
 
 // ============================================================================
-// Main entry: query DB and build the feed
+// Main entry: pull midcar.net inventory, scrape rich metadata, build the feed
 // ============================================================================
 
-export async function fetchEligibleVehicles(limit: number): Promise<VehicleFeedInput[]> {
-    // Use admin client server-side: avoids any future RLS tightening on vehicles
-    // breaking the feed silently. Reads are equivalent under current policies.
-    const client = getAdminClient()
-    const { data, error } = await client
-        .from('vehicles')
-        .select(FEED_VEHICLE_FIELDS)
-        .eq('incluir_en_feed', true)
-        .in('estado', FEED_ELIGIBLE_STATES as unknown as string[])
-        .gt('precio_venta', 0)
-        .not('imagen_principal', 'is', null)
-        .order('created_at', { ascending: false })
-        .limit(limit)
+/** Concurrency for scraping midcar.net pages. Polite to their CDN. */
+const SCRAPE_BATCH_SIZE = 5
 
-    if (error) {
-        throw new Error(`Supabase query failed: ${error.message}`)
-    }
-    return (data || []) as unknown as VehicleFeedInput[]
+/**
+ * Serialize one midcar.net entry + its scraped metadata into an <item> block.
+ * Returns null (item filtered) if the page couldn't be scraped or there's no
+ * main image — Google rejects feed items without a primary image_link, so it
+ * is cleaner to drop the product entirely than to publish an invalid one.
+ */
+export function serializeMidcarNetItem(
+    entry: MidcarNetEntry,
+    scraped: ScrapedVehicleFields | null,
+): string | null {
+    const price = Number(entry.price) || 0
+    if (price <= 0) return null
+    if (!scraped || !scraped.mainImage) return null
+
+    const title = sanitizeText(entry.title).slice(0, MAX_TITLE_LENGTH)
+    const description = scraped.description
+        || `${entry.title}. Año ${entry.year}. ${formatPrice(price)}. Vehículo disponible en MIDCar.`
+    const brand = sanitizeText(entry.make)
+    const productType = `Vehículos > Coches de ocasión > ${brand}`
+    // vehicleStatus 0 = en venta (in_stock), 1 = reservado (out_of_stock for Google).
+    const availability = entry.vehicleStatus === 0 ? 'in_stock' : 'out_of_stock'
+
+    const additionalImagesXml = scraped.additionalImages
+        .filter(u => /^https?:\/\//i.test(u))
+        .slice(0, MAX_ADDITIONAL_IMAGES)
+        .map(u => `      <g:additional_image_link>${escapeXml(u)}</g:additional_image_link>`)
+        .join('\n')
+
+    return [
+        '    <item>',
+        `      <g:id>${escapeXml(entry.id)}</g:id>`,
+        `      <title>${wrapCdata(title)}</title>`,
+        `      <description>${wrapCdata(description)}</description>`,
+        `      <link>${escapeXml(entry.url)}</link>`,
+        `      <g:image_link>${escapeXml(scraped.mainImage)}</g:image_link>`,
+        additionalImagesXml,
+        `      <g:brand>${wrapCdata(brand)}</g:brand>`,
+        `      <g:mpn>${escapeXml(entry.id)}</g:mpn>`,
+        `      <g:condition>used</g:condition>`,
+        `      <g:availability>${availability}</g:availability>`,
+        `      <g:price>${escapeXml(formatPrice(price))}</g:price>`,
+        `      <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>`,
+        `      <g:product_type>${wrapCdata(productType)}</g:product_type>`,
+        `      <g:identifier_exists>no</g:identifier_exists>`,
+        '    </item>',
+    ].filter(line => line !== '').join('\n')
 }
 
 export async function buildMerchantFeed(opts: FeedBuildOptions = {}): Promise<FeedBuildResult> {
     const siteUrl = resolveSiteUrl(opts.siteUrl)
+    const allEntries = await getMidcarNetVisibleEntries()
     const limit = opts.testMode ? TEST_MODE_LIMIT : FULL_FEED_HARD_LIMIT
+    const entries = allEntries.slice(0, limit)
 
-    const [vehicles, plateToUrl] = await Promise.all([
-        fetchEligibleVehicles(limit),
-        getMidcarNetPlateIndex(),
-    ])
-    const eligible = vehicles.filter(isEligibleForFeed)
-    const finalList = opts.testMode ? eligible.slice(0, TEST_MODE_LIMIT) : eligible
-
-    let mappedToMidcarNet = 0
-    let fallbackToMidcarEs = 0
-    for (const v of finalList) {
-        const plate = normalizePlate(v.matricula)
-        if (plate && plateToUrl.has(plate)) mappedToMidcarNet++
-        else fallbackToMidcarEs++
+    const items: string[] = []
+    let skipped = 0
+    for (let i = 0; i < entries.length; i += SCRAPE_BATCH_SIZE) {
+        const batch = entries.slice(i, i + SCRAPE_BATCH_SIZE)
+        const results = await Promise.all(
+            batch.map(async e => ({ entry: e, data: await scrapeMidcarNetPage(e.id, e.url) })),
+        )
+        for (const { entry, data } of results) {
+            const item = serializeMidcarNetItem(entry, data)
+            if (item) items.push(item)
+            else skipped++
+        }
     }
-    if (fallbackToMidcarEs > 0) {
+
+    if (skipped > 0) {
         console.warn(
-            `[feed] ${fallbackToMidcarEs}/${finalList.length} vehicles fell back to midcar.es ` +
-            `(no plate match on midcar.net); ${mappedToMidcarNet} linked to midcar.net.`
+            `[feed] skipped ${skipped}/${entries.length} midcar.net cars ` +
+            `(scrape failed or missing primary image)`,
         )
     }
 
-    const items = finalList.map(v => serializeItem(v, siteUrl, { plateToUrl }))
     const channelMeta: ChannelMeta = { ...FEED_CHANNEL_META, link: siteUrl }
     const xml = buildFeedXml(items, channelMeta)
 

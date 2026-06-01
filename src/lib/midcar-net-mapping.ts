@@ -1,18 +1,14 @@
 /**
- * Resolves canonical midcar.net URLs for vehicles we publish in our feed.
+ * Reads the live midcar.net inventory from Just Quality's public mapping
+ * endpoint. The Google Merchant feed is built directly from this list — every
+ * product link is guaranteed to be a midcar.net URL by construction.
  *
- * Just Quality (the platform behind midcar.net) exposes a public endpoint that
- * lists every car they have, with the URL of the public ficha and a `plate`
- * (matrícula) field we can cross-reference against our CRM's `vehicles.matricula`.
- *
- * Two notes on the data shape:
- *   1. `vin` is in the endpoint schema but currently empty for every entry —
- *      Just Quality is still backfilling it. Once it's populated we'll switch
- *      the primary cross-reference key to VIN (it's universal and normalized,
- *      whereas plates can be re-issued).
- *   2. Only entries with `visible: true` and `vehicleStatus ∈ {0, 1}` are
- *      indexed; everything else (sold, hidden, draft) is dropped so we never
- *      link a publicly-visible product card to a dead landing page.
+ * Schema notes:
+ *   - `vin` is in the response but currently empty for every entry; Just
+ *     Quality is still backfilling it.
+ *   - Only entries with `visible: true` and `vehicleStatus ∈ {0, 1}` are
+ *     considered live (en venta / reservado). Everything else (sold, hidden,
+ *     draft) is filtered out so we never publish a dead landing page.
  */
 
 const MAPPING_URL = process.env.MIDCAR_NET_MAPPING_URL
@@ -38,7 +34,7 @@ export interface MidcarNetEntry {
 
 interface CacheEntry {
     at: number
-    index: Map<string, string>
+    entries: MidcarNetEntry[]
 }
 
 let cache: CacheEntry | null = null
@@ -66,29 +62,22 @@ export async function fetchMidcarNetMapping(): Promise<MidcarNetEntry[]> {
 }
 
 /**
- * Returns Map<normalizedPlate, midcarNetUrl> for vehicles currently live on
- * midcar.net. Cached in-process for CACHE_TTL_MS to amortize over consecutive
- * feed requests. On fetch failure returns the previous cache if still warm,
- * otherwise an empty map so the feed degrades to its midcar.es fallback
- * instead of failing.
+ * Returns the list of midcar.net vehicles currently live (visible + venta or
+ * reservado). Cached in-process for CACHE_TTL_MS. On fetch failure returns
+ * the stale cache if any, otherwise an empty list so callers can degrade.
  */
-export async function getMidcarNetPlateIndex(): Promise<Map<string, string>> {
-    if (cache && Date.now() - cache.at < CACHE_TTL_MS) return cache.index
+export async function getMidcarNetVisibleEntries(): Promise<MidcarNetEntry[]> {
+    if (cache && Date.now() - cache.at < CACHE_TTL_MS) return cache.entries
     try {
-        const entries = await fetchMidcarNetMapping()
-        const index = new Map<string, string>()
-        for (const e of entries) {
-            if (!e.visible) continue
-            if (e.vehicleStatus !== 0 && e.vehicleStatus !== 1) continue
-            const plate = normalizePlate(e.plate)
-            if (!plate) continue
-            index.set(plate, e.url)
-        }
-        cache = { at: Date.now(), index }
-        return index
+        const all = await fetchMidcarNetMapping()
+        const entries = all.filter(
+            e => e.visible && (e.vehicleStatus === 0 || e.vehicleStatus === 1),
+        )
+        cache = { at: Date.now(), entries }
+        return entries
     } catch (err) {
         console.error('[midcar-net-mapping] fetch failed:', err)
-        return cache?.index ?? new Map()
+        return cache?.entries ?? []
     }
 }
 

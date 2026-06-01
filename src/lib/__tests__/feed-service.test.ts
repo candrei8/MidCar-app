@@ -15,12 +15,14 @@ import {
     feedExclusionReasons,
     isEligibleForFeed,
     serializeItem,
+    serializeMidcarNetItem,
     buildFeedXml,
     resolveSiteUrl,
     FEED_CHANNEL_META,
     MAX_TITLE_LENGTH,
     type VehicleFeedInput,
 } from '@/lib/feed-service'
+import type { MidcarNetEntry } from '@/lib/midcar-net-mapping'
 
 const sampleVehicle: VehicleFeedInput = {
     id: 'uuid-1',
@@ -177,36 +179,6 @@ describe('buildItemLink', () => {
     it('strips trailing slashes from siteUrl', () => {
         expect(buildItemLink({ ...sampleVehicle, url_web: null }, 'https://midcar.es///'))
             .toBe('https://midcar.es/vehiculos/MC-0001')
-    })
-
-    it('uses the midcar.net mapping when the plate matches', () => {
-        const plateToUrl = new Map([['1234ABC', 'https://www.midcar.net/golf-2019-xyz']])
-        const link = buildItemLink(
-            { ...sampleVehicle, url_web: null, matricula: '1234 ABC' },
-            'https://midcar.es',
-            { plateToUrl },
-        )
-        expect(link).toBe('https://www.midcar.net/golf-2019-xyz')
-    })
-
-    it('falls back to midcar.es STK URL when the plate is not in the mapping', () => {
-        const plateToUrl = new Map([['9999ZZZ', 'https://www.midcar.net/other']])
-        const link = buildItemLink(
-            { ...sampleVehicle, url_web: null, matricula: '1234 ABC' },
-            'https://midcar.es',
-            { plateToUrl },
-        )
-        expect(link).toBe('https://midcar.es/vehiculos/MC-0001')
-    })
-
-    it('respects the url_web override even when the plate would match', () => {
-        const plateToUrl = new Map([['1234ABC', 'https://www.midcar.net/should-not-win']])
-        const link = buildItemLink(
-            { ...sampleVehicle, url_web: 'https://midcar.es/coches/manual', matricula: '1234 ABC' },
-            'https://midcar.es',
-            { plateToUrl },
-        )
-        expect(link).toBe('https://midcar.es/coches/manual')
     })
 })
 
@@ -370,6 +342,75 @@ describe('serializeItem', () => {
         for (const payload of cdataPayloads) {
             expect(payload).not.toMatch(/<\/?[a-zA-Z]/)
         }
+    })
+})
+
+// ---------------------------------------------------------------------------
+// serializeMidcarNetItem
+// ---------------------------------------------------------------------------
+describe('serializeMidcarNetItem', () => {
+    const sampleEntry: MidcarNetEntry = {
+        id: '0412175725166',
+        url: 'https://www.midcar.net/fiat-fiorino-2018-0412175725166',
+        title: 'Fiat Fiorino 1.3Mjet E6+ 80Cv',
+        make: 'Fiat',
+        model: 'Fiorino',
+        year: 2018,
+        price: 7900,
+        vehicleStatus: 0,
+        visible: true,
+    }
+    const sampleScraped = {
+        description: 'Fiat Fiorino de ocasión en MIDCar.',
+        mainImage: 'https://midcar.azureedge.net/vehiculos/0412175725166/p1.jpg',
+        additionalImages: [
+            'https://midcar.azureedge.net/vehiculos/0412175725166/p2.jpg',
+            'https://midcar.azureedge.net/vehiculos/0412175725166/p3.jpg',
+        ],
+    }
+
+    it('emits all required Google Merchant fields', () => {
+        const xml = serializeMidcarNetItem(sampleEntry, sampleScraped)!
+        expect(xml).toContain('<g:id>0412175725166</g:id>')
+        expect(xml).toContain('<link>https://www.midcar.net/fiat-fiorino-2018-0412175725166</link>')
+        expect(xml).toContain('<g:image_link>https://midcar.azureedge.net/vehiculos/0412175725166/p1.jpg</g:image_link>')
+        expect(xml).toContain('<g:additional_image_link>https://midcar.azureedge.net/vehiculos/0412175725166/p2.jpg</g:additional_image_link>')
+        expect(xml).toContain('<g:brand><![CDATA[Fiat]]></g:brand>')
+        expect(xml).toContain('<g:mpn>0412175725166</g:mpn>')
+        expect(xml).toContain('<g:condition>used</g:condition>')
+        expect(xml).toContain('<g:availability>in_stock</g:availability>')
+        expect(xml).toContain('<g:price>7900.00 EUR</g:price>')
+        expect(xml).toContain('<title><![CDATA[Fiat Fiorino 1.3Mjet E6+ 80Cv]]></title>')
+        expect(xml).toContain('<description><![CDATA[Fiat Fiorino de ocasión en MIDCar.]]></description>')
+    })
+
+    it('marks vehicleStatus 1 (reservado) as out_of_stock', () => {
+        const xml = serializeMidcarNetItem({ ...sampleEntry, vehicleStatus: 1 }, sampleScraped)!
+        expect(xml).toContain('<g:availability>out_of_stock</g:availability>')
+    })
+
+    it('returns null when there is no scraped data', () => {
+        expect(serializeMidcarNetItem(sampleEntry, null)).toBeNull()
+    })
+
+    it('returns null when the page had no usable main image', () => {
+        expect(serializeMidcarNetItem(sampleEntry, { ...sampleScraped, mainImage: null })).toBeNull()
+    })
+
+    it('returns null when price is zero', () => {
+        expect(serializeMidcarNetItem({ ...sampleEntry, price: 0 }, sampleScraped)).toBeNull()
+    })
+
+    it('synthesizes a fallback description when scraped one is empty', () => {
+        const xml = serializeMidcarNetItem(sampleEntry, { ...sampleScraped, description: '' })!
+        expect(xml).toMatch(/<description><!\[CDATA\[Fiat Fiorino 1\.3Mjet E6\+ 80Cv\. Año 2018\. 7900\.00 EUR/)
+    })
+
+    it('truncates title at MAX_TITLE_LENGTH', () => {
+        const longTitle = 'X'.repeat(300)
+        const xml = serializeMidcarNetItem({ ...sampleEntry, title: longTitle }, sampleScraped)!
+        const m = xml.match(/<title><!\[CDATA\[([^\]]*)\]\]><\/title>/)!
+        expect(m[1].length).toBeLessThanOrEqual(MAX_TITLE_LENGTH)
     })
 })
 
