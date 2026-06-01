@@ -6,6 +6,13 @@
   package = "@netlify/plugin-nextjs"
 
 # The build script `scripts/build-merchant-feed.mjs` writes
-# `public/feeds/merchant.xml` during `prebuild`, and Netlify serves it as a
-# static asset at /feeds/merchant.xml. No function in the request path =
-# no chance of hitting the 10 s timeout while scraping ~95 fichas.
+# `public/feeds/merchant.xml` during `prebuild` AND emits
+# `src/lib/generated/merchant-feed.ts` so the route can return the rendered
+# XML without filesystem I/O. No function in the request path = no chance
+# of hitting the 10 s timeout while scraping ~95 fichas.
+
+# Daily refresh: this scheduled function POSTs to the site's Build Hook
+# (set `BUILD_HOOK_URL` in env vars), which triggers a fresh
+# `npm run build` and re-renders the feed XML.
+[functions."refresh-merchant-feed"]
+  schedule = "0 3 * * *"
