@@ -138,9 +138,10 @@ export const config = {
          * - _next/static (static files)
          * - _next/image (image optimization files)
          * - favicon.ico (favicon file)
-         * - public folder
+         * - static asset extensions: svg, png, jpg, jpeg, gif, webp, xml, ico, txt
+         * - the Google Merchant feed under /feeds/...
          * - api routes
          */
-        '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$|api).*)',
+        '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|xml|ico|txt)$|feeds/|api).*)',
     ],
 }
