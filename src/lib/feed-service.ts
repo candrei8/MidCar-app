@@ -360,8 +360,10 @@ export function resolveSiteUrl(override?: string): string {
 // Main entry: pull midcar.net inventory, scrape rich metadata, build the feed
 // ============================================================================
 
-/** Concurrency for scraping midcar.net pages. Polite to their CDN. */
-const SCRAPE_BATCH_SIZE = 5
+/** Concurrency for scraping midcar.net pages. 20 parallel is well within
+ *  Azure CDN's per-IP capacity and lets us complete ~95 fetches under the
+ *  Netlify function timeout on cold start. */
+const SCRAPE_BATCH_SIZE = 20
 
 /**
  * Serialize one midcar.net entry + its scraped metadata into an <item> block.
@@ -474,6 +476,51 @@ export async function getFeedMetadata(id: string = 'merchant'): Promise<FeedMeta
         return null
     }
     return (data || null) as FeedMetadataRow | null
+}
+
+// ============================================================================
+// Pre-rendered feed XML cache (Supabase-backed)
+// ============================================================================
+// The midcar.net-driven pipeline (mapping fetch + ~95 scrapes) takes longer
+// than the Netlify request budget, so the public route serves the most
+// recent rendered XML from this table and the heavy work happens on the
+// /regenerate cron path. See migration 016_add_feed_xml_cache.sql.
+
+export interface CachedFeedXml {
+    xml: string
+    itemCount: number
+    generatedAt: string
+}
+
+export async function getCachedFeedXml(id: string = 'merchant'): Promise<CachedFeedXml | null> {
+    const { data, error } = await supabase
+        .from('feed_xml_cache')
+        .select('xml, item_count, generated_at')
+        .eq('id', id)
+        .maybeSingle()
+    if (error) {
+        console.error('feed_xml_cache read failed:', error)
+        return null
+    }
+    if (!data) return null
+    return { xml: data.xml as string, itemCount: data.item_count as number, generatedAt: data.generated_at as string }
+}
+
+export async function persistFeedXml(args: {
+    id?: string
+    xml: string
+    itemCount: number
+}): Promise<void> {
+    const client = getAdminClient()
+    const { error } = await client
+        .from('feed_xml_cache')
+        .upsert(
+            { id: args.id || 'merchant', xml: args.xml, item_count: args.itemCount, generated_at: new Date().toISOString() },
+            { onConflict: 'id' },
+        )
+    if (error) {
+        console.error('feed_xml_cache write failed:', error)
+    }
 }
 
 export async function recordFeedRun(args: {

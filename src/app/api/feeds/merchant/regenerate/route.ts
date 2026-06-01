@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@supabase/supabase-js'
-import { buildMerchantFeed, recordFeedRun } from '@/lib/feed-service'
+import { buildMerchantFeed, persistFeedXml, recordFeedRun } from '@/lib/feed-service'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
+/** This is the heavy path — needs more than the default 10 s on cold start. */
+export const maxDuration = 60
 
 interface AuthOk {
     ok: true
@@ -62,7 +64,10 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-        const { itemCount, generatedAt } = await buildMerchantFeed()
+        const { xml, itemCount, generatedAt } = await buildMerchantFeed()
+
+        // Persist the rendered XML so the public route can serve it instantly.
+        await persistFeedXml({ xml, itemCount })
 
         // Bust the CDN cache on the public feed endpoint.
         try {

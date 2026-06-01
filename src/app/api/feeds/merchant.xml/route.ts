@@ -1,10 +1,21 @@
 import { NextRequest } from 'next/server'
-import { buildMerchantFeed, buildFeedXml, FEED_CHANNEL_META, resolveSiteUrl, recordFeedRun } from '@/lib/feed-service'
+import {
+    buildMerchantFeed,
+    buildFeedXml,
+    FEED_CHANNEL_META,
+    resolveSiteUrl,
+    recordFeedRun,
+    getCachedFeedXml,
+    persistFeedXml,
+} from '@/lib/feed-service'
 
 // We read searchParams (?test=true), so the route must be dynamic.
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const runtime = 'nodejs'
+/** Netlify default would be 10 s; bumped because cold-start regeneration
+ *  hits ~95 midcar.net fichas and the rendered XML can take 15-20 s. */
+export const maxDuration = 26
 
 function corsHeaders() {
     return {
@@ -22,59 +33,94 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const testMode = searchParams.get('test') === 'true'
 
-    try {
-        const { xml, itemCount } = await buildMerchantFeed({ testMode })
-
-        const cacheControl = testMode
-            ? 'no-store, max-age=0'
-            : 'public, max-age=300, s-maxage=86400, stale-while-revalidate=3600'
-
-        // Best-effort metadata write — never fail the request because of it.
-        if (!testMode) {
-            recordFeedRun({
-                status: 'ok',
-                itemCount,
-                triggeredBy: 'pull:get',
-            }).catch(err => console.error('recordFeedRun failed:', err))
+    // ── Test mode: always build live (small, fast, no caching) ────────────────
+    if (testMode) {
+        try {
+            const { xml, itemCount } = await buildMerchantFeed({ testMode: true })
+            return new Response(xml, {
+                status: 200,
+                headers: {
+                    ...corsHeaders(),
+                    'Content-Type': 'application/xml; charset=utf-8',
+                    'Cache-Control': 'no-store, max-age=0',
+                    'Netlify-Vary': 'query=test',
+                    'X-Feed-Item-Count': String(itemCount),
+                    'X-Feed-Test-Mode': 'true',
+                    'X-Feed-Source': 'live',
+                },
+            })
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Unknown error'
+            console.error('Test feed generation failed:', err)
+            const fallback = buildFeedXml([], { ...FEED_CHANNEL_META, link: resolveSiteUrl() })
+            return new Response(fallback, {
+                status: 200,
+                headers: {
+                    ...corsHeaders(),
+                    'Content-Type': 'application/xml; charset=utf-8',
+                    'Cache-Control': 'no-store, max-age=0',
+                    'X-Feed-Error': message.slice(0, 200),
+                    'X-Feed-Test-Mode': 'true',
+                },
+            })
         }
+    }
 
+    // ── Production: serve the persisted cache; rebuild only if it's empty ─────
+    const cached = await getCachedFeedXml('merchant')
+    if (cached && cached.itemCount > 0) {
+        return new Response(cached.xml, {
+            status: 200,
+            headers: {
+                ...corsHeaders(),
+                'Content-Type': 'application/xml; charset=utf-8',
+                'Cache-Control': 'public, max-age=300, s-maxage=86400, stale-while-revalidate=3600',
+                'Netlify-Vary': 'query=test',
+                'X-Feed-Item-Count': String(cached.itemCount),
+                'X-Feed-Test-Mode': 'false',
+                'X-Feed-Source': 'cache',
+                'X-Feed-Generated-At': cached.generatedAt,
+            },
+        })
+    }
+
+    // No cache yet — first call after deploy. Build inline and persist for
+    // future calls. May time out on very cold starts; the cron will refill.
+    try {
+        const { xml, itemCount } = await buildMerchantFeed()
+        // Persist + record metadata in parallel; never let either fail the response.
+        Promise.all([
+            persistFeedXml({ xml, itemCount }).catch(e => console.error('persistFeedXml failed:', e)),
+            recordFeedRun({ status: 'ok', itemCount, triggeredBy: 'pull:cold-build' })
+                .catch(e => console.error('recordFeedRun failed:', e)),
+        ])
         return new Response(xml, {
             status: 200,
             headers: {
                 ...corsHeaders(),
                 'Content-Type': 'application/xml; charset=utf-8',
-                'Cache-Control': cacheControl,
-                // Netlify's edge cache strips unknown query params before forwarding
-                // to the function. Without this, ?test=true never reaches the route
-                // and every caller gets the full feed under one shared cache entry.
+                'Cache-Control': 'public, max-age=300, s-maxage=86400, stale-while-revalidate=3600',
                 'Netlify-Vary': 'query=test',
                 'X-Feed-Item-Count': String(itemCount),
-                'X-Feed-Test-Mode': testMode ? 'true' : 'false',
+                'X-Feed-Test-Mode': 'false',
+                'X-Feed-Source': 'cold-build',
             },
         })
     } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error'
         console.error('Merchant feed generation failed:', error)
-
-        recordFeedRun({
-            status: 'error',
-            errorMessage: message,
-            triggeredBy: 'pull:get',
-        }).catch(err => console.error('recordFeedRun failed:', err))
-
-        // Always return a valid (empty) XML so Google's fetcher doesn't see a 500.
-        const fallback = buildFeedXml([], {
-            ...FEED_CHANNEL_META,
-            link: resolveSiteUrl(),
-        })
-
+        recordFeedRun({ status: 'error', errorMessage: message, triggeredBy: 'pull:cold-build' })
+            .catch(e => console.error('recordFeedRun failed:', e))
+        const fallback = buildFeedXml([], { ...FEED_CHANNEL_META, link: resolveSiteUrl() })
         return new Response(fallback, {
             status: 200,
             headers: {
                 ...corsHeaders(),
                 'Content-Type': 'application/xml; charset=utf-8',
                 'Cache-Control': 'no-store, max-age=0',
-                'X-Feed-Error': 'true',
+                'X-Feed-Error': message.slice(0, 200),
+                'X-Feed-Test-Mode': 'false',
+                'X-Feed-Source': 'error-fallback',
             },
         })
     }
