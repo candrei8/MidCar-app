@@ -178,6 +178,36 @@ describe('buildItemLink', () => {
         expect(buildItemLink({ ...sampleVehicle, url_web: null }, 'https://midcar.es///'))
             .toBe('https://midcar.es/vehiculos/MC-0001')
     })
+
+    it('uses the midcar.net mapping when the plate matches', () => {
+        const plateToUrl = new Map([['1234ABC', 'https://www.midcar.net/golf-2019-xyz']])
+        const link = buildItemLink(
+            { ...sampleVehicle, url_web: null, matricula: '1234 ABC' },
+            'https://midcar.es',
+            { plateToUrl },
+        )
+        expect(link).toBe('https://www.midcar.net/golf-2019-xyz')
+    })
+
+    it('falls back to midcar.es STK URL when the plate is not in the mapping', () => {
+        const plateToUrl = new Map([['9999ZZZ', 'https://www.midcar.net/other']])
+        const link = buildItemLink(
+            { ...sampleVehicle, url_web: null, matricula: '1234 ABC' },
+            'https://midcar.es',
+            { plateToUrl },
+        )
+        expect(link).toBe('https://midcar.es/vehiculos/MC-0001')
+    })
+
+    it('respects the url_web override even when the plate would match', () => {
+        const plateToUrl = new Map([['1234ABC', 'https://www.midcar.net/should-not-win']])
+        const link = buildItemLink(
+            { ...sampleVehicle, url_web: 'https://midcar.es/coches/manual', matricula: '1234 ABC' },
+            'https://midcar.es',
+            { plateToUrl },
+        )
+        expect(link).toBe('https://midcar.es/coches/manual')
+    })
 })
 
 // ---------------------------------------------------------------------------

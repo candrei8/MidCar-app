@@ -9,6 +9,7 @@
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import { supabase } from './supabase'
+import { getMidcarNetPlateIndex, normalizePlate } from './midcar-net-mapping'
 
 /**
  * Server-side client with the service_role key — bypasses RLS so the cron
@@ -195,17 +196,29 @@ export function buildItemTitle(v: VehicleFeedInput): string {
 /**
  * Canonical link rules (in order):
  *   1. `url_web` if it's HTTP/HTTPS (manually set per-vehicle in the CRM).
- *   2. `${siteUrl}/vehiculos/${stock_id}` — matches the form midcar.es publishes
- *      in its own sitemap, so feed and sitemap share one canonical URL per
- *      vehicle. `stock_id` is unique, so no collisions are possible (the
- *      marca-modelo-año slug used to collide for 6 pairs in inventory).
+ *   2. midcar.net URL matched via normalized plate (`opts.plateToUrl`), so
+ *      Google Shopping sends customers to the dealer-platform listing.
+ *   3. `${siteUrl}/vehiculos/${stock_id}` — fallback on midcar.es; matches
+ *      the form midcar.es publishes in its own sitemap. `stock_id` is unique,
+ *      so the marca-modelo-año collision (6 pairs in inventory) doesn't bite.
  *
- * The matricula is deliberately NOT used in the public URL: it would expose
- * personal data (the Spanish license plate identifies the vehicle's titular
- * via DGT) on a feed indexed by Google. Stock_id is internal and safe.
+ * The matricula is consumed for the lookup but deliberately NOT emitted in
+ * the public URL: it would expose personal data (the Spanish license plate
+ * identifies the vehicle's titular via DGT) on a feed indexed by Google.
  */
-export function buildItemLink(v: VehicleFeedInput, siteUrl: string): string {
+export function buildItemLink(
+    v: VehicleFeedInput,
+    siteUrl: string,
+    opts?: { plateToUrl?: Map<string, string> },
+): string {
     if (v.url_web && /^https?:\/\//i.test(v.url_web)) return v.url_web
+    if (opts?.plateToUrl && v.matricula) {
+        const plate = normalizePlate(v.matricula)
+        if (plate) {
+            const mapped = opts.plateToUrl.get(plate)
+            if (mapped) return mapped
+        }
+    }
     const base = siteUrl.replace(/\/+$/, '')
     return `${base}/vehiculos/${v.stock_id}`
 }
@@ -275,7 +288,11 @@ export function isEligibleForFeed(v: VehicleFeedInput): boolean {
 }
 
 /** Serialize one vehicle as a single `<item>` block (no leading indent beyond 4 spaces). */
-export function serializeItem(v: VehicleFeedInput, siteUrl: string): string {
+export function serializeItem(
+    v: VehicleFeedInput,
+    siteUrl: string,
+    opts?: { plateToUrl?: Map<string, string> },
+): string {
     const precioBase = Number(v.precio_venta) || 0
     const descuento = Math.max(0, Number(v.descuento) || 0)
     const precioEfectivo = Math.max(0, precioBase - descuento)
@@ -283,7 +300,7 @@ export function serializeItem(v: VehicleFeedInput, siteUrl: string): string {
 
     const title = buildItemTitle(v)
     const description = buildItemDescription(v)
-    const link = buildItemLink(v, siteUrl)
+    const link = buildItemLink(v, siteUrl, opts)
     const availability = v.estado === 'disponible' ? 'in_stock' : 'out_of_stock'
     const brand = sanitizeText(v.marca || '')
     const productType = `Vehículos > Coches de ocasión > ${brand}`
@@ -382,11 +399,28 @@ export async function buildMerchantFeed(opts: FeedBuildOptions = {}): Promise<Fe
     const siteUrl = resolveSiteUrl(opts.siteUrl)
     const limit = opts.testMode ? TEST_MODE_LIMIT : FULL_FEED_HARD_LIMIT
 
-    const vehicles = await fetchEligibleVehicles(limit)
+    const [vehicles, plateToUrl] = await Promise.all([
+        fetchEligibleVehicles(limit),
+        getMidcarNetPlateIndex(),
+    ])
     const eligible = vehicles.filter(isEligibleForFeed)
     const finalList = opts.testMode ? eligible.slice(0, TEST_MODE_LIMIT) : eligible
 
-    const items = finalList.map(v => serializeItem(v, siteUrl))
+    let mappedToMidcarNet = 0
+    let fallbackToMidcarEs = 0
+    for (const v of finalList) {
+        const plate = normalizePlate(v.matricula)
+        if (plate && plateToUrl.has(plate)) mappedToMidcarNet++
+        else fallbackToMidcarEs++
+    }
+    if (fallbackToMidcarEs > 0) {
+        console.warn(
+            `[feed] ${fallbackToMidcarEs}/${finalList.length} vehicles fell back to midcar.es ` +
+            `(no plate match on midcar.net); ${mappedToMidcarNet} linked to midcar.net.`
+        )
+    }
+
+    const items = finalList.map(v => serializeItem(v, siteUrl, { plateToUrl }))
     const channelMeta: ChannelMeta = { ...FEED_CHANNEL_META, link: siteUrl }
     const xml = buildFeedXml(items, channelMeta)
 
