@@ -31,6 +31,7 @@ const RETRY_TIMEOUT_MS = 45_000
 const MAPPING_TIMEOUT_MS = 15_000
 const MAX_ADDITIONAL_IMAGES = 10
 const MAX_TITLE_LENGTH = 150
+const FIXED_STORE_CODE = '102026'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const OUTPUT_PATH = resolve(__dirname, '..', 'public', 'feeds', 'merchant.xml')
@@ -137,7 +138,51 @@ function parseVehicleHtml(html, midcarNetId) {
         deduped.push(url)
     }
     const [mainImage = null, ...rest] = deduped
-    return { description, mainImage, additionalImages: rest.slice(0, MAX_ADDITIONAL_IMAGES) }
+
+    const specs = extractSpecTable(html)
+    const registrationDate = extractRegistrationDate(html)
+
+    return {
+        description,
+        mainImage,
+        additionalImages: rest.slice(0, MAX_ADDITIONAL_IMAGES),
+        mileageKm: specs.mileageKm,
+        color: specs.color,
+        registrationDate,
+    }
+}
+
+/**
+ * The midcar.net ficha exposes a spec table as repeated
+ * `<span>LABEL</span><br><span class="font-weight-bold red">VALUE</span>` blocks.
+ * Extract the ones the SEO team needs for Google Merchant.
+ */
+function extractSpecTable(html) {
+    const out = { mileageKm: null, color: null }
+    const re = /<span>([A-ZÁÉÍÓÚÑ ]+)<\/span><br><span class="font-weight-bold red">([^<]+)<\/span>/g
+    let m
+    while ((m = re.exec(html)) !== null) {
+        const label = m[1].trim().toUpperCase()
+        const value = m[2].trim()
+        if (label === 'KILÓMETROS' || label === 'KILOMETROS') {
+            const digits = value.replace(/[^\d]/g, '')
+            if (digits) out.mileageKm = digits
+        } else if (label === 'COLOR') {
+            out.color = value
+        }
+    }
+    return out
+}
+
+/**
+ * Description text contains "del MM/YYYY" or "de MM/YYYY" — the only
+ * reliable place where the full registration month appears. Returns
+ * YYYY-MM or null. Caller falls back to year-only if null.
+ */
+function extractRegistrationDate(html) {
+    const m = html.match(/\bdel?\s+(0[1-9]|1[0-2])\/(\d{4})\b/)
+    if (!m) return null
+    return `${m[2]}-${m[1]}`
 }
 
 function matchMetaProperty(html, property) {
@@ -214,6 +259,7 @@ function serializeItem(entry, scraped) {
     const description = scraped.description
         || `${entry.title}. Año ${entry.year}. ${formatPrice(price)}. Vehículo disponible en MIDCar.`
     const brand = sanitizeText(entry.make || '')
+    const model = sanitizeText(entry.model || '')
     const productType = `Vehículos > Coches de ocasión > ${brand}`
     const availability = entry.vehicleStatus === 0 ? 'in_stock' : 'out_of_stock'
 
@@ -222,6 +268,21 @@ function serializeItem(entry, scraped) {
         .slice(0, MAX_ADDITIONAL_IMAGES)
         .map(u => `      <g:additional_image_link>${escapeXml(u)}</g:additional_image_link>`)
         .join('\n')
+
+    const dateFirstRegistered = scraped.registrationDate
+        || (entry.year ? `${entry.year}-01` : null)
+    const colorLine = scraped.color
+        ? `      <g:color>${wrapCdata(scraped.color)}</g:color>`
+        : ''
+    const mileageLine = scraped.mileageKm
+        ? `      <g:mileage>${escapeXml(scraped.mileageKm)} KM</g:mileage>`
+        : ''
+    const modelLine = model
+        ? `      <g:model>${wrapCdata(model)}</g:model>`
+        : ''
+    const dateLine = dateFirstRegistered
+        ? `      <g:date_first_registered>${escapeXml(dateFirstRegistered)}</g:date_first_registered>`
+        : ''
 
     return [
         '    <item>',
@@ -232,10 +293,15 @@ function serializeItem(entry, scraped) {
         `      <g:image_link>${escapeXml(scraped.mainImage)}</g:image_link>`,
         additionalImagesXml,
         `      <g:brand>${wrapCdata(brand)}</g:brand>`,
+        modelLine,
         `      <g:mpn>${escapeXml(entry.id)}</g:mpn>`,
         `      <g:condition>used</g:condition>`,
         `      <g:availability>${availability}</g:availability>`,
         `      <g:price>${escapeXml(formatPrice(price))}</g:price>`,
+        dateLine,
+        colorLine,
+        mileageLine,
+        `      <g:store_code>${FIXED_STORE_CODE}</g:store_code>`,
         `      <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>`,
         `      <g:product_type>${wrapCdata(productType)}</g:product_type>`,
         `      <g:identifier_exists>no</g:identifier_exists>`,

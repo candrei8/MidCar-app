@@ -367,6 +367,9 @@ describe('serializeMidcarNetItem', () => {
             'https://midcar.azureedge.net/vehiculos/0412175725166/p2.jpg',
             'https://midcar.azureedge.net/vehiculos/0412175725166/p3.jpg',
         ],
+        mileageKm: null,
+        color: null,
+        registrationDate: null,
     }
 
     it('emits all required Google Merchant fields', () => {

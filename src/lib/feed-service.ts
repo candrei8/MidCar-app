@@ -109,6 +109,8 @@ export const FEED_CHANNEL_META: ChannelMeta = {
 export const FEED_ELIGIBLE_STATES = ['disponible', 'reservado'] as const
 export const MAX_ADDITIONAL_IMAGES = 10
 export const MAX_TITLE_LENGTH = 150
+/** Fijo en todos los productos por requisito del SEO (única tienda física en Torrejón). */
+const FIXED_STORE_CODE = '102026'
 export const TEST_MODE_LIMIT = 2
 export const FULL_FEED_HARD_LIMIT = 5000
 
@@ -383,6 +385,7 @@ export function serializeMidcarNetItem(
     const description = scraped.description
         || `${entry.title}. Año ${entry.year}. ${formatPrice(price)}. Vehículo disponible en MIDCar.`
     const brand = sanitizeText(entry.make)
+    const model = sanitizeText(entry.model || '')
     const productType = `Vehículos > Coches de ocasión > ${brand}`
     // vehicleStatus 0 = en venta (in_stock), 1 = reservado (out_of_stock for Google).
     const availability = entry.vehicleStatus === 0 ? 'in_stock' : 'out_of_stock'
@@ -393,6 +396,17 @@ export function serializeMidcarNetItem(
         .map(u => `      <g:additional_image_link>${escapeXml(u)}</g:additional_image_link>`)
         .join('\n')
 
+    const dateFirstRegistered = scraped.registrationDate
+        || (entry.year ? `${entry.year}-01` : null)
+    const modelLine = model ? `      <g:model>${wrapCdata(model)}</g:model>` : ''
+    const dateLine = dateFirstRegistered
+        ? `      <g:date_first_registered>${escapeXml(dateFirstRegistered)}</g:date_first_registered>`
+        : ''
+    const colorLine = scraped.color ? `      <g:color>${wrapCdata(scraped.color)}</g:color>` : ''
+    const mileageLine = scraped.mileageKm
+        ? `      <g:mileage>${escapeXml(scraped.mileageKm)} KM</g:mileage>`
+        : ''
+
     return [
         '    <item>',
         `      <g:id>${escapeXml(entry.id)}</g:id>`,
@@ -402,10 +416,15 @@ export function serializeMidcarNetItem(
         `      <g:image_link>${escapeXml(scraped.mainImage)}</g:image_link>`,
         additionalImagesXml,
         `      <g:brand>${wrapCdata(brand)}</g:brand>`,
+        modelLine,
         `      <g:mpn>${escapeXml(entry.id)}</g:mpn>`,
         `      <g:condition>used</g:condition>`,
         `      <g:availability>${availability}</g:availability>`,
         `      <g:price>${escapeXml(formatPrice(price))}</g:price>`,
+        dateLine,
+        colorLine,
+        mileageLine,
+        `      <g:store_code>${FIXED_STORE_CODE}</g:store_code>`,
         `      <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>`,
         `      <g:product_type>${wrapCdata(productType)}</g:product_type>`,
         `      <g:identifier_exists>no</g:identifier_exists>`,

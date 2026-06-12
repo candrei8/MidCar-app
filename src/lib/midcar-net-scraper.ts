@@ -19,6 +19,9 @@ export interface ScrapedVehicleFields {
     description: string
     mainImage: string | null
     additionalImages: string[]
+    mileageKm: string | null
+    color: string | null
+    registrationDate: string | null
 }
 
 const cache = new Map<string, { at: number; data: ScrapedVehicleFields }>()
@@ -76,11 +79,39 @@ export function parseVehicleHtml(html: string, midcarNetId: string): ScrapedVehi
     }
 
     const [mainImage = null, ...rest] = deduped
+    const specs = extractSpecTable(html)
+    const registrationDate = extractRegistrationDate(html)
     return {
         description: description.trim(),
         mainImage,
         additionalImages: rest.slice(0, MAX_ADDITIONAL_IMAGES),
+        mileageKm: specs.mileageKm,
+        color: specs.color,
+        registrationDate,
     }
+}
+
+function extractSpecTable(html: string): { mileageKm: string | null; color: string | null } {
+    const out: { mileageKm: string | null; color: string | null } = { mileageKm: null, color: null }
+    const re = /<span>([A-ZÁÉÍÓÚÑ ]+)<\/span><br><span class="font-weight-bold red">([^<]+)<\/span>/g
+    let m: RegExpExecArray | null
+    while ((m = re.exec(html)) !== null) {
+        const label = m[1].trim().toUpperCase()
+        const value = m[2].trim()
+        if (label === 'KILÓMETROS' || label === 'KILOMETROS') {
+            const digits = value.replace(/[^\d]/g, '')
+            if (digits) out.mileageKm = digits
+        } else if (label === 'COLOR') {
+            out.color = value
+        }
+    }
+    return out
+}
+
+function extractRegistrationDate(html: string): string | null {
+    const m = html.match(/\bdel?\s+(0[1-9]|1[0-2])\/(\d{4})\b/)
+    if (!m) return null
+    return `${m[2]}-${m[1]}`
 }
 
 function extractMetaProperty(html: string, property: string): string | null {
