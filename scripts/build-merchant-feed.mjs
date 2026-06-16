@@ -284,12 +284,15 @@ function serializeItem(entry, scraped) {
         ? `      <g:date_first_registered>${escapeXml(dateFirstRegistered)}</g:date_first_registered>`
         : ''
 
+    const linkTemplate = `${entry.url}?store={${FIXED_STORE_CODE}}`
+
     return [
         '    <item>',
         `      <g:id>${escapeXml(entry.id)}</g:id>`,
         `      <title>${wrapCdata(title)}</title>`,
         `      <description>${wrapCdata(description)}</description>`,
         `      <link>${escapeXml(entry.url)}</link>`,
+        `      <g:link_template>${escapeXml(linkTemplate)}</g:link_template>`,
         `      <g:image_link>${escapeXml(scraped.mainImage)}</g:image_link>`,
         additionalImagesXml,
         `      <g:brand>${wrapCdata(brand)}</g:brand>`,
