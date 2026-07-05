@@ -733,7 +733,7 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
                                         )}
                                         {vehicle.estado !== 'vendido' && (
                                             <DropdownMenuItem onClick={() => handleStatusChange('vendido')} className="gap-2 cursor-pointer">
-                                                <span className="w-2 h-2 rounded-full bg-slate-500" /> Vendido
+                                                <span className="w-2 h-2 rounded-full bg-red-600" /> Vendido
                                             </DropdownMenuItem>
                                         )}
                                         <DropdownMenuSeparator className="bg-border/10" />
@@ -1043,7 +1043,7 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
                                         {([
                                             { value: 'disponible', label: 'Disponible', bg: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200', dot: 'bg-green-500' },
                                             { value: 'reservado', label: 'Reservado', bg: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200', dot: 'bg-amber-500' },
-                                            { value: 'vendido', label: 'Vendido', bg: 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-300', dot: 'bg-slate-500' },
+                                            { value: 'vendido', label: 'Vendido', bg: 'bg-red-600 dark:bg-red-600 text-white dark:text-white border-red-700', dot: 'bg-white' },
                                         ] as const).map((s) => (
                                             <button
                                                 key={s.value}
@@ -1072,13 +1072,13 @@ export function VehicleDetailClient({ id }: VehicleDetailClientProps) {
                                                 : vehicle.estado === 'reservado'
                                                     ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200"
                                                     : vehicle.estado === 'vendido'
-                                                        ? "bg-slate-200 text-slate-700 border-slate-300"
+                                                        ? "bg-red-600 text-white border-red-700"
                                                         : "bg-gray-100 text-gray-700 border-gray-200"
                                         )}>
                                             <span className={cn("w-2 h-2 rounded-full",
                                                 vehicle.estado === 'disponible' ? "bg-green-500 animate-pulse"
                                                     : vehicle.estado === 'reservado' ? "bg-amber-500"
-                                                    : vehicle.estado === 'vendido' ? "bg-slate-500"
+                                                    : vehicle.estado === 'vendido' ? "bg-white"
                                                     : "bg-gray-500"
                                             )} />
                                             {vehicle.estado}

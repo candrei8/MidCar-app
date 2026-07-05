@@ -128,7 +128,7 @@ export default function InventarioPage() {
         const config: Record<string, { bg: string, text: string }> = {
             'disponible': { bg: 'bg-green-500/90', text: 'Disponible' },
             'reservado': { bg: 'bg-amber-500/90', text: 'Reservado' },
-            'vendido': { bg: 'bg-slate-500/90', text: 'Vendido' },
+            'vendido': { bg: 'bg-red-600', text: 'Vendido' },
             'en_transito': { bg: 'bg-blue-500/90', text: 'En Tránsito' },
         }
         return config[estado] || { bg: 'bg-slate-500/90', text: estado }
@@ -421,10 +421,12 @@ const VehicleCard = memo(function VehicleCard({
                     {vehicle.estado !== 'disponible' && (
                         <div className="absolute top-2 right-2">
                             <span className={cn(
-                                "inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase backdrop-blur-sm shadow-sm ring-1 ring-black/5",
-                                vehicle.estado === 'reservado' ? "bg-amber-500/90 text-white" :
-                                vehicle.estado === 'vendido' ? "bg-slate-600/90 text-white" :
-                                "bg-white/90 text-[#135bec]"
+                                "inline-flex items-center gap-1 rounded-md uppercase backdrop-blur-sm",
+                                vehicle.estado === 'vendido'
+                                    ? "bg-red-600 px-3 py-1 text-xs font-extrabold tracking-wide text-white shadow-lg ring-2 ring-white"
+                                    : "px-2 py-0.5 text-[10px] font-bold shadow-sm ring-1 ring-black/5",
+                                vehicle.estado === 'reservado' && "bg-amber-500/90 text-white",
+                                vehicle.estado !== 'reservado' && vehicle.estado !== 'vendido' && "bg-white/90 text-[#135bec]"
                             )}>
                                 {badge.text}
                             </span>
