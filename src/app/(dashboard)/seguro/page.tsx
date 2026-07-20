@@ -420,7 +420,10 @@ export default function SeguroPage() {
                     if (match.policy.prima) updateData.prima_anual = match.policy.prima
                     if (match.policy.aseguradora) updateData.compania_aseguradora = match.policy.aseguradora
 
-                    const aportaDatos = Object.keys(updateData).length > 1
+                    // La matrícula desnormalizada de la póliza también cuenta como
+                    // cambio (p.ej. tras sustituir una referencia WEB- por la real)
+                    const cambiaMatricula = existingPolicy.vehiculo_matricula !== match.matricula
+                    const aportaDatos = Object.keys(updateData).length > 1 || cambiaMatricula
                     if (!aportaDatos) {
                         // Nada nuevo que registrar: la póliza existente ya cubre este vehículo
                         savedPolicies.push(existingPolicy)

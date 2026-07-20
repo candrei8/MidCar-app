@@ -94,5 +94,8 @@ BEGIN
 END;
 $$;
 
+-- Supabase concede EXECUTE a anon/authenticated por privilegios por defecto,
+-- así que hay que revocar a anon explícitamente (no basta con PUBLIC)
 REVOKE EXECUTE ON FUNCTION public.next_document_number(TEXT) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.next_document_number(TEXT) FROM anon;
 GRANT EXECUTE ON FUNCTION public.next_document_number(TEXT) TO authenticated;
