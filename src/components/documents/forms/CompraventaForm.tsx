@@ -7,12 +7,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CompraventaData, VehicleDocumentData, CustomerData, EconomicConditions } from '@/lib/documents/document-types';
-import { FORMA_PAGO_OPTIONS, GARANTIA_OPTIONS, IVA_PERCENT, EMPRESA_DATOS } from '@/lib/documents/constants';
+import { FORMA_PAGO_OPTIONS, GARANTIA_OPTIONS, IVA_PERCENT } from '@/lib/documents/constants';
 import { VehicleSummary } from '../VehicleSummary';
 
 interface CompraventaFormProps {
   vehicle: VehicleDocumentData;
   customer: CustomerData;
+  vendedor: CustomerData;
   formData: Partial<CompraventaData>;
   onChange: (data: Partial<CompraventaData>) => void;
   suggestedPrice?: number;
@@ -22,6 +23,7 @@ interface CompraventaFormProps {
 export function CompraventaForm({
   vehicle,
   customer,
+  vendedor,
   formData,
   onChange,
   suggestedPrice = 0,
@@ -29,24 +31,11 @@ export function CompraventaForm({
 }: CompraventaFormProps) {
   const initializedRef = useRef(false);
 
-  // Inicializar valores por defecto
+  // Inicializar valores por defecto. El vendedor viene SIEMPRE de la empresa
+  // seleccionada en el asistente (nunca hardcodeado), por eso va tras el spread.
   const data: Partial<CompraventaData> = {
     vehiculo: vehicle,
     comprador: customer,
-    vendedor: {
-      nombre: EMPRESA_DATOS.nombre,
-      apellidos: '',
-      dni: EMPRESA_DATOS.cif,
-      direccion: EMPRESA_DATOS.direccion,
-      codigoPostal: EMPRESA_DATOS.codigoPostal,
-      localidad: EMPRESA_DATOS.localidad,
-      provincia: EMPRESA_DATOS.provincia,
-      telefono: EMPRESA_DATOS.telefono,
-      email: EMPRESA_DATOS.email,
-      isEmpresa: true,
-      nombreEmpresa: EMPRESA_DATOS.nombre,
-      cifEmpresa: EMPRESA_DATOS.cif
-    },
     condiciones: {
       precioVenta: suggestedPrice,
       baseImponible: Math.round(suggestedPrice / 1.21 * 100) / 100,
@@ -54,7 +43,7 @@ export function CompraventaForm({
       ivaImporte: Math.round((suggestedPrice - suggestedPrice / 1.21) * 100) / 100,
       totalConIva: suggestedPrice,
       formaPago: 'transferencia',
-      cuentaBancaria: empresaIban || EMPRESA_DATOS.cuentaBancaria,
+      cuentaBancaria: empresaIban || '',
       ...formData.condiciones
     },
     garantia: {
@@ -76,10 +65,11 @@ export function CompraventaForm({
       ...formData.documentacion
     },
     fechaContrato: formData.fechaContrato || new Date().toISOString().split('T')[0],
-    lugarContrato: formData.lugarContrato || EMPRESA_DATOS.localidad,
+    lugarContrato: formData.lugarContrato || vendedor.localidad,
     fechaEntrega: formData.fechaEntrega || new Date().toISOString().split('T')[0],
-    lugarEntrega: formData.lugarEntrega || `${EMPRESA_DATOS.direccion}, ${EMPRESA_DATOS.localidad}`,
-    ...formData
+    lugarEntrega: formData.lugarEntrega || `${vendedor.direccion}, ${vendedor.localidad}`,
+    ...formData,
+    vendedor
   };
 
   // Propagar valores por defecto al padre al montar el componente
@@ -146,9 +136,12 @@ export function CompraventaForm({
     <div className="space-y-6">
       {/* Resumen del vehículo */}
       <VehicleSummary
-        vehicle={vehicle}
+        vehicle={data.vehiculo || vehicle}
         showPrice={true}
         price={data.condiciones?.totalConIva}
+        onIdentityChange={({ matricula, bastidor }) =>
+          onChange({ ...data, vehiculo: { ...(data.vehiculo || vehicle), matricula, bastidor } })
+        }
       />
 
       {/* Condiciones económicas */}

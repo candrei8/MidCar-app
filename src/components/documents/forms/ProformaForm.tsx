@@ -6,28 +6,23 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ProformaData, VehicleDocumentData, CustomerData, EconomicConditions } from '@/lib/documents/document-types';
-import { FORMA_PAGO_OPTIONS, IVA_PERCENT, EMPRESA_DATOS } from '@/lib/documents/constants';
+import { FORMA_PAGO_OPTIONS, IVA_PERCENT } from '@/lib/documents/constants';
 import { VehicleSummary } from '../VehicleSummary';
 
 interface ProformaFormProps {
   vehicle: VehicleDocumentData;
   customer: CustomerData;
+  vendedor: CustomerData;
   formData: Partial<ProformaData>;
   onChange: (data: Partial<ProformaData>) => void;
   suggestedPrice?: number;
   empresaIban?: string;
 }
 
-// Generar número de proforma único
-function generateProformaNumber(): string {
-  const year = new Date().getFullYear();
-  const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-  return `PF-${year}-${random}`;
-}
-
 export function ProformaForm({
   vehicle,
   customer,
+  vendedor,
   formData,
   onChange,
   suggestedPrice = 0,
@@ -35,24 +30,11 @@ export function ProformaForm({
 }: ProformaFormProps) {
   const initializedRef = useRef(false);
 
-  // Inicializar valores por defecto
+  // Inicializar valores por defecto. El vendedor viene SIEMPRE de la empresa
+  // seleccionada en el asistente (nunca hardcodeado), por eso va tras el spread.
   const data: Partial<ProformaData> = {
     vehiculo: vehicle,
     comprador: customer,
-    vendedor: {
-      nombre: EMPRESA_DATOS.nombre,
-      apellidos: '',
-      dni: EMPRESA_DATOS.cif,
-      direccion: EMPRESA_DATOS.direccion,
-      codigoPostal: EMPRESA_DATOS.codigoPostal,
-      localidad: EMPRESA_DATOS.localidad,
-      provincia: EMPRESA_DATOS.provincia,
-      telefono: EMPRESA_DATOS.telefono,
-      email: EMPRESA_DATOS.email,
-      isEmpresa: true,
-      nombreEmpresa: EMPRESA_DATOS.nombre,
-      cifEmpresa: EMPRESA_DATOS.cif
-    },
     condiciones: {
       precioVenta: suggestedPrice,
       baseImponible: Math.round(suggestedPrice / 1.21 * 100) / 100,
@@ -60,16 +42,19 @@ export function ProformaForm({
       ivaImporte: Math.round((suggestedPrice - suggestedPrice / 1.21) * 100) / 100,
       totalConIva: suggestedPrice,
       formaPago: 'transferencia',
-      cuentaBancaria: empresaIban || EMPRESA_DATOS.cuentaBancaria,
+      cuentaBancaria: empresaIban || '',
       ...formData.condiciones
     },
-    numeroProforma: formData.numeroProforma || generateProformaNumber(),
+    // El número se reserva de forma secuencial desde la BD (lo prellena el
+    // asistente al entrar en este paso); nunca se genera aleatorio.
+    numeroProforma: formData.numeroProforma || '',
     numeroFactura: formData.numeroFactura || '', // Se dejará vacío
     fechaProforma: formData.fechaProforma || new Date().toISOString().split('T')[0],
     fechaFactura: formData.fechaFactura || new Date().toISOString().split('T')[0],
     validezDias: formData.validezDias || 15,
     importeReserva: formData.importeReserva || Math.round(suggestedPrice * 0.1),
-    ...formData
+    ...formData,
+    vendedor
   };
 
   // Propagar valores por defecto al padre al montar el componente
@@ -136,9 +121,12 @@ export function ProformaForm({
 
       {/* Resumen del vehículo */}
       <VehicleSummary
-        vehicle={vehicle}
+        vehicle={data.vehiculo || vehicle}
         showPrice={true}
         price={data.condiciones?.totalConIva}
+        onIdentityChange={({ matricula, bastidor }) =>
+          onChange({ ...data, vehiculo: { ...(data.vehiculo || vehicle), matricula, bastidor } })
+        }
       />
 
       {/* Datos de la proforma */}
@@ -157,8 +145,11 @@ export function ProformaForm({
                 id="numeroProforma"
                 value={data.numeroProforma || ''}
                 onChange={(e) => onChange({ ...data, numeroProforma: e.target.value })}
-                placeholder="PF-2024-0001"
+                placeholder="Asignando número…"
               />
+              <p className="text-xs text-slate-500 mt-1">
+                Número secuencial asignado automáticamente desde el sistema
+              </p>
             </div>
             <div>
               <Label htmlFor="fechaProforma">Fecha de emisión *</Label>

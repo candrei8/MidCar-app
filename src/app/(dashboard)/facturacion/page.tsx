@@ -181,6 +181,10 @@ export default function FacturacionPage() {
     const generatePDF = async () => {
         if (!validateForm() || !selectedVehicle || !empresaSeleccionada) return
 
+        // El número se obtiene ANTES de dibujar el PDF para que el documento
+        // descargado y el registro en BD lleven exactamente el mismo número.
+        const numeroFactura = await generateInvoiceNumber()
+
         const doc = new jsPDF()
         const pageWidth = doc.internal.pageSize.getWidth()
         const margin = 20
@@ -212,8 +216,7 @@ export default function FacturacionPage() {
         y += 10
         doc.setFontSize(12)
         doc.setTextColor(0)
-        const tempInvoiceNum = `FAC-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}`
-        addText(`N Factura: ${tempInvoiceNum}`, pageWidth - margin, y, { align: 'right' })
+        addText(`N Factura: ${numeroFactura}`, pageWidth - margin, y, { align: 'right' })
         y += 6
         addText(`Fecha: ${formatDate(fechaFactura)}`, pageWidth - margin, y, { align: 'right' })
         if (fechaVencimiento) {
@@ -359,7 +362,6 @@ export default function FacturacionPage() {
         // Guardar en Supabase
         try {
             const creatorName = profile ? `${profile.nombre} ${profile.apellidos}`.trim() : user?.email?.split('@')[0] || 'Usuario'
-            const numeroFactura = await generateInvoiceNumber()
 
             const invoiceData = {
                 numero_factura: numeroFactura,
@@ -397,6 +399,10 @@ export default function FacturacionPage() {
             if (savedInvoice) {
                 setSavedInvoices(prev => [savedInvoice, ...prev])
                 alert('Factura generada correctamente')
+            } else {
+                // createInvoice devuelve null sin lanzar: sin este aviso el
+                // PDF descargado circularía con un número no registrado en BD
+                alert(`ATENCIÓN: la factura ${numeroFactura} NO se pudo registrar en el sistema. El PDF descargado lleva ese número: no lo entregues sin registrar la factura.`)
             }
         } catch (error) {
             console.error('Error saving invoice:', error)

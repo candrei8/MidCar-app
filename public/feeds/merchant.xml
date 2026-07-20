@@ -57,8 +57,8 @@
       <g:model><![CDATA[308]]></g:model>
       <g:mpn>1306110847484</g:mpn>
       <g:condition>used</g:condition>
-      <g:availability>in_stock</g:availability>
-      <g:price>9950.00 EUR</g:price>
+      <g:availability>out_of_stock</g:availability>
+      <g:price>8900.00 EUR</g:price>
       <g:date_first_registered>2016-01</g:date_first_registered>
       <g:color><![CDATA[Gris Artense Metalizado]]></g:color>
       <g:mileage>123000 KM</g:mileage>
@@ -89,7 +89,7 @@
       <g:mpn>3108093817304</g:mpn>
       <g:condition>used</g:condition>
       <g:availability>in_stock</g:availability>
-      <g:price>12950.00 EUR</g:price>
+      <g:price>11500.00 EUR</g:price>
       <g:date_first_registered>2018-01</g:date_first_registered>
       <g:color><![CDATA[Blanco]]></g:color>
       <g:mileage>137000 KM</g:mileage>
@@ -151,7 +151,7 @@
       <g:mpn>1904165332774</g:mpn>
       <g:condition>used</g:condition>
       <g:availability>in_stock</g:availability>
-      <g:price>12950.00 EUR</g:price>
+      <g:price>11600.00 EUR</g:price>
       <g:date_first_registered>2019-02</g:date_first_registered>
       <g:color><![CDATA[Blanco]]></g:color>
       <g:mileage>124000 KM</g:mileage>
@@ -275,7 +275,7 @@
       <g:mpn>2706223137043</g:mpn>
       <g:condition>used</g:condition>
       <g:availability>in_stock</g:availability>
-      <g:price>11500.00 EUR</g:price>
+      <g:price>10200.00 EUR</g:price>
       <g:date_first_registered>2019-01</g:date_first_registered>
       <g:color><![CDATA[Blanco Banquise (opaco)]]></g:color>
       <g:mileage>179000 KM</g:mileage>
@@ -306,7 +306,7 @@
       <g:mpn>1601205117727</g:mpn>
       <g:condition>used</g:condition>
       <g:availability>in_stock</g:availability>
-      <g:price>11950.00 EUR</g:price>
+      <g:price>10700.00 EUR</g:price>
       <g:date_first_registered>2019-01</g:date_first_registered>
       <g:color><![CDATA[Blanco]]></g:color>
       <g:mileage>86000 KM</g:mileage>
@@ -337,7 +337,7 @@
       <g:mpn>0702165249659</g:mpn>
       <g:condition>used</g:condition>
       <g:availability>in_stock</g:availability>
-      <g:price>11950.00 EUR</g:price>
+      <g:price>10700.00 EUR</g:price>
       <g:date_first_registered>2019-01</g:date_first_registered>
       <g:color><![CDATA[Blanco]]></g:color>
       <g:mileage>90000 KM</g:mileage>
@@ -368,7 +368,7 @@
       <g:mpn>1303181344902</g:mpn>
       <g:condition>used</g:condition>
       <g:availability>in_stock</g:availability>
-      <g:price>24950.00 EUR</g:price>
+      <g:price>22300.00 EUR</g:price>
       <g:date_first_registered>2020-01</g:date_first_registered>
       <g:color><![CDATA[Blanco nacarado 3 capas]]></g:color>
       <g:mileage>118000 KM</g:mileage>
@@ -430,7 +430,7 @@
       <g:mpn>0607085200332</g:mpn>
       <g:condition>used</g:condition>
       <g:availability>in_stock</g:availability>
-      <g:price>29950.00 EUR</g:price>
+      <g:price>27400.00 EUR</g:price>
       <g:date_first_registered>2021-03</g:date_first_registered>
       <g:color><![CDATA[Oro]]></g:color>
       <g:mileage>73000 KM</g:mileage>
@@ -461,7 +461,7 @@
       <g:mpn>0607112959325</g:mpn>
       <g:condition>used</g:condition>
       <g:availability>in_stock</g:availability>
-      <g:price>22900.00 EUR</g:price>
+      <g:price>20000.00 EUR</g:price>
       <g:date_first_registered>2019-01</g:date_first_registered>
       <g:color><![CDATA[Deep Ocean sólido]]></g:color>
       <g:mileage>176000 KM</g:mileage>
@@ -492,7 +492,7 @@
       <g:mpn>1207211827018</g:mpn>
       <g:condition>used</g:condition>
       <g:availability>in_stock</g:availability>
-      <g:price>15500.00 EUR</g:price>
+      <g:price>14450.00 EUR</g:price>
       <g:date_first_registered>2020-01</g:date_first_registered>
       <g:color><![CDATA[Rojo Race]]></g:color>
       <g:mileage>109000 KM</g:mileage>
@@ -564,37 +564,6 @@
       <g:identifier_exists>no</g:identifier_exists>
     </item>
     <item>
-      <g:id>2008105548330</g:id>
-      <title><![CDATA[Skoda Octavia 1.4 TSI DSG Nacional con Xenón pocos Km Historial Carfax]]></title>
-      <description><![CDATA[Skoda Octavia 1.4 TSI DSG Nacional con Xenón pocos Km Historial Carfax de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
-      <link>https://www.midcar.net/skoda-octavia-14-tsi-dsg-nacional-con-xenon-pocos-km-historial-carfax-2015-2008105548330</link>
-      <g:link_template>https://www.midcar.net/skoda-octavia-14-tsi-dsg-nacional-con-xenon-pocos-km-historial-carfax-2015-2008105548330?store={102026}</g:link_template>
-      <g:image_link>https://midcar.azureedge.net/vehiculos/2008105548330/(FILEminimizer)%20PXL_20250820_091201961.PORTRAIT.ORIGINAL-20082025105548333-1500px.jpg</g:image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2008105548330/(FILEminimizer)%20PXL_20250820_091243225.PORTRAIT.ORIGINAL-20082025105548624-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2008105548330/(FILEminimizer)%20PXL_20250820_091321704.PORTRAIT-20082025105548674-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2008105548330/(FILEminimizer)%20PXL_20250820_091418044.LONG_EXPOSURE-01.COVER-20082025105548734-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2008105548330/(FILEminimizer)%20PXL_20250820_091437330-20082025105548793-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2008105548330/(FILEminimizer)%20PXL_20250820_091513113-20082025105548839-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2008105548330/(FILEminimizer)%20PXL_20250820_091520975-20082025105548896-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2008105548330/(FILEminimizer)%20PXL_20250820_091552233-20082025105548945-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2008105548330/(FILEminimizer)%20PXL_20250820_091603739.PORTRAIT-20082025105549007-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2008105548330/(FILEminimizer)%20PXL_20250820_091616572-20082025105549054-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2008105548330/(FILEminimizer)%20PXL_20250820_091628815-20082025105549106-1500px.jpg</g:additional_image_link>
-      <g:brand><![CDATA[Skoda]]></g:brand>
-      <g:model><![CDATA[Octavia]]></g:model>
-      <g:mpn>2008105548330</g:mpn>
-      <g:condition>used</g:condition>
-      <g:availability>in_stock</g:availability>
-      <g:price>14950.00 EUR</g:price>
-      <g:date_first_registered>2015-01</g:date_first_registered>
-      <g:color><![CDATA[Blanco]]></g:color>
-      <g:mileage>70000 KM</g:mileage>
-      <g:store_code>102026</g:store_code>
-      <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>
-      <g:product_type><![CDATA[Vehículos > Coches de ocasión > Skoda]]></g:product_type>
-      <g:identifier_exists>no</g:identifier_exists>
-    </item>
-    <item>
       <g:id>3108085742568</g:id>
       <title><![CDATA[Volkswagen Caddy Profesional Kombi 2.0Tdi BMT 4 Puertas 100Cv]]></title>
       <description><![CDATA[Volkswagen Caddy Profesional Kombi 2.0Tdi  BMT 4 Puertas 100Cv de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
@@ -646,7 +615,7 @@
       <g:model><![CDATA[Proace]]></g:model>
       <g:mpn>0709102810099</g:mpn>
       <g:condition>used</g:condition>
-      <g:availability>in_stock</g:availability>
+      <g:availability>out_of_stock</g:availability>
       <g:price>16950.00 EUR</g:price>
       <g:date_first_registered>2021-01</g:date_first_registered>
       <g:color><![CDATA[Blanco]]></g:color>
@@ -678,44 +647,13 @@
       <g:mpn>1310173908369</g:mpn>
       <g:condition>used</g:condition>
       <g:availability>in_stock</g:availability>
-      <g:price>27950.00 EUR</g:price>
+      <g:price>25950.00 EUR</g:price>
       <g:date_first_registered>2024-01</g:date_first_registered>
       <g:color><![CDATA[Blanco]]></g:color>
       <g:mileage>170000 KM</g:mileage>
       <g:store_code>102026</g:store_code>
       <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>
       <g:product_type><![CDATA[Vehículos > Coches de ocasión > Ford]]></g:product_type>
-      <g:identifier_exists>no</g:identifier_exists>
-    </item>
-    <item>
-      <g:id>2810212147797</g:id>
-      <title><![CDATA[VOLKSWAGEN PASSAT Advance 2.0 TDI 110kW (150CV) DSG]]></title>
-      <description><![CDATA[VOLKSWAGEN PASSAT Advance 2.0 TDI 110kW (150CV) DSG de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
-      <link>https://www.midcar.net/volkswagen-passat-advance-20-tdi-110kw-150cv-dsg-2018-2810212147797</link>
-      <g:link_template>https://www.midcar.net/volkswagen-passat-advance-20-tdi-110kw-150cv-dsg-2018-2810212147797?store={102026}</g:link_template>
-      <g:image_link>https://midcar.azureedge.net/vehiculos/2810212147797/(FILEminimizer)%20PXL_20251130_103459066.Vw%20Passat%20DSG%202.0Tdi%20150Cv%20Techo-30112025113352982-1500px.jpg</g:image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2810212147797/(FILEminimizer)%20PXL_20251130_103514208.Vw%20Passat%20DSG%202.0Tdi%20150Cv%20Techo%20Nacional%201Due%C3%B1o-30112025113353087-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2810212147797/(FILEminimizer)%20PXL_20251130_103534727.Vw%20Passat%20DSG%202.0Tdi%20150Cv%20Techo%20corredizo-30112025113353143-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2810212147797/(FILEminimizer)%20PXL_20251130_103652697.%20Vw%20Passat%20DSG%202.0Tdi%20150Cv%20Techo%20Interior%20clarito%20Beige-30112025113353200-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2810212147797/(FILEminimizer)%20PXL_20251130_103702194.PORTRAIT-30112025113353251-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2810212147797/(FILEminimizer)%20PXL_20251130_103806267-30112025113353300-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2810212147797/(FILEminimizer)%20PXL_20251130_103814540-30112025113353352-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2810212147797/(FILEminimizer)%20PXL_20251130_103844992%20Vw%20Passat%20DSG%202.0Tdi%20150Cv%20Techo%20clima%20trizona%20atras-30112025113353431-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2810212147797/(FILEminimizer)%20PXL_20251130_104026681-30112025113353471-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2810212147797/(FILEminimizer)%20PXL_20251130_104031481%20Vw%20Passat%20DSG%202.0Tdi%20150Cv%20Techo%20llanata%20de%20repuesto-30112025113353522-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2810212147797/(FILEminimizer)%20PXL_20251130_104044393.PORTRAIT.ORIGINAL-30112025113353569-1500px.jpg</g:additional_image_link>
-      <g:brand><![CDATA[Volkswagen]]></g:brand>
-      <g:model><![CDATA[Passat]]></g:model>
-      <g:mpn>2810212147797</g:mpn>
-      <g:condition>used</g:condition>
-      <g:availability>in_stock</g:availability>
-      <g:price>15950.00 EUR</g:price>
-      <g:date_first_registered>2018-01</g:date_first_registered>
-      <g:color><![CDATA[Blanco]]></g:color>
-      <g:mileage>230000 KM</g:mileage>
-      <g:store_code>102026</g:store_code>
-      <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>
-      <g:product_type><![CDATA[Vehículos > Coches de ocasión > Volkswagen]]></g:product_type>
       <g:identifier_exists>no</g:identifier_exists>
     </item>
     <item>
@@ -740,7 +678,7 @@
       <g:mpn>2910121406627</g:mpn>
       <g:condition>used</g:condition>
       <g:availability>in_stock</g:availability>
-      <g:price>29900.00 EUR</g:price>
+      <g:price>26500.00 EUR</g:price>
       <g:date_first_registered>2021-01</g:date_first_registered>
       <g:color><![CDATA[Blanco]]></g:color>
       <g:mileage>97000 KM</g:mileage>
@@ -833,7 +771,7 @@
       <g:mpn>1111180056441</g:mpn>
       <g:condition>used</g:condition>
       <g:availability>in_stock</g:availability>
-      <g:price>14950.00 EUR</g:price>
+      <g:price>13900.00 EUR</g:price>
       <g:date_first_registered>2020-01</g:date_first_registered>
       <g:color><![CDATA[Blanco]]></g:color>
       <g:mileage>88000 KM</g:mileage>
@@ -871,37 +809,6 @@
       <g:store_code>102026</g:store_code>
       <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>
       <g:product_type><![CDATA[Vehículos > Coches de ocasión > Volvo]]></g:product_type>
-      <g:identifier_exists>no</g:identifier_exists>
-    </item>
-    <item>
-      <g:id>2611185859603</g:id>
-      <title><![CDATA[Citroen Jumpy 2.0BlueHdi 150Cv , 6/9 Plazas con IVA y garantía Incl Etiqueta C]]></title>
-      <description><![CDATA[Citroen Jumpy 2.0BlueHdi 150Cv , 6/9 Plazas con IVA y garantía Incl Etiqueta C de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
-      <link>https://www.midcar.net/citroen-jumpy-20bluehdi-150cv--6-9-plazas-con-iva-y-garantia-incl-etiqueta-c-2021-2611185859603</link>
-      <g:link_template>https://www.midcar.net/citroen-jumpy-20bluehdi-150cv--6-9-plazas-con-iva-y-garantia-incl-etiqueta-c-2021-2611185859603?store={102026}</g:link_template>
-      <g:image_link>https://midcar.azureedge.net/vehiculos/2611185859603/(FILEminimizer)%20PXL_20251126_091528443.Citroen%20Jumpy%20Combi%202.0BlueHdi%209%20Plzas-26112025204920965-1500px.jpg</g:image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2611185859603/(FILEminimizer)%20PXL_20251126_091626430.PORTRAIT.ORIGINAL-26112025204921123-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2611185859603/(FILEminimizer)%20PXL_20251126_091647557.PORTRAIT.ORIGINAL-26112025204921175-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2611185859603/(FILEminimizer)%20PXL_20251126_091729744-26112025204921231-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2611185859603/(FILEminimizer)%20PXL_20251126_091735071-26112025204921287-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2611185859603/(FILEminimizer)%20PXL_20251126_091743268.MP-26112025204921334-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2611185859603/(FILEminimizer)%20PXL_20251126_091750632-26112025204921395-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2611185859603/(FILEminimizer)%20PXL_20251126_091810567.PORTRAIT-26112025204921447-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2611185859603/(FILEminimizer)%20PXL_20251126_091844757-26112025204921497-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2611185859603/(FILEminimizer)%20PXL_20251126_091847705-26112025204921537-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2611185859603/(FILEminimizer)%20PXL_20251126_091850345.MP-26112025204921580-1500px.jpg</g:additional_image_link>
-      <g:brand><![CDATA[Citroen]]></g:brand>
-      <g:model><![CDATA[Jumpy]]></g:model>
-      <g:mpn>2611185859603</g:mpn>
-      <g:condition>used</g:condition>
-      <g:availability>in_stock</g:availability>
-      <g:price>22950.00 EUR</g:price>
-      <g:date_first_registered>2021-01</g:date_first_registered>
-      <g:color><![CDATA[Blanco]]></g:color>
-      <g:mileage>142000 KM</g:mileage>
-      <g:store_code>102026</g:store_code>
-      <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>
-      <g:product_type><![CDATA[Vehículos > Coches de ocasión > Citroen]]></g:product_type>
       <g:identifier_exists>no</g:identifier_exists>
     </item>
     <item>
@@ -988,7 +895,7 @@
       <g:mpn>2412104143698</g:mpn>
       <g:condition>used</g:condition>
       <g:availability>in_stock</g:availability>
-      <g:price>14800.00 EUR</g:price>
+      <g:price>13900.00 EUR</g:price>
       <g:date_first_registered>2021-01</g:date_first_registered>
       <g:color><![CDATA[Blanco]]></g:color>
       <g:mileage>155000 KM</g:mileage>
@@ -1029,37 +936,6 @@
       <g:identifier_exists>no</g:identifier_exists>
     </item>
     <item>
-      <g:id>0801211634398</g:id>
-      <title><![CDATA[HYUNDAI iONIQ 1.6 GDI HEV Style DT Hybrido Techo corredizo (Eléctrico, Gasolina) Etiqueta Eco]]></title>
-      <description><![CDATA[HYUNDAI  iONIQ 1.6 GDI HEV Style DT Hybrido Techo corredizo  (Eléctrico, Gasolina)  Etiqueta Eco de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
-      <link>https://www.midcar.net/hyundai--ioniq-16-gdi-hev-style-dt-hybrido-techo-corredizo--electrico-gasolina--etiqueta-eco-2020-0801211634398</link>
-      <g:link_template>https://www.midcar.net/hyundai--ioniq-16-gdi-hev-style-dt-hybrido-techo-corredizo--electrico-gasolina--etiqueta-eco-2020-0801211634398?store={102026}</g:link_template>
-      <g:image_link>https://midcar.azureedge.net/vehiculos/0801211634398/HYUNDAI%20%20iONIQ%201.6%20GDI%20HEV%20Style%20DT%20Hybrido%20pack%20berlina%20con%20port%C3%B3n%20104kW%205P%20%20(El%C3%A9ctrico,%20Gasolina)%20%20Etiqueta%20Eco%201-08012026211634399-1500px.jpg</g:image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0801211634398/HYUNDAI%20%20iONIQ%201.6%20GDI%20HEV%20Style%20DT%20Hybrido%20pack%20berlina%20con%20port%C3%B3n%20104kW%205P%20%20(El%C3%A9ctrico,%20Gasolina)%20%20Etiqueta%20Eco%202-08012026211634655-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0801211634398/HYUNDAI%20%20iONIQ%201.6%20GDI%20HEV%20Style%20DT%20Hybrido%20pack%20berlina%20con%20port%C3%B3n%20104kW%205P%20%20(El%C3%A9ctrico,%20Gasolina)%20%20Etiqueta%20Eco%203-08012026211634716-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0801211634398/HYUNDAI%20%20iONIQ%201.6%20GDI%20HEV%20Style%20DT%20Hybrido%20pack%20berlina%20con%20port%C3%B3n%20104kW%205P%20%20(El%C3%A9ctrico,%20Gasolina)%20%20Etiqueta%20Eco%204%20Techo%20corredizo-08012026211634777-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0801211634398/PXL_20260108_145902585.PORTRAIT.ORIGINAL%20(FILEminimizer)-08012026211634830-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0801211634398/PXL_20260108_145905537.PORTRAIT%20(FILEminimizer)-08012026211634885-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0801211634398/PXL_20260108_145913122.PORTRAIT%20(FILEminimizer)-08012026211634928-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0801211634398/PXL_20260108_145937506.PORTRAIT.ORIGINAL%20(FILEminimizer)-08012026211634974-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0801211634398/PXL_20260108_145950197.PORTRAIT%20(FILEminimizer)-08012026211635022-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0801211634398/PXL_20260108_150001141.PORTRAIT.ORIGINAL%20(FILEminimizer)-08012026211635075-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0801211634398/PXL_20260108_150008170.PORTRAIT%20(FILEminimizer)-08012026211635129-1500px.jpg</g:additional_image_link>
-      <g:brand><![CDATA[Hyundai]]></g:brand>
-      <g:model><![CDATA[iONIQ]]></g:model>
-      <g:mpn>0801211634398</g:mpn>
-      <g:condition>used</g:condition>
-      <g:availability>in_stock</g:availability>
-      <g:price>14700.00 EUR</g:price>
-      <g:date_first_registered>2020-01</g:date_first_registered>
-      <g:color><![CDATA[Gris]]></g:color>
-      <g:mileage>189000 KM</g:mileage>
-      <g:store_code>102026</g:store_code>
-      <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>
-      <g:product_type><![CDATA[Vehículos > Coches de ocasión > Hyundai]]></g:product_type>
-      <g:identifier_exists>no</g:identifier_exists>
-    </item>
-    <item>
       <g:id>2201112455152</g:id>
       <title><![CDATA[Dacia Sandero Serie Limitada Xplore TCE Gasolina y GLP]]></title>
       <description><![CDATA[Dacia Sandero Serie Limitada Xplore TCE Gasolina y GLP de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
@@ -1085,37 +961,6 @@
       <g:date_first_registered>2019-01</g:date_first_registered>
       <g:color><![CDATA[Blanco]]></g:color>
       <g:mileage>98000 KM</g:mileage>
-      <g:store_code>102026</g:store_code>
-      <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>
-      <g:product_type><![CDATA[Vehículos > Coches de ocasión > Dacia]]></g:product_type>
-      <g:identifier_exists>no</g:identifier_exists>
-    </item>
-    <item>
-      <g:id>2801174734546</g:id>
-      <title><![CDATA[Dacia Dokker Combi Essential 1.6 110Cv GLP Híbrido Etiqueta medioambiental ECO IVA y Garantía Incl]]></title>
-      <description><![CDATA[Dacia Dokker Combi Essential 1.6 110Cv GLP Híbrido Etiqueta medioambiental ECO IVA y Garantía Incl de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
-      <link>https://www.midcar.net/dacia-dokker-combi-essential-16-110cv-glp-hibrido-etiqueta-medioambiental-eco-iva-y-garantia-incl-2021-2801174734546</link>
-      <g:link_template>https://www.midcar.net/dacia-dokker-combi-essential-16-110cv-glp-hibrido-etiqueta-medioambiental-eco-iva-y-garantia-incl-2021-2801174734546?store={102026}</g:link_template>
-      <g:image_link>https://midcar.azureedge.net/vehiculos/2801174734546/Dacia%20Dokker%201.5GLP%20110Cv%20Etiqueta%20ECO%20Combi%201-28012026174734551-1500px.jpg</g:image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2801174734546/Dacia%20Dokker%201.5GLP%20110Cv%20Etiqueta%20ECO%20Combi%202%20IVA%20y%20Garant%C3%ADa%20Incl-28012026174734792-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2801174734546/Dacia%20Dokker%201.5GLP%20110Cv%20Etiqueta%20ECO%20Combi%203%20Nacional-28012026174734845-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2801174734546/Dacia%20Dokker%201.5GLP%20110Cv%20Etiqueta%20ECO%20Combi%204%20Informe%20Carfax-28012026174734894-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2801174734546/Dacia%20Dokker%201.5GLP%20110Cv%20Etiqueta%20ECO%20Combi%205%20Plazas-28012026174734941-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2801174734546/Dacia%20Dokker%201.5GLP%20110Cv%20Etiqueta%20ECO%20Combi%206%20Asientos%20Isofix-28012026174734993-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2801174734546/Dacia%20Dokker%201.5GLP%20110Cv%20Etiqueta%20ECO%20Combi%207%203Asientos%20Isofix-28012026174735057-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2801174734546/Dacia%20Dokker%201.5GLP%20110Cv%20Etiqueta%20ECO%20Combi%208%20Gran%20Maletero-28012026174735111-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2801174734546/Dacia%20Dokker%201.5GLP%20110Cv%20Etiqueta%20ECO%20Combi%208-28012026174735162-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2801174734546/Dacia%20Dokker%201.5GLP%20110Cv%20Etiqueta%20ECO%20Combi%209-28012026174735214-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2801174734546/Dacia%20Dokker%201.5GLP%20110Cv%20Etiqueta%20ECO%20Combi%2010-28012026174735260-1500px.jpg</g:additional_image_link>
-      <g:brand><![CDATA[Dacia]]></g:brand>
-      <g:model><![CDATA[Dokker]]></g:model>
-      <g:mpn>2801174734546</g:mpn>
-      <g:condition>used</g:condition>
-      <g:availability>in_stock</g:availability>
-      <g:price>14900.00 EUR</g:price>
-      <g:date_first_registered>2021-01</g:date_first_registered>
-      <g:color><![CDATA[Blanco]]></g:color>
-      <g:mileage>91000 KM</g:mileage>
       <g:store_code>102026</g:store_code>
       <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>
       <g:product_type><![CDATA[Vehículos > Coches de ocasión > Dacia]]></g:product_type>
@@ -1329,7 +1174,7 @@
       <g:mpn>0303160658760</g:mpn>
       <g:condition>used</g:condition>
       <g:availability>in_stock</g:availability>
-      <g:price>15950.00 EUR</g:price>
+      <g:price>15450.00 EUR</g:price>
       <g:date_first_registered>2022-05</g:date_first_registered>
       <g:color><![CDATA[Blanco]]></g:color>
       <g:mileage>129000 KM</g:mileage>
@@ -1494,37 +1339,6 @@
       <g:identifier_exists>no</g:identifier_exists>
     </item>
     <item>
-      <g:id>1903123312254</g:id>
-      <title><![CDATA[Citroen Berlingo Premium Club 1.5BlueHdi 100Cv 3 Plazas IVA y Garantía Incl Nacional]]></title>
-      <description><![CDATA[Citroen Berlingo Premium Club 1.5BlueHdi 100Cv 3 Plazas IVA y Garantía Incl Nacional de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
-      <link>https://www.midcar.net/citroen-berlingo-premium-club-15bluehdi-100cv-3-plazas-iva-y-garantia-incl-nacional-2021-1903123312254</link>
-      <g:link_template>https://www.midcar.net/citroen-berlingo-premium-club-15bluehdi-100cv-3-plazas-iva-y-garantia-incl-nacional-2021-1903123312254?store={102026}</g:link_template>
-      <g:image_link>https://midcar.azureedge.net/vehiculos/1903123312254/Citroen%20Berlingo%201.5BlueHdi%20100Cv%203Plazas%201-08042026171838183-1500px.jpg</g:image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1903123312254/Citroen%20Berlingo%201.5BlueHdi%20100Cv%203Plazas%202-08042026171838275-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1903123312254/Citroen%20Berlingo%201.5BlueHdi%20100Cv%203Plazas%203%20IVA%20y%20garant%C3%ADa%20Inc-08042026171838345-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1903123312254/Citroen%20Berlingo%201.5BlueHdi%20100Cv%203Plazas%204-08042026171838398-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1903123312254/Citroen%20Berlingo%201.5BlueHdi%20100Cv%203Plazas%205-08042026171838447-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1903123312254/Citroen%20Berlingo%201.5BlueHdi%20100Cv%203Plazas%206-08042026171838496-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1903123312254/Citroen%20Berlingo%201.5BlueHdi%20100Cv%203Plazas%207-08042026171838549-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1903123312254/Citroen%20Berlingo%201.5BlueHdi%20100Cv%203Plazas%208-08042026171838612-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1903123312254/Citroen%20Berlingo%201.5BlueHdi%20100Cv%203Plazas%209-08042026171838668-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1903123312254/Citroen%20Berlingo%201.5BlueHdi%20100Cv%203Plazas%2010-08042026171838708-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1903123312254/Citroen%20Berlingo%201.5BlueHdi%20100Cv%203Plazas%2011-08042026171838753-1500px.jpg</g:additional_image_link>
-      <g:brand><![CDATA[Citroen]]></g:brand>
-      <g:model><![CDATA[Berlingo]]></g:model>
-      <g:mpn>1903123312254</g:mpn>
-      <g:condition>used</g:condition>
-      <g:availability>in_stock</g:availability>
-      <g:price>11900.00 EUR</g:price>
-      <g:date_first_registered>2021-01</g:date_first_registered>
-      <g:color><![CDATA[Blanco]]></g:color>
-      <g:mileage>147000 KM</g:mileage>
-      <g:store_code>102026</g:store_code>
-      <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>
-      <g:product_type><![CDATA[Vehículos > Coches de ocasión > Citroen]]></g:product_type>
-      <g:identifier_exists>no</g:identifier_exists>
-    </item>
-    <item>
       <g:id>2303184617626</g:id>
       <title><![CDATA[Ford Transit Connect Kombi 1.5 Tdci S/s Trend 230 L2 120Cv 6 Velocidades Etiqueta medioambiental C IVA y garantía Incl]]></title>
       <description><![CDATA[Ford Transit Connect Kombi 1.5 Tdci S/s Trend 230 L2 120Cv 6 Velocidades Etiqueta medioambiental C  IVA y garantía Incl de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
@@ -1587,68 +1401,6 @@
       <g:identifier_exists>no</g:identifier_exists>
     </item>
     <item>
-      <g:id>2403190258124</g:id>
-      <title><![CDATA[Dacia Dokker Van Essential 1.6 110Cv GLP Híbrido IVA y Garantía Incl]]></title>
-      <description><![CDATA[Dacia Dokker Van Essential 1.6 110Cv GLP Híbrido IVA y Garantía Incl de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
-      <link>https://www.midcar.net/dacia-dokker-van-essential-16-110cv-glp-hibrido-iva-y-garantia-incl-2021-2403190258124</link>
-      <g:link_template>https://www.midcar.net/dacia-dokker-van-essential-16-110cv-glp-hibrido-iva-y-garantia-incl-2021-2403190258124?store={102026}</g:link_template>
-      <g:image_link>https://midcar.azureedge.net/vehiculos/2403190258124/Dacia%20Dokker%20Van%20Essential%201.6%20110Cv%20GLP%20H%C3%ADbrido%20IVA%20y%20Garant%C3%ADa%20Incl%201-24032026190258125-1500px.jpg</g:image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2403190258124/Dacia%20Dokker%20Van%20Essential%201.6%20110Cv%20GLP%20H%C3%ADbrido%20IVA%20y%20Garant%C3%ADa%20Incl%202-24032026190258395-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2403190258124/Dacia%20Dokker%20Van%20Essential%201.6%20110Cv%20GLP%20H%C3%ADbrido%20IVA%20y%20Garant%C3%ADa%20Incl%203-24032026190258459-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2403190258124/Dacia%20Dokker%20Van%20Essential%201.6%20110Cv%20GLP%20H%C3%ADbrido%20IVA%20y%20Garant%C3%ADa%20Incl%204-24032026190258515-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2403190258124/Dacia%20Dokker%20Van%20Essential%201.6%20110Cv%20GLP%20H%C3%ADbrido%20IVA%20y%20Garant%C3%ADa%20Incl%205-24032026190258578-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2403190258124/Dacia%20Dokker%20Van%20Essential%201.6%20110Cv%20GLP%20H%C3%ADbrido%20IVA%20y%20Garant%C3%ADa%20Incl%206-24032026190258622-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2403190258124/Dacia%20Dokker%20Van%20Essential%201.6%20110Cv%20GLP%20H%C3%ADbrido%20IVA%20y%20Garant%C3%ADa%20Incl%207-24032026190258678-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2403190258124/Dacia%20Dokker%20Van%20Essential%201.6%20110Cv%20GLP%20H%C3%ADbrido%20IVA%20y%20Garant%C3%ADa%20Incl%208-24032026190258732-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2403190258124/Dacia%20Dokker%20Van%20Essential%201.6%20110Cv%20GLP%20H%C3%ADbrido%20IVA%20y%20Garant%C3%ADa%20Incl%209-24032026190258778-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2403190258124/Dacia%20Dokker%20Van%20Essential%201.6%20110Cv%20GLP%20H%C3%ADbrido%20IVA%20y%20Garant%C3%ADa%20Incl%2010-24032026190258832-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2403190258124/Dacia%20Dokker%20Van%20Essential%201.6%20110Cv%20GLP%20H%C3%ADbrido%20IVA%20y%20Garant%C3%ADa%20Incl%2011-24032026190258882-1500px.jpg</g:additional_image_link>
-      <g:brand><![CDATA[Dacia]]></g:brand>
-      <g:model><![CDATA[Dokker]]></g:model>
-      <g:mpn>2403190258124</g:mpn>
-      <g:condition>used</g:condition>
-      <g:availability>out_of_stock</g:availability>
-      <g:price>13950.00 EUR</g:price>
-      <g:date_first_registered>2021-01</g:date_first_registered>
-      <g:color><![CDATA[Blanco]]></g:color>
-      <g:mileage>98000 KM</g:mileage>
-      <g:store_code>102026</g:store_code>
-      <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>
-      <g:product_type><![CDATA[Vehículos > Coches de ocasión > Dacia]]></g:product_type>
-      <g:identifier_exists>no</g:identifier_exists>
-    </item>
-    <item>
-      <g:id>2503190231365</g:id>
-      <title><![CDATA[Peugeot Expert Long 2.0BlueHdi 120Cv XL IVA y Garantía Inc Etiqueta C Larga]]></title>
-      <description><![CDATA[Peugeot Expert Long 2.0BlueHdi 120Cv XL IVA y Garantía Inc Etiqueta C Larga de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
-      <link>https://www.midcar.net/peugeot-expert-long-20bluehdi-120cv-xl-iva-y-garantia-inc-etiqueta-c-larga-2020-2503190231365</link>
-      <g:link_template>https://www.midcar.net/peugeot-expert-long-20bluehdi-120cv-xl-iva-y-garantia-inc-etiqueta-c-larga-2020-2503190231365?store={102026}</g:link_template>
-      <g:image_link>https://midcar.azureedge.net/vehiculos/2503190231365/Peugeot%20Expert%20Long%202.0BlueHdi%20120Cv%20XL%20IVA%20y%20Garant%C3%ADa%20Inc%20Etiqueta%20C%20Larga1-25032026190231366-1500px.jpg</g:image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2503190231365/Peugeot%20Expert%20Long%202.0BlueHdi%20120Cv%20XL%20IVA%20y%20Garant%C3%ADa%20Inc%20Etiqueta%20C%20Larga2-25032026190231622-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2503190231365/Peugeot%20Expert%20Long%202.0BlueHdi%20120Cv%20XL%20IVA%20y%20Garant%C3%ADa%20Inc%20Etiqueta%20C%20Larga3-25032026190231688-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2503190231365/Peugeot%20Expert%20Long%202.0BlueHdi%20120Cv%20XL%20IVA%20y%20Garant%C3%ADa%20Inc%20Etiqueta%20C%20Larga4-25032026190231741-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2503190231365/Peugeot%20Expert%20Long%202.0BlueHdi%20120Cv%20XL%20IVA%20y%20Garant%C3%ADa%20Inc%20Etiqueta%20C%20Larga5-25032026190231795-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2503190231365/Peugeot%20Expert%20Long%202.0BlueHdi%20120Cv%20XL%20IVA%20y%20Garant%C3%ADa%20Inc%20Etiqueta%20C%20Larga6-25032026190231838-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2503190231365/Peugeot%20Expert%20Long%202.0BlueHdi%20120Cv%20XL%20IVA%20y%20Garant%C3%ADa%20Inc%20Etiqueta%20C%20Larga7-25032026190231887-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2503190231365/Peugeot%20Expert%20Long%202.0BlueHdi%20120Cv%20XL%20IVA%20y%20Garant%C3%ADa%20Inc%20Etiqueta%20C%20Larga8-25032026190231934-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2503190231365/Peugeot%20Expert%20Long%202.0BlueHdi%20120Cv%20XL%20IVA%20y%20Garant%C3%ADa%20Inc%20Etiqueta%20C%20Larga9-25032026190231994-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2503190231365/Peugeot%20Expert%20Long%202.0BlueHdi%20120Cv%20XL%20IVA%20y%20Garant%C3%ADa%20Inc%20Etiqueta%20C%20Larga11-25032026190232054-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2503190231365/Peugeot%20Expert%20Long%202.0BlueHdi%20120Cv%20XL%20IVA%20y%20Garant%C3%ADa%20Inc%20Etiqueta%20C%20Larga13-25032026190232105-1500px.jpg</g:additional_image_link>
-      <g:brand><![CDATA[Peugeot]]></g:brand>
-      <g:model><![CDATA[Expert]]></g:model>
-      <g:mpn>2503190231365</g:mpn>
-      <g:condition>used</g:condition>
-      <g:availability>in_stock</g:availability>
-      <g:price>18950.00 EUR</g:price>
-      <g:date_first_registered>2020-01</g:date_first_registered>
-      <g:color><![CDATA[Blanco]]></g:color>
-      <g:mileage>158000 KM</g:mileage>
-      <g:store_code>102026</g:store_code>
-      <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>
-      <g:product_type><![CDATA[Vehículos > Coches de ocasión > Peugeot]]></g:product_type>
-      <g:identifier_exists>no</g:identifier_exists>
-    </item>
-    <item>
       <g:id>2903153758876</g:id>
       <title><![CDATA[Seat Leon SP 1.4 e-Hybrid DSG S&S Xcellence Go L Etiqueta 0 Electrico Enchufable Gasolina]]></title>
       <description><![CDATA[Seat Leon SP 1.4 e-Hybrid DSG S&S Xcellence Go L Etiqueta 0 Electrico Enchufable Gasolina de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
@@ -1670,7 +1422,7 @@
       <g:mpn>2903153758876</g:mpn>
       <g:condition>used</g:condition>
       <g:availability>in_stock</g:availability>
-      <g:price>22400.00 EUR</g:price>
+      <g:price>19900.00 EUR</g:price>
       <g:date_first_registered>2021-01</g:date_first_registered>
       <g:color><![CDATA[Rojo Suave]]></g:color>
       <g:mileage>75000 KM</g:mileage>
@@ -1701,7 +1453,7 @@
       <g:mpn>2903164338155</g:mpn>
       <g:condition>used</g:condition>
       <g:availability>in_stock</g:availability>
-      <g:price>17900.00 EUR</g:price>
+      <g:price>16950.00 EUR</g:price>
       <g:date_first_registered>2020-01</g:date_first_registered>
       <g:color><![CDATA[Blanco]]></g:color>
       <g:mileage>138000 KM</g:mileage>
@@ -1732,7 +1484,7 @@
       <g:mpn>3003113739595</g:mpn>
       <g:condition>used</g:condition>
       <g:availability>in_stock</g:availability>
-      <g:price>18900.00 EUR</g:price>
+      <g:price>17950.00 EUR</g:price>
       <g:date_first_registered>2021-01</g:date_first_registered>
       <g:color><![CDATA[Blanco]]></g:color>
       <g:mileage>150000 KM</g:mileage>
@@ -1794,7 +1546,7 @@
       <g:mpn>0904150341240</g:mpn>
       <g:condition>used</g:condition>
       <g:availability>in_stock</g:availability>
-      <g:price>12450.00 EUR</g:price>
+      <g:price>11950.00 EUR</g:price>
       <g:date_first_registered>2020-01</g:date_first_registered>
       <g:color><![CDATA[Blanco]]></g:color>
       <g:mileage>116000 KM</g:mileage>
@@ -1856,7 +1608,7 @@
       <g:mpn>1004151140854</g:mpn>
       <g:condition>used</g:condition>
       <g:availability>in_stock</g:availability>
-      <g:price>16950.00 EUR</g:price>
+      <g:price>15950.00 EUR</g:price>
       <g:date_first_registered>2020-09</g:date_first_registered>
       <g:color><![CDATA[Blanco]]></g:color>
       <g:mileage>157000 KM</g:mileage>
@@ -2254,7 +2006,7 @@
       <g:model><![CDATA[Lodgy]]></g:model>
       <g:mpn>1205093632644</g:mpn>
       <g:condition>used</g:condition>
-      <g:availability>in_stock</g:availability>
+      <g:availability>out_of_stock</g:availability>
       <g:price>14950.00 EUR</g:price>
       <g:date_first_registered>2019-01</g:date_first_registered>
       <g:color><![CDATA[Gris]]></g:color>
@@ -2286,7 +2038,7 @@
       <g:mpn>1205113108540</g:mpn>
       <g:condition>used</g:condition>
       <g:availability>in_stock</g:availability>
-      <g:price>16950.00 EUR</g:price>
+      <g:price>15950.00 EUR</g:price>
       <g:date_first_registered>2022-01</g:date_first_registered>
       <g:color><![CDATA[Blanco]]></g:color>
       <g:mileage>131000 KM</g:mileage>
@@ -2358,68 +2110,6 @@
       <g:identifier_exists>no</g:identifier_exists>
     </item>
     <item>
-      <g:id>1905171009210</g:id>
-      <title><![CDATA[Fiat Fiorino 1.3Mjet E6+ 80Cv IVA y garantía Incl Etiqueta C]]></title>
-      <description><![CDATA[Fiat Fiorino 1.3Mjet E6+ 80Cv IVA y garantía Incl Etiqueta C de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
-      <link>https://www.midcar.net/fiat-fiorino-13mjet-e62b-80cv-iva-y-garantia-incl-etiqueta-c-2018-1905171009210</link>
-      <g:link_template>https://www.midcar.net/fiat-fiorino-13mjet-e62b-80cv-iva-y-garantia-incl-etiqueta-c-2018-1905171009210?store={102026}</g:link_template>
-      <g:image_link>https://midcar.azureedge.net/vehiculos/1905171009210/Fiat%20Fiorino%201.3Mjt%2080Cv%20Etiqueta%20C%20IVA%20Inc1-21052026171705799-1500px.jpg</g:image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1905171009210/Fiat%20Fiorino%201.3Mjt%2080Cv%20Etiqueta%20C%20IVA%20Inc2%20Informe%20Carfax-21052026171705896-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1905171009210/Fiat%20Fiorino%201.3Mjt%2080Cv%20Etiqueta%20C%20IVA%20Inc3Nacional-21052026171705945-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1905171009210/Fiat%20Fiorino%201.3Mjt%2080Cv%20Etiqueta%20C%20IVA%20Inc4-21052026171705993-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1905171009210/Fiat%20Fiorino%201.3Mjt%2080Cv%20Etiqueta%20C%20IVA%20Inc5-21052026171706048-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1905171009210/Fiat%20Fiorino%201.3Mjt%2080Cv%20Etiqueta%20C%20IVA%20Inc6-21052026171706092-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1905171009210/Fiat%20Fiorino%201.3Mjt%2080Cv%20Etiqueta%20C%20IVA%20Inc7-21052026171706140-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1905171009210/Fiat%20Fiorino%201.3Mjt%2080Cv%20Etiqueta%20C%20IVA%20Inc8%20Carga%20amplia-21052026171706184-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1905171009210/Fiat%20Fiorino%201.3Mjt%2080Cv%20Etiqueta%20C%20IVA%20Inc9%20Baca-21052026171706237-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1905171009210/Fiat%20Fiorino%201.3Mjt%2080Cv%20Etiqueta%20C%20IVA%20Inc10%20Sin%20Adblue-21052026171706280-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1905171009210/Fiat%20Fiorino%201.3Mjt%2080Cv%20Etiqueta%20C%20IVA%20Inc11-21052026171706323-1500px.jpg</g:additional_image_link>
-      <g:brand><![CDATA[Fiat]]></g:brand>
-      <g:model><![CDATA[Fiorino]]></g:model>
-      <g:mpn>1905171009210</g:mpn>
-      <g:condition>used</g:condition>
-      <g:availability>in_stock</g:availability>
-      <g:price>8450.00 EUR</g:price>
-      <g:date_first_registered>2018-01</g:date_first_registered>
-      <g:color><![CDATA[Blanco]]></g:color>
-      <g:mileage>80000 KM</g:mileage>
-      <g:store_code>102026</g:store_code>
-      <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>
-      <g:product_type><![CDATA[Vehículos > Coches de ocasión > Fiat]]></g:product_type>
-      <g:identifier_exists>no</g:identifier_exists>
-    </item>
-    <item>
-      <g:id>2005080240693</g:id>
-      <title><![CDATA[Ford Transit Connect Kombi Titanium 1.5ecoBlue 120Cv IVA y Garantía Inc Nacional]]></title>
-      <description><![CDATA[Ford Transit Connect  Kombi  Titanium 1.5ecoBlue 120Cv IVA y Garantía Inc Nacional de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
-      <link>https://www.midcar.net/ford-transit-connect--kombi--titanium-15ecoblue-120cv-iva-y-garantia-inc-nacional-2021-2005080240693</link>
-      <g:link_template>https://www.midcar.net/ford-transit-connect--kombi--titanium-15ecoblue-120cv-iva-y-garantia-inc-nacional-2021-2005080240693?store={102026}</g:link_template>
-      <g:image_link>https://midcar.azureedge.net/vehiculos/2005080240693/Ford%20Transit%20Connect%20Kombi%20Larga%20120Cv%20IVA%20y%20Garant%C3%ADa%20Inc1-20052026080240694-1500px.jpg</g:image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2005080240693/Ford%20Transit%20Connect%20Kombi%20Larga%20120Cv%20IVA%20y%20Garant%C3%ADa%20Inc2-20052026080240929-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2005080240693/Ford%20Transit%20Connect%20Kombi%20Larga%20120Cv%20IVA%20y%20Garant%C3%ADa%20Inc3-20052026080241008-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2005080240693/Ford%20Transit%20Connect%20Kombi%20Larga%20120Cv%20IVA%20y%20Garant%C3%ADa%20Inc4-20052026080241064-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2005080240693/Ford%20Transit%20Connect%20Kombi%20Larga%20120Cv%20IVA%20y%20Garant%C3%ADa%20Inc5-20052026080241112-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2005080240693/Ford%20Transit%20Connect%20Kombi%20Larga%20120Cv%20IVA%20y%20Garant%C3%ADa%20Inc6-20052026080241167-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2005080240693/Ford%20Transit%20Connect%20Kombi%20Larga%20120Cv%20IVA%20y%20Garant%C3%ADa%20Inc7-20052026080241213-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2005080240693/Ford%20Transit%20Connect%20Kombi%20Larga%20120Cv%20IVA%20y%20Garant%C3%ADa%20Inc8-20052026080241255-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2005080240693/Ford%20Transit%20Connect%20Kombi%20Larga%20120Cv%20IVA%20y%20Garant%C3%ADa%20Inc9-20052026080241314-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2005080240693/Ford%20Transit%20Connect%20Kombi%20Larga%20120Cv%20IVA%20y%20Garant%C3%ADa%20Inc10-20052026080241364-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2005080240693/Ford%20Transit%20Connect%20Kombi%20Larga%20120Cv%20IVA%20y%20Garant%C3%ADa%20Inc11-20052026080241422-1500px.jpg</g:additional_image_link>
-      <g:brand><![CDATA[Ford]]></g:brand>
-      <g:model><![CDATA[Transit Connect]]></g:model>
-      <g:mpn>2005080240693</g:mpn>
-      <g:condition>used</g:condition>
-      <g:availability>in_stock</g:availability>
-      <g:price>15950.00 EUR</g:price>
-      <g:date_first_registered>2021-04</g:date_first_registered>
-      <g:color><![CDATA[Negro Agate (metalizado)]]></g:color>
-      <g:mileage>180000 KM</g:mileage>
-      <g:store_code>102026</g:store_code>
-      <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>
-      <g:product_type><![CDATA[Vehículos > Coches de ocasión > Ford]]></g:product_type>
-      <g:identifier_exists>no</g:identifier_exists>
-    </item>
-    <item>
       <g:id>2605091638612</g:id>
       <title><![CDATA[Volkswagen Caddy Monovolumen Compacto Origin 2.0 TDI 102Cv]]></title>
       <description><![CDATA[Volkswagen Caddy Monovolumen Compacto Origin 2.0 TDI  102Cv de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
@@ -2441,71 +2131,10 @@
       <g:mpn>2605091638612</g:mpn>
       <g:condition>used</g:condition>
       <g:availability>in_stock</g:availability>
-      <g:price>26900.00 EUR</g:price>
+      <g:price>25900.00 EUR</g:price>
       <g:date_first_registered>2024-01</g:date_first_registered>
       <g:color><![CDATA[Costa Azul Metalizado]]></g:color>
       <g:mileage>69000 KM</g:mileage>
-      <g:store_code>102026</g:store_code>
-      <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>
-      <g:product_type><![CDATA[Vehículos > Coches de ocasión > Volkswagen]]></g:product_type>
-      <g:identifier_exists>no</g:identifier_exists>
-    </item>
-    <item>
-      <g:id>2705133943484</g:id>
-      <title><![CDATA[Vw Caddy 1.4Tgi 110Cv GNC Etiqueta ECO IVA y Garantía Inc Nacional]]></title>
-      <description><![CDATA[Vw Caddy 1.4Tgi 110Cv GNC Etiqueta ECO IVA y Garantía Inc Nacional de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
-      <link>https://www.midcar.net/vw-caddy-14tgi-110cv-gnc-etiqueta-eco-iva-y-garantia-inc-nacional-2020-2705133943484</link>
-      <g:link_template>https://www.midcar.net/vw-caddy-14tgi-110cv-gnc-etiqueta-eco-iva-y-garantia-inc-nacional-2020-2705133943484?store={102026}</g:link_template>
-      <g:image_link>https://midcar.azureedge.net/vehiculos/2705133943484/01-27052026133943485-1500px.jpg</g:image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2705133943484/02-27052026133943807-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2705133943484/03-27052026133943885-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2705133943484/04-27052026133943970-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2705133943484/05-27052026133944061-1500px.JPG</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2705133943484/06-27052026133944151-1500px.JPG</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2705133943484/07-27052026133944226-1500px.JPG</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2705133943484/08-27052026133944303-1500px.JPG</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2705133943484/09-27052026133944369-1500px.JPG</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2705133943484/010-27052026133944433-1500px.JPG</g:additional_image_link>
-      <g:brand><![CDATA[Volkswagen]]></g:brand>
-      <g:model><![CDATA[Caddy]]></g:model>
-      <g:mpn>2705133943484</g:mpn>
-      <g:condition>used</g:condition>
-      <g:availability>in_stock</g:availability>
-      <g:price>12950.00 EUR</g:price>
-      <g:date_first_registered>2020-01</g:date_first_registered>
-      <g:color><![CDATA[Rojo]]></g:color>
-      <g:mileage>91000 KM</g:mileage>
-      <g:store_code>102026</g:store_code>
-      <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>
-      <g:product_type><![CDATA[Vehículos > Coches de ocasión > Volkswagen]]></g:product_type>
-      <g:identifier_exists>no</g:identifier_exists>
-    </item>
-    <item>
-      <g:id>2705161958601</g:id>
-      <title><![CDATA[Volkswagen Caddy Maxi Profesional Furgón 2.0 TDI]]></title>
-      <description><![CDATA[Volkswagen Caddy Maxi Profesional Furgón 2.0 TDI de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
-      <link>https://www.midcar.net/volkswagen-caddy-maxi-profesional-furgon-20-tdi-2019-2705161958601</link>
-      <g:link_template>https://www.midcar.net/volkswagen-caddy-maxi-profesional-furgon-20-tdi-2019-2705161958601?store={102026}</g:link_template>
-      <g:image_link>https://midcar.azureedge.net/vehiculos/2705161958601/Vw%20Caddy%20Maxi%202.0Tdi1%20Nacional%201Due%C3%B1o-05062026133803555-1500px.jpg</g:image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2705161958601/Vw%20Caddy%20Maxi%202.0Tdi2%20Historila%20mantenimiento-05062026133803632-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2705161958601/Vw%20Caddy%20Maxi%202.0Tdi3%20Informe%20Carfax-05062026133803777-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2705161958601/Vw%20Caddy%20Maxi%202.0Tdi4-05062026133803816-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2705161958601/Vw%20Caddy%20Maxi%202.0Tdi5-05062026133803856-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2705161958601/Vw%20Caddy%20Maxi%202.0Tdi6-05062026133803903-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2705161958601/Vw%20Caddy%20Maxi%202.0Tdi7-05062026133803941-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2705161958601/Vw%20Caddy%20Maxi%202.0Tdi8-05062026133803995-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2705161958601/Vw%20Caddy%20Maxi%202.0Tdi9-05062026133804059-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2705161958601/Vw%20Caddy%20Maxi%202.0Tdi10-05062026133804119-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2705161958601/Vw%20Caddy%20Maxi%202.0Tdi11-05062026133804155-1500px.jpg</g:additional_image_link>
-      <g:brand><![CDATA[Volkswagen]]></g:brand>
-      <g:model><![CDATA[Caddy]]></g:model>
-      <g:mpn>2705161958601</g:mpn>
-      <g:condition>used</g:condition>
-      <g:availability>in_stock</g:availability>
-      <g:price>15950.00 EUR</g:price>
-      <g:date_first_registered>2019-01</g:date_first_registered>
-      <g:color><![CDATA[Blanco]]></g:color>
-      <g:mileage>58000 KM</g:mileage>
       <g:store_code>102026</g:store_code>
       <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>
       <g:product_type><![CDATA[Vehículos > Coches de ocasión > Volkswagen]]></g:product_type>
@@ -2517,15 +2146,17 @@
       <description><![CDATA[Vw Transporter 2.0Tdi 150Cv 4Motion Etiqueta C IVA y Garantía Inc Nacional de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
       <link>https://www.midcar.net/vw-transporter-20tdi-150cv-4motion-etiqueta-c-iva-y-garantia-inc-nacional-2020-2805095808659</link>
       <g:link_template>https://www.midcar.net/vw-transporter-20tdi-150cv-4motion-etiqueta-c-iva-y-garantia-inc-nacional-2020-2805095808659?store={102026}</g:link_template>
-      <g:image_link>https://midcar.azureedge.net/vehiculos/2805095808659/01-28052026095808660-1500px.jpg</g:image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2805095808659/02-28052026095808918-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2805095808659/03-28052026095808969-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2805095808659/04-28052026095809021-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2805095808659/05-28052026095809065-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2805095808659/6-28052026095809111-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2805095808659/07-28052026095809156-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2805095808659/08-28052026095809203-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2805095808659/09-28052026095809254-1500px.jpg</g:additional_image_link>
+      <g:image_link>https://midcar.azureedge.net/vehiculos/2805095808659/VW%20Transporter%202.0Tdi%20150Cv%204Motion%20150CV%20IVA%20Garant%C3%ADa%20Incl1-19062026161108720-1500px.jpg</g:image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2805095808659/VW%20Transporter%202.0Tdi%20150Cv%204Motion%20150CV%20IVA%20Garant%C3%ADa%20Incl2-19062026161108816-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2805095808659/VW%20Transporter%202.0Tdi%20150Cv%204Motion%20150CV%20IVA%20Garant%C3%ADa%20Incl3-19062026161108893-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2805095808659/VW%20Transporter%202.0Tdi%20150Cv%204Motion%20150CV%20IVA%20Garant%C3%ADa%20Incl4-19062026161108943-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2805095808659/VW%20Transporter%202.0Tdi%20150Cv%204Motion%20150CV%20IVA%20Garant%C3%ADa%20Incl5-19062026161109005-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2805095808659/VW%20Transporter%202.0Tdi%20150Cv%204Motion%20150CV%20IVA%20Garant%C3%ADa%20Incl6-19062026161109052-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2805095808659/VW%20Transporter%202.0Tdi%20150Cv%204Motion%20150CV%20IVA%20Garant%C3%ADa%20Incl7-19062026161109097-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2805095808659/VW%20Transporter%202.0Tdi%20150Cv%204Motion%20150CV%20IVA%20Garant%C3%ADa%20Incl8-19062026161109146-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2805095808659/VW%20Transporter%202.0Tdi%20150Cv%204Motion%20150CV%20IVA%20Garant%C3%ADa%20Incl9-19062026161109197-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2805095808659/VW%20Transporter%202.0Tdi%20150Cv%204Motion%20150CV%20IVA%20Garant%C3%ADa%20Incl10-19062026161109248-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2805095808659/VW%20Transporter%202.0Tdi%20150Cv%204Motion%20150CV%20IVA%20Garant%C3%ADa%20Incl11-19062026161109295-1500px.jpg</g:additional_image_link>
       <g:brand><![CDATA[Volkswagen]]></g:brand>
       <g:model><![CDATA[Transporter]]></g:model>
       <g:mpn>2805095808659</g:mpn>
@@ -2572,53 +2203,22 @@
       <g:identifier_exists>no</g:identifier_exists>
     </item>
     <item>
-      <g:id>0306201141705</g:id>
-      <title><![CDATA[Fiat Doblo 1.6Multijet 6 Velocidades Etiqueta medioambiental C IVA y Garantía Inc]]></title>
-      <description><![CDATA[Fiat Doblo 1.6Multijet 6 Velocidades Etiqueta medioambiental C IVA y Garantía Inc de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
-      <link>https://www.midcar.net/fiat-doblo-16multijet-6-velocidades-etiqueta-medioambiental-c-iva-y-garantia-inc-2016-0306201141705</link>
-      <g:link_template>https://www.midcar.net/fiat-doblo-16multijet-6-velocidades-etiqueta-medioambiental-c-iva-y-garantia-inc-2016-0306201141705?store={102026}</g:link_template>
-      <g:image_link>https://midcar.azureedge.net/vehiculos/0306201141705/PXL_20260601_173822724.PORTRAIT%20(FILEminimizer)-03062026201141763-1500px.jpg</g:image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0306201141705/PXL_20260601_173834519.PORTRAIT.ORIGINAL%20(FILEminimizer)-03062026201142223-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0306201141705/PXL_20260601_173841448.PORTRAIT%20(FILEminimizer)-03062026201142319-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0306201141705/PXL_20260601_173908699%20(FILEminimizer)-03062026201142434-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0306201141705/PXL_20260601_173917074%20(FILEminimizer)-03062026201142527-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0306201141705/PXL_20260601_173921949%20(FILEminimizer)-03062026201142587-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0306201141705/PXL_20260601_173924519%20(FILEminimizer)-03062026201142633-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0306201141705/PXL_20260601_173944456.PORTRAIT%20(FILEminimizer)-03062026201142676-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0306201141705/PXL_20260601_173959159.PORTRAIT%20(FILEminimizer)-03062026201142730-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0306201141705/PXL_20260601_174022691.PORTRAIT%20(FILEminimizer)-03062026201142784-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0306201141705/PXL_20260601_174027366.PORTRAIT%20(FILEminimizer)-03062026201142833-1500px.jpg</g:additional_image_link>
-      <g:brand><![CDATA[Fiat]]></g:brand>
-      <g:model><![CDATA[Doblo]]></g:model>
-      <g:mpn>0306201141705</g:mpn>
-      <g:condition>used</g:condition>
-      <g:availability>in_stock</g:availability>
-      <g:price>11700.00 EUR</g:price>
-      <g:date_first_registered>2016-01</g:date_first_registered>
-      <g:color><![CDATA[Marron]]></g:color>
-      <g:mileage>126000 KM</g:mileage>
-      <g:store_code>102026</g:store_code>
-      <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>
-      <g:product_type><![CDATA[Vehículos > Coches de ocasión > Fiat]]></g:product_type>
-      <g:identifier_exists>no</g:identifier_exists>
-    </item>
-    <item>
       <g:id>0306203534086</g:id>
       <title><![CDATA[Peugeot Partner Premium Long 1.5 BlueHDi 100Cv Etiqueta C IVA y Garantía Incl]]></title>
       <description><![CDATA[Peugeot Partner Premium  Long 1.5 BlueHDi 100Cv Etiqueta C IVA y Garantía Incl de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
       <link>https://www.midcar.net/peugeot-partner-premium--long-15-bluehdi-100cv-etiqueta-c-iva-y-garantia-incl-2022-0306203534086</link>
       <g:link_template>https://www.midcar.net/peugeot-partner-premium--long-15-bluehdi-100cv-etiqueta-c-iva-y-garantia-incl-2022-0306203534086?store={102026}</g:link_template>
-      <g:image_link>https://midcar.azureedge.net/vehiculos/0306203534086/PXL_20260601_180715943.PORTRAIT%20(FILEminimizer)-03062026203534087-1500px.jpg</g:image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0306203534086/PXL_20260601_180723302.PORTRAIT.ORIGINAL%20(FILEminimizer)-03062026203534258-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0306203534086/PXL_20260601_180729594.PORTRAIT%20(FILEminimizer)-03062026203534321-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0306203534086/PXL_20260601_180734223.PORTRAIT%20(FILEminimizer)-03062026203534375-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0306203534086/PXL_20260601_180742344.PORTRAIT%20(FILEminimizer)-03062026203534414-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0306203534086/PXL_20260601_180753702.PORTRAIT%20(FILEminimizer)-03062026203534468-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0306203534086/PXL_20260601_180756007.PORTRAIT%20(FILEminimizer)-03062026203534521-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0306203534086/PXL_20260601_180803943.PORTRAIT%20(FILEminimizer)-03062026203534578-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0306203534086/PXL_20260601_180812907.PORTRAIT%20(FILEminimizer)-03062026203534629-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0306203534086/PXL_20260601_180816766.PORTRAIT%20(FILEminimizer)-03062026203534680-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0306203534086/PXL_20260601_180823763.PORTRAIT%20(FILEminimizer)-03062026203534721-1500px.jpg</g:additional_image_link>
+      <g:image_link>https://midcar.azureedge.net/vehiculos/0306203534086/(FILEminimizer)%20PXL_20260601_180715943.PORTRAIT-23062026092244481-1500px.jpg</g:image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0306203534086/(FILEminimizer)%20PXL_20260601_180723302.PORTRAIT.ORIGINAL-23062026092244585-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0306203534086/(FILEminimizer)%20PXL_20260601_180729594.PORTRAIT-23062026092244630-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0306203534086/(FILEminimizer)%20PXL_20260601_180734223.PORTRAIT-23062026092244675-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0306203534086/(FILEminimizer)%20PXL_20260601_180742344.PORTRAIT-23062026092244733-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0306203534086/(FILEminimizer)%20PXL_20260601_180753702.PORTRAIT-23062026092244786-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0306203534086/(FILEminimizer)%20PXL_20260601_180756007.PORTRAIT-23062026092244844-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0306203534086/(FILEminimizer)%20PXL_20260601_180803943.PORTRAIT-23062026092244889-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0306203534086/(FILEminimizer)%20PXL_20260601_180812907.PORTRAIT-23062026092244936-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0306203534086/(FILEminimizer)%20PXL_20260601_180816766.PORTRAIT-23062026092244987-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0306203534086/(FILEminimizer)%20PXL_20260601_180823763.PORTRAIT-23062026092245035-1500px.jpg</g:additional_image_link>
       <g:brand><![CDATA[Peugeot]]></g:brand>
       <g:model><![CDATA[Partner]]></g:model>
       <g:mpn>0306203534086</g:mpn>
@@ -2701,8 +2301,7 @@
       <description><![CDATA[Vw Caddy 1.4TGI GNC Hybrid Etiqueta ECO 110Cv IVA y Garantía Incl Nacional de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
       <link>https://www.midcar.net/vw-caddy-14tgi-gnc-hybrid-etiqueta-eco-110cv-iva-y-garantia-incl-nacional-2020-1006155914258</link>
       <g:link_template>https://www.midcar.net/vw-caddy-14tgi-gnc-hybrid-etiqueta-eco-110cv-iva-y-garantia-incl-nacional-2020-1006155914258?store={102026}</g:link_template>
-      <g:image_link>https://midcar.azureedge.net/vehiculos/1006155914258/Vw%20Caddy%201.4TGI%20110Cv%20Etiqueta%20ECO1-10062026155914259-1500px.jpg</g:image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1006155914258/Vw%20Caddy%201.4TGI%20110Cv%20Etiqueta%20ECO2%20IVA%20y%20garant%C3%ADa%20Inc-10062026155914499-1500px.jpg</g:additional_image_link>
+      <g:image_link>https://midcar.azureedge.net/vehiculos/1006155914258/Vw%20Caddy%201.4TGI%20110Cv%20Etiqueta%20ECO2%20IVA%20y%20garant%C3%ADa%20Inc-10062026155914499-1500px.jpg</g:image_link>
       <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1006155914258/Vw%20Caddy%201.4TGI%20110Cv%20Etiqueta%20ECO3%20Nacional%201Due%C3%B1o-10062026155914567-1500px.jpg</g:additional_image_link>
       <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1006155914258/Vw%20Caddy%201.4TGI%20110Cv%20Etiqueta%20ECO4-10062026155914609-1500px.jpg</g:additional_image_link>
       <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1006155914258/Vw%20Caddy%201.4TGI%20110Cv%20Etiqueta%20ECO5-10062026155914650-1500px.jpg</g:additional_image_link>
@@ -2712,6 +2311,7 @@
       <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1006155914258/Vw%20Caddy%201.4TGI%20110Cv%20Etiqueta%20ECO9-10062026155914825-1500px.jpg</g:additional_image_link>
       <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1006155914258/Vw%20Caddy%201.4TGI%20110Cv%20Etiqueta%20ECO10-10062026155914864-1500px.jpg</g:additional_image_link>
       <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1006155914258/Vw%20Caddy%201.4TGI%20110Cv%20Etiqueta%20ECO11-10062026155914913-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1006155914258/Vw%20Caddy%201.4TGI%20110Cv%20Etiqueta%20ECO12-10062026155914960-1500px.jpg</g:additional_image_link>
       <g:brand><![CDATA[Volkswagen]]></g:brand>
       <g:model><![CDATA[Caddy]]></g:model>
       <g:mpn>1006155914258</g:mpn>
@@ -2763,17 +2363,17 @@
       <description><![CDATA[Ford Transit Connect 3Plazas Automatica 1.5EcoBlue 120Cv Etiqueta C IVA y Garantia Inc de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
       <link>https://www.midcar.net/ford-transit-connect-3plazas-automatica-15ecoblue-120cv-etiqueta-c-iva-y-garantia-inc-2021-1106173433213</link>
       <g:link_template>https://www.midcar.net/ford-transit-connect-3plazas-automatica-15ecoblue-120cv-etiqueta-c-iva-y-garantia-inc-2021-1106173433213?store={102026}</g:link_template>
-      <g:image_link>https://midcar.azureedge.net/vehiculos/1106173433213/01-11062026173433214-1500px.jpg</g:image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1106173433213/02-11062026173433483-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1106173433213/03-11062026173433553-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1106173433213/04-11062026173433630-1500px.jpg</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1106173433213/05-11062026173433703-1500px.JPG</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1106173433213/06-11062026173433767-1500px.JPG</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1106173433213/07-11062026173433826-1500px.JPG</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1106173433213/08-11062026173433882-1500px.JPG</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1106173433213/09-11062026173433962-1500px.JPG</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1106173433213/011-11062026173434014-1500px.JPG</g:additional_image_link>
-      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1106173433213/040-11062026173434057-1500px.JPG</g:additional_image_link>
+      <g:image_link>https://midcar.azureedge.net/vehiculos/1106173433213/Ford%20Transit%20Connect%20L2%20Automatico%203Plazas1-18062026143654220-1500px.jpg</g:image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1106173433213/Ford%20Transit%20Connect%20L2%20Automatico%203Plazas%20120Cv%20IVA%20y%20Garant%C3%ADa%20Inc-18062026143654142-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1106173433213/Ford%20Transit%20Connect%20L2%20Automatico%203Plazas3%20Nacional-18062026143654262-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1106173433213/Ford%20Transit%20Connect%20L2%20Automatico%203Plazas4%20Informe%20carfax-18062026143654312-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1106173433213/Ford%20Transit%20Connect%20L2%20Automatico%203Plazas5-18062026143654360-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1106173433213/Ford%20Transit%20Connect%20L2%20Automatico%203Plazas6%20trampilla-18062026143654414-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1106173433213/Ford%20Transit%20Connect%20L2%20Automatico%203Plazas7-18062026143654519-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1106173433213/Ford%20Transit%20Connect%20L2%20Automatico%203Plazas8-18062026143654557-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1106173433213/Ford%20Transit%20Connect%20L2%20Automatico%203Plazas9-18062026143654620-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1106173433213/Ford%20Transit%20Connect%20L2%20Automatico%203Plazas10-18062026143654672-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1106173433213/Ford%20Transit%20Connect%20L2%20Automatico%203Plazas11-18062026143654722-1500px.jpg</g:additional_image_link>
       <g:brand><![CDATA[Ford]]></g:brand>
       <g:model><![CDATA[Transit Connect]]></g:model>
       <g:mpn>1106173433213</g:mpn>
@@ -2786,6 +2386,462 @@
       <g:store_code>102026</g:store_code>
       <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>
       <g:product_type><![CDATA[Vehículos > Coches de ocasión > Ford]]></g:product_type>
+      <g:identifier_exists>no</g:identifier_exists>
+    </item>
+    <item>
+      <g:id>1706113441218</g:id>
+      <title><![CDATA[Volkswagen Caddy Kombi 1.4 TGI GNC 110Cv Etiqueta ECO IVA y garantía Inc Nacional Pocos km]]></title>
+      <description><![CDATA[Volkswagen Caddy Kombi 1.4 TGI GNC 110Cv Etiqueta ECO IVA y garantía Inc Nacional Pocos km de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
+      <link>https://www.midcar.net/volkswagen-caddy-kombi-14-tgi-gnc-110cv-etiqueta-eco-iva-y-garantia-inc-nacional-pocos-km-2020-1706113441218</link>
+      <g:link_template>https://www.midcar.net/volkswagen-caddy-kombi-14-tgi-gnc-110cv-etiqueta-eco-iva-y-garantia-inc-nacional-pocos-km-2020-1706113441218?store={102026}</g:link_template>
+      <g:image_link>https://midcar.azureedge.net/vehiculos/1706113441218/Vw%20Caddy%20Kombi%201.4TGI%20GNC%205%20Plazas%20110Cv%20IVA%20Garant%C3%ADa%20Inc%20Etiqueta%20ECO1-03072026182212507-1500px.jpg</g:image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1706113441218/Vw%20Caddy%20Kombi%201.4TGI%20GNC%205%20Plazas%20110Cv%20IVA%20Garant%C3%ADa%20Inc%20Etiqueta%20ECO2-03072026182212600-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1706113441218/Vw%20Caddy%20Kombi%201.4TGI%20GNC%205%20Plazas%20110Cv%20IVA%20Garant%C3%ADa%20Inc%20Etiqueta%20ECO3-03072026182212656-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1706113441218/Vw%20Caddy%20Kombi%201.4TGI%20GNC%205%20Plazas%20110Cv%20IVA%20Garant%C3%ADa%20Inc%20Etiqueta%20ECO4-03072026182212707-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1706113441218/Vw%20Caddy%20Kombi%201.4TGI%20GNC%205%20Plazas%20110Cv%20IVA%20Garant%C3%ADa%20Inc%20Etiqueta%20ECO5-03072026182212754-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1706113441218/Vw%20Caddy%20Kombi%201.4TGI%20GNC%205%20Plazas%20110Cv%20IVA%20Garant%C3%ADa%20Inc%20Etiqueta%20ECO6-03072026182212803-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1706113441218/Vw%20Caddy%20Kombi%201.4TGI%20GNC%205%20Plazas%20110Cv%20IVA%20Garant%C3%ADa%20Inc%20Etiqueta%20ECO7-03072026182212849-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1706113441218/Vw%20Caddy%20Kombi%201.4TGI%20GNC%205%20Plazas%20110Cv%20IVA%20Garant%C3%ADa%20Inc%20Etiqueta%20ECO8-03072026182212893-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1706113441218/Vw%20Caddy%20Kombi%201.4TGI%20GNC%205%20Plazas%20110Cv%20IVA%20Garant%C3%ADa%20Inc%20Etiqueta%20ECO9-03072026182212937-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1706113441218/Vw%20Caddy%20Kombi%201.4TGI%20GNC%205%20Plazas%20110Cv%20IVA%20Garant%C3%ADa%20Inc%20Etiqueta%20ECO10-03072026182212992-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1706113441218/Vw%20Caddy%20Kombi%201.4TGI%20GNC%205%20Plazas%20110Cv%20IVA%20Garant%C3%ADa%20Inc%20Etiqueta%20ECO11-03072026182213041-1500px.jpg</g:additional_image_link>
+      <g:brand><![CDATA[Volkswagen]]></g:brand>
+      <g:model><![CDATA[Caddy]]></g:model>
+      <g:mpn>1706113441218</g:mpn>
+      <g:condition>used</g:condition>
+      <g:availability>in_stock</g:availability>
+      <g:price>17950.00 EUR</g:price>
+      <g:date_first_registered>2020-01</g:date_first_registered>
+      <g:color><![CDATA[Blanco]]></g:color>
+      <g:mileage>51000 KM</g:mileage>
+      <g:store_code>102026</g:store_code>
+      <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>
+      <g:product_type><![CDATA[Vehículos > Coches de ocasión > Volkswagen]]></g:product_type>
+      <g:identifier_exists>no</g:identifier_exists>
+    </item>
+    <item>
+      <g:id>1706115213879</g:id>
+      <title><![CDATA[Citroen Berlingo Premium XL 1.5 BlueHDi 100Cv Etiqueta C IVA Garantía Incl Nacional]]></title>
+      <description><![CDATA[Citroen Berlingo Premium  XL 1.5 BlueHDi 100Cv Etiqueta C IVA Garantía Incl Nacional de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
+      <link>https://www.midcar.net/citroen-berlingo-premium--xl-15-bluehdi-100cv-etiqueta-c-iva-garantia-incl-nacional-2022-1706115213879</link>
+      <g:link_template>https://www.midcar.net/citroen-berlingo-premium--xl-15-bluehdi-100cv-etiqueta-c-iva-garantia-incl-nacional-2022-1706115213879?store={102026}</g:link_template>
+      <g:image_link>https://midcar.azureedge.net/vehiculos/1706115213879/Citroen%20Berlingo%20XL%201.5BlueHdi%20100Cv%203Plazas%20IVA%20Inc1%20Larga%20L-18062026175649238-1500px.jpg</g:image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1706115213879/Citroen%20Berlingo%20XL%201.5BlueHdi%20100Cv%203Plazas%20IVA%20Inc2%20Informe%20Carfax-18062026175649315-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1706115213879/Citroen%20Berlingo%20XL%201.5BlueHdi%20100Cv%203Plazas%20IVA%20Inc3%20Nacional-18062026175649383-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1706115213879/Citroen%20Berlingo%20XL%201.5BlueHdi%20100Cv%203Plazas%20IVA%20Inc4-18062026175649436-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1706115213879/Citroen%20Berlingo%20XL%201.5BlueHdi%20100Cv%203Plazas%20IVA%20Inc5-18062026175649475-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1706115213879/Citroen%20Berlingo%20XL%201.5BlueHdi%20100Cv%203Plazas%20IVA%20Inc6-18062026175649516-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1706115213879/Citroen%20Berlingo%20XL%201.5BlueHdi%20100Cv%203Plazas%20IVA%20Inc7-18062026175649578-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1706115213879/Citroen%20Berlingo%20XL%201.5BlueHdi%20100Cv%203Plazas%20IVA%20Inc8-18062026175649626-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1706115213879/Citroen%20Berlingo%20XL%201.5BlueHdi%20100Cv%203Plazas%20IVA%20Inc9-18062026175649671-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1706115213879/Citroen%20Berlingo%20XL%201.5BlueHdi%20100Cv%203Plazas%20IVA%20Inc10-18062026175649759-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1706115213879/Citroen%20Berlingo%20XL%201.5BlueHdi%20100Cv%203Plazas%20IVA%20Inc11-18062026175649808-1500px.jpg</g:additional_image_link>
+      <g:brand><![CDATA[Citroen]]></g:brand>
+      <g:model><![CDATA[Berlingo]]></g:model>
+      <g:mpn>1706115213879</g:mpn>
+      <g:condition>used</g:condition>
+      <g:availability>in_stock</g:availability>
+      <g:price>15950.00 EUR</g:price>
+      <g:date_first_registered>2022-01</g:date_first_registered>
+      <g:color><![CDATA[Blanco]]></g:color>
+      <g:mileage>72000 KM</g:mileage>
+      <g:store_code>102026</g:store_code>
+      <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>
+      <g:product_type><![CDATA[Vehículos > Coches de ocasión > Citroen]]></g:product_type>
+      <g:identifier_exists>no</g:identifier_exists>
+    </item>
+    <item>
+      <g:id>1806150252539</g:id>
+      <title><![CDATA[Ford Transit Connect Van VAN 1.5EcoBlue 100Cv TREND 210 L2 3 Plazas Etiqueta C IVA y Garantía Incl]]></title>
+      <description><![CDATA[Ford Transit Connect Van VAN 1.5EcoBlue 100Cv TREND 210 L2 3 Plazas Etiqueta C IVA y Garantía Incl de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
+      <link>https://www.midcar.net/ford-transit-connect-van-van-15ecoblue-100cv-trend-210-l2-3-plazas-etiqueta-c-iva-y-garantia-incl-2020-1806150252539</link>
+      <g:link_template>https://www.midcar.net/ford-transit-connect-van-van-15ecoblue-100cv-trend-210-l2-3-plazas-etiqueta-c-iva-y-garantia-incl-2020-1806150252539?store={102026}</g:link_template>
+      <g:image_link>https://midcar.azureedge.net/vehiculos/1806150252539/01-18062026150252540-1500px.jpg</g:image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1806150252539/02-18062026150252802-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1806150252539/03-18062026150252875-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1806150252539/04-18062026150252965-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1806150252539/05-18062026150253035-1500px.JPG</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1806150252539/06-18062026150253090-1500px.JPG</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1806150252539/07-18062026150253139-1500px.JPG</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1806150252539/08-18062026150253193-1500px.JPG</g:additional_image_link>
+      <g:brand><![CDATA[Ford]]></g:brand>
+      <g:model><![CDATA[Transit Connect]]></g:model>
+      <g:mpn>1806150252539</g:mpn>
+      <g:condition>used</g:condition>
+      <g:availability>in_stock</g:availability>
+      <g:price>16950.00 EUR</g:price>
+      <g:date_first_registered>2020-01</g:date_first_registered>
+      <g:color><![CDATA[Blanco]]></g:color>
+      <g:mileage>92000 KM</g:mileage>
+      <g:store_code>102026</g:store_code>
+      <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>
+      <g:product_type><![CDATA[Vehículos > Coches de ocasión > Ford]]></g:product_type>
+      <g:identifier_exists>no</g:identifier_exists>
+    </item>
+    <item>
+      <g:id>2206151753582</g:id>
+      <title><![CDATA[Ford Transit Connect 1.5EcoBlueTrend 240 L2 4 Puertas 100Cv, 6 Velocidades, 3 Plazas, Etiqueta medioambiental C]]></title>
+      <description><![CDATA[Ford Transit Connect  1.5EcoBlueTrend 240 L2 4 Puertas 100Cv, 6 Velocidades, 3 Plazas, Etiqueta medioambiental C de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
+      <link>https://www.midcar.net/ford-transit-connect--15ecobluetrend-240-l2-4-puertas-100cv-6-velocidades-3-plazas-etiqueta-medioambiental-c-2022-2206151753582</link>
+      <g:link_template>https://www.midcar.net/ford-transit-connect--15ecobluetrend-240-l2-4-puertas-100cv-6-velocidades-3-plazas-etiqueta-medioambiental-c-2022-2206151753582?store={102026}</g:link_template>
+      <g:image_link>https://midcar.azureedge.net/vehiculos/2206151753582/Ford%20Transit%20Connect%20L2%203Plazas%20Azul%20IVA%20y%20Garant%C3%ADa%20Inc1%20Historial%20Mantenimiento-26062026151517807-1500px.jpg</g:image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2206151753582/Ford%20Transit%20Connect%20L2%203Plazas%20Azul%20IVA%20y%20Garant%C3%ADa%20Inc2%20Informe%20Carfax-26062026151517901-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2206151753582/Ford%20Transit%20Connect%20L2%203Plazas%20Azul%20IVA%20y%20Garant%C3%ADa%20Inc3%20PrimerDue%C3%B1o-26062026151517955-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2206151753582/Ford%20Transit%20Connect%20L2%203Plazas%20Azul%20IVA%20y%20Garant%C3%ADa%20Inc4-26062026151517999-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2206151753582/Ford%20Transit%20Connect%20L2%203Plazas%20Azul%20IVA%20y%20Garant%C3%ADa%20Inc5-26062026151518046-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2206151753582/Ford%20Transit%20Connect%20L2%203Plazas%20Azul%20IVA%20y%20Garant%C3%ADa%20Inc6-26062026151518151-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2206151753582/Ford%20Transit%20Connect%20L2%203Plazas%20Azul%20IVA%20y%20Garant%C3%ADa%20Inc7-26062026151518197-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2206151753582/Ford%20Transit%20Connect%20L2%203Plazas%20Azul%20IVA%20y%20Garant%C3%ADa%20Inc8-26062026151518246-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2206151753582/Ford%20Transit%20Connect%20L2%203Plazas%20Azul%20IVA%20y%20Garant%C3%ADa%20Inc9-26062026151518288-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2206151753582/Ford%20Transit%20Connect%20L2%203Plazas%20Azul%20IVA%20y%20Garant%C3%ADa%20Inc10-26062026151518339-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2206151753582/Ford%20Transit%20Connect%20L2%203Plazas%20Azul%20IVA%20y%20Garant%C3%ADa%20Inc11-26062026151518387-1500px.jpg</g:additional_image_link>
+      <g:brand><![CDATA[Ford]]></g:brand>
+      <g:model><![CDATA[Transit Connect]]></g:model>
+      <g:mpn>2206151753582</g:mpn>
+      <g:condition>used</g:condition>
+      <g:availability>in_stock</g:availability>
+      <g:price>17950.00 EUR</g:price>
+      <g:date_first_registered>2022-01</g:date_first_registered>
+      <g:color><![CDATA[Azul báltico sólido]]></g:color>
+      <g:mileage>104000 KM</g:mileage>
+      <g:store_code>102026</g:store_code>
+      <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>
+      <g:product_type><![CDATA[Vehículos > Coches de ocasión > Ford]]></g:product_type>
+      <g:identifier_exists>no</g:identifier_exists>
+    </item>
+    <item>
+      <g:id>2206170830070</g:id>
+      <title><![CDATA[Fiat Fiorino 1.3Mjet E6+ 80Cv IVA y garantía Inc Etiqueta C]]></title>
+      <description><![CDATA[Fiat Fiorino 1.3Mjet E6+ 80Cv IVA y garantía Inc Etiqueta C de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
+      <link>https://www.midcar.net/fiat-fiorino-13mjet-e62b-80cv-iva-y-garantia-inc-etiqueta-c-2021-2206170830070</link>
+      <g:link_template>https://www.midcar.net/fiat-fiorino-13mjet-e62b-80cv-iva-y-garantia-inc-etiqueta-c-2021-2206170830070?store={102026}</g:link_template>
+      <g:image_link>https://midcar.azureedge.net/vehiculos/2206170830070/Fiat%20Fiorino%201.3Mjt%2080Cv%20IVA%20y%20Garant%C3%ADa%20Inc%20Etiqueta%20C1-22062026170830071-1500px.jpg</g:image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2206170830070/Fiat%20Fiorino%201.3Mjt%2080Cv%20IVA%20y%20Garant%C3%ADa%20Inc%20Etiqueta%20C2-22062026170830318-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2206170830070/Fiat%20Fiorino%201.3Mjt%2080Cv%20IVA%20y%20Garant%C3%ADa%20Inc%20Etiqueta%20C3-22062026170830368-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2206170830070/Fiat%20Fiorino%201.3Mjt%2080Cv%20IVA%20y%20Garant%C3%ADa%20Inc%20Etiqueta%20C4-22062026170830413-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2206170830070/Fiat%20Fiorino%201.3Mjt%2080Cv%20IVA%20y%20Garant%C3%ADa%20Inc%20Etiqueta%20C6-22062026170830464-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2206170830070/Fiat%20Fiorino%201.3Mjt%2080Cv%20IVA%20y%20Garant%C3%ADa%20Inc%20Etiqueta%20C7-22062026170830515-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2206170830070/Fiat%20Fiorino%201.3Mjt%2080Cv%20IVA%20y%20Garant%C3%ADa%20Inc%20Etiqueta%20C8-22062026170830563-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2206170830070/Fiat%20Fiorino%201.3Mjt%2080Cv%20IVA%20y%20Garant%C3%ADa%20Inc%20Etiqueta%20C9-22062026170830607-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2206170830070/Fiat%20Fiorino%201.3Mjt%2080Cv%20IVA%20y%20Garant%C3%ADa%20Inc%20Etiqueta%20C11-22062026170830656-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2206170830070/Fiat%20Fiorino%201.3Mjt%2080Cv%20IVA%20y%20Garant%C3%ADa%20Inc%20Etiqueta%20C12-22062026170830702-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2206170830070/Fiat%20Fiorino%201.3Mjt%2080Cv%20IVA%20y%20Garant%C3%ADa%20Inc%20Etiqueta%20C13-22062026170830769-1500px.jpg</g:additional_image_link>
+      <g:brand><![CDATA[Fiat]]></g:brand>
+      <g:model><![CDATA[Fiorino]]></g:model>
+      <g:mpn>2206170830070</g:mpn>
+      <g:condition>used</g:condition>
+      <g:availability>in_stock</g:availability>
+      <g:price>9950.00 EUR</g:price>
+      <g:date_first_registered>2021-01</g:date_first_registered>
+      <g:color><![CDATA[Blanco]]></g:color>
+      <g:mileage>59000 KM</g:mileage>
+      <g:store_code>102026</g:store_code>
+      <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>
+      <g:product_type><![CDATA[Vehículos > Coches de ocasión > Fiat]]></g:product_type>
+      <g:identifier_exists>no</g:identifier_exists>
+    </item>
+    <item>
+      <g:id>2306160806272</g:id>
+      <title><![CDATA[Fiat Fiorino 1.3Mjet E6+ 80Cv IVA y garantía Incl Etiqueta C]]></title>
+      <description><![CDATA[Fiat Fiorino 1.3Mjet E6+ 80Cv IVA y garantía Incl Etiqueta C de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
+      <link>https://www.midcar.net/fiat-fiorino-13mjet-e62b-80cv-iva-y-garantia-incl-etiqueta-c-2018-2306160806272</link>
+      <g:link_template>https://www.midcar.net/fiat-fiorino-13mjet-e62b-80cv-iva-y-garantia-incl-etiqueta-c-2018-2306160806272?store={102026}</g:link_template>
+      <g:image_link>https://midcar.azureedge.net/vehiculos/2306160806272/01-23062026160806273-1500px.JPG</g:image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306160806272/02-23062026160806579-1500px.JPG</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306160806272/03-23062026160806676-1500px.JPG</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306160806272/04-23062026160806753-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306160806272/05-23062026160806823-1500px.JPG</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306160806272/06-23062026160806887-1500px.JPG</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306160806272/07-23062026160806945-1500px.JPG</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306160806272/08-23062026160807006-1500px.JPG</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306160806272/09-23062026160807077-1500px.JPG</g:additional_image_link>
+      <g:brand><![CDATA[Fiat]]></g:brand>
+      <g:model><![CDATA[Fiorino]]></g:model>
+      <g:mpn>2306160806272</g:mpn>
+      <g:condition>used</g:condition>
+      <g:availability>in_stock</g:availability>
+      <g:price>8450.00 EUR</g:price>
+      <g:date_first_registered>2018-01</g:date_first_registered>
+      <g:color><![CDATA[Blanco]]></g:color>
+      <g:mileage>86000 KM</g:mileage>
+      <g:store_code>102026</g:store_code>
+      <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>
+      <g:product_type><![CDATA[Vehículos > Coches de ocasión > Fiat]]></g:product_type>
+      <g:identifier_exists>no</g:identifier_exists>
+    </item>
+    <item>
+      <g:id>2306161344545</g:id>
+      <title><![CDATA[Ford Transit Connect 3Plazas 1.5EcoBlueTrend 240 L2 4 Puertas 100Cv 6 Velocidades Etiqueta medioambiental C]]></title>
+      <description><![CDATA[Ford Transit Connect 3Plazas 1.5EcoBlueTrend 240 L2 4 Puertas 100Cv 6 Velocidades Etiqueta medioambiental C de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
+      <link>https://www.midcar.net/ford-transit-connect-3plazas-15ecobluetrend-240-l2-4-puertas-100cv-6-velocidades-etiqueta-medioambiental-c-2022-2306161344545</link>
+      <g:link_template>https://www.midcar.net/ford-transit-connect-3plazas-15ecobluetrend-240-l2-4-puertas-100cv-6-velocidades-etiqueta-medioambiental-c-2022-2306161344545?store={102026}</g:link_template>
+      <g:image_link>https://midcar.azureedge.net/vehiculos/2306161344545/(FILEminimizer)%20PXL_20260703_152043328.PORTRAIT-03072026164706185-1500px.jpg</g:image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306161344545/(FILEminimizer)%20PXL_20260703_152101882.PORTRAIT.ORIGINAL-03072026164706273-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306161344545/(FILEminimizer)%20PXL_20260703_152122933.PORTRAIT.ORIGINAL-03072026164706341-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306161344545/(FILEminimizer)%20PXL_20260703_152138222.PORTRAIT-03072026164706386-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306161344545/(FILEminimizer)%20PXL_20260703_152142027.PORTRAIT-03072026164706438-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306161344545/(FILEminimizer)%20PXL_20260703_152150709.PORTRAIT.ORIGINAL-03072026164706489-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306161344545/(FILEminimizer)%20PXL_20260703_152204451.PORTRAIT-03072026164706562-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306161344545/(FILEminimizer)%20PXL_20260703_152225988.PORTRAIT.ORIGINAL-03072026164706619-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306161344545/(FILEminimizer)%20PXL_20260703_152234465.PORTRAIT-03072026164706672-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306161344545/(FILEminimizer)%20PXL_20260703_152258694.PORTRAIT-03072026164706725-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306161344545/(FILEminimizer)%20PXL_20260703_152301454.PORTRAIT-03072026164706777-1500px.jpg</g:additional_image_link>
+      <g:brand><![CDATA[Ford]]></g:brand>
+      <g:model><![CDATA[Transit Connect]]></g:model>
+      <g:mpn>2306161344545</g:mpn>
+      <g:condition>used</g:condition>
+      <g:availability>in_stock</g:availability>
+      <g:price>16950.00 EUR</g:price>
+      <g:date_first_registered>2022-01</g:date_first_registered>
+      <g:color><![CDATA[Azul baltico]]></g:color>
+      <g:mileage>100000 KM</g:mileage>
+      <g:store_code>102026</g:store_code>
+      <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>
+      <g:product_type><![CDATA[Vehículos > Coches de ocasión > Ford]]></g:product_type>
+      <g:identifier_exists>no</g:identifier_exists>
+    </item>
+    <item>
+      <g:id>2306164611610</g:id>
+      <title><![CDATA[Ford Transit Custom Van 2.0 TDCI 130Cv 280 L1 MHEV Trend con Etiqueta medioambiental ECO]]></title>
+      <description><![CDATA[Ford Transit Custom Van 2.0 TDCI 130Cv 280 L1 MHEV Trend con Etiqueta medioambiental ECO de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
+      <link>https://www.midcar.net/ford-transit-custom-van-20-tdci-130cv-280-l1-mhev-trend-con-etiqueta-medioambiental-eco-2022-2306164611610</link>
+      <g:link_template>https://www.midcar.net/ford-transit-custom-van-20-tdci-130cv-280-l1-mhev-trend-con-etiqueta-medioambiental-eco-2022-2306164611610?store={102026}</g:link_template>
+      <g:image_link>https://midcar.azureedge.net/vehiculos/2306164611610/Ford%20Custom%20L1%202.0EcoBlue%20130Cv%20Etiqueta%20ECO%20IVA%20y%20garant%C3%ADa%20Inc1%20Nacional%20Historial%20mantenimiento-01072026173446517-1500px.jpg</g:image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306164611610/Ford%20Custom%20L1%202.0EcoBlue%20130Cv%20Etiqueta%20ECO%20IVA%20y%20garant%C3%ADa%20Inc2Informe%20Carfax-01072026173446612-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306164611610/Ford%20Custom%20L1%202.0EcoBlue%20130Cv%20Etiqueta%20ECO%20IVA%20y%20garant%C3%ADa%20Inc3-01072026173446677-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306164611610/Ford%20Custom%20L1%202.0EcoBlue%20130Cv%20Etiqueta%20ECO%20IVA%20y%20garant%C3%ADa%20Inc4-01072026173446717-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306164611610/Ford%20Custom%20L1%202.0EcoBlue%20130Cv%20Etiqueta%20ECO%20IVA%20y%20garant%C3%ADa%20Inc5-01072026173446774-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306164611610/Ford%20Custom%20L1%202.0EcoBlue%20130Cv%20Etiqueta%20ECO%20IVA%20y%20garant%C3%ADa%20Inc6-01072026173446823-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306164611610/Ford%20Custom%20L1%202.0EcoBlue%20130Cv%20Etiqueta%20ECO%20IVA%20y%20garant%C3%ADa%20Inc7-01072026173446869-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306164611610/Ford%20Custom%20L1%202.0EcoBlue%20130Cv%20Etiqueta%20ECO%20IVA%20y%20garant%C3%ADa%20Inc9-01072026173446914-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306164611610/Ford%20Custom%20L1%202.0EcoBlue%20130Cv%20Etiqueta%20ECO%20IVA%20y%20garant%C3%ADa%20Inc10-01072026173447211-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306164611610/Ford%20Custom%20L1%202.0EcoBlue%20130Cv%20Etiqueta%20ECO%20IVA%20y%20garant%C3%ADa%20Inc11-01072026173447257-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306164611610/Ford%20Custom%20L1%202.0EcoBlue%20130Cv%20Etiqueta%20ECO%20IVA%20y%20garant%C3%ADa%20Inc12-01072026173447309-1500px.jpg</g:additional_image_link>
+      <g:brand><![CDATA[Ford]]></g:brand>
+      <g:model><![CDATA[Custom]]></g:model>
+      <g:mpn>2306164611610</g:mpn>
+      <g:condition>used</g:condition>
+      <g:availability>in_stock</g:availability>
+      <g:price>21900.00 EUR</g:price>
+      <g:date_first_registered>2022-01</g:date_first_registered>
+      <g:color><![CDATA[Blanco]]></g:color>
+      <g:mileage>147000 KM</g:mileage>
+      <g:store_code>102026</g:store_code>
+      <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>
+      <g:product_type><![CDATA[Vehículos > Coches de ocasión > Ford]]></g:product_type>
+      <g:identifier_exists>no</g:identifier_exists>
+    </item>
+    <item>
+      <g:id>2306170729577</g:id>
+      <title><![CDATA[Ford S-Max 2.0Tdci 2.0 TDCi Panther 150Cv 7Plazas IVA y Garantía Incl nacional]]></title>
+      <description><![CDATA[Ford S-Max 2.0Tdci 2.0 TDCi Panther 150Cv 7Plazas IVA y Garantía Incl nacional de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
+      <link>https://www.midcar.net/ford-s-max-20tdci-20-tdci-panther-150cv-7plazas-iva-y-garantia-incl-nacional-2021-2306170729577</link>
+      <g:link_template>https://www.midcar.net/ford-s-max-20tdci-20-tdci-panther-150cv-7plazas-iva-y-garantia-incl-nacional-2021-2306170729577?store={102026}</g:link_template>
+      <g:image_link>https://midcar.azureedge.net/vehiculos/2306170729577/Ford%20SMax%202.0EcoBlue%20Panter%20150Cv%202021%20Garant%C3%ADa%20IVA%20Inc%20Nacional1%20Etiqueta%20C-26062026145856235-1500px.jpg</g:image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306170729577/Ford%20SMax%202.0EcoBlue%20Panter%20150Cv%202021%20Garant%C3%ADa%20IVA%20Inc%20Nacional2%20Historial%20mantenimiento-26062026145856323-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306170729577/Ford%20SMax%202.0EcoBlue%20Panter%20150Cv%202021%20Garant%C3%ADa%20IVA%20Inc%20Nacional3%20Primer%20proprietario-26062026145856369-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306170729577/Ford%20SMax%202.0EcoBlue%20Panter%20150Cv%202021%20Garant%C3%ADa%20IVA%20Inc%20Nacional4%20Primer%20Due%C3%B1o-26062026145856416-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306170729577/Ford%20SMax%202.0EcoBlue%20Panter%20150Cv%202021%20Garant%C3%ADa%20IVA%20Inc%20Nacional5-26062026145856468-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306170729577/Ford%20SMax%202.0EcoBlue%20Panter%20150Cv%202021%20Garant%C3%ADa%20IVA%20Inc%20Nacional6-26062026145856507-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306170729577/Ford%20SMax%202.0EcoBlue%20Panter%20150Cv%202021%20Garant%C3%ADa%20IVA%20Inc%20Nacional7Plazas-26062026145856548-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306170729577/Ford%20SMax%202.0EcoBlue%20Panter%20150Cv%202021%20Garant%C3%ADa%20IVA%20Inc%20Nacional8-26062026145856597-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306170729577/Ford%20SMax%202.0EcoBlue%20Panter%20150Cv%202021%20Garant%C3%ADa%20IVA%20Inc%20Nacional9-26062026145856674-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306170729577/Ford%20SMax%202.0EcoBlue%20Panter%20150Cv%202021%20Garant%C3%ADa%20IVA%20Inc%20Nacional10-26062026145856713-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2306170729577/Ford%20SMax%202.0EcoBlue%20Panter%20150Cv%202021%20Garant%C3%ADa%20IVA%20Inc%20Nacional11-26062026145856759-1500px.jpg</g:additional_image_link>
+      <g:brand><![CDATA[Ford]]></g:brand>
+      <g:model><![CDATA[S-max]]></g:model>
+      <g:mpn>2306170729577</g:mpn>
+      <g:condition>used</g:condition>
+      <g:availability>in_stock</g:availability>
+      <g:price>19950.00 EUR</g:price>
+      <g:date_first_registered>2021-01</g:date_first_registered>
+      <g:color><![CDATA[Gris Magnetico]]></g:color>
+      <g:mileage>151000 KM</g:mileage>
+      <g:store_code>102026</g:store_code>
+      <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>
+      <g:product_type><![CDATA[Vehículos > Coches de ocasión > Ford]]></g:product_type>
+      <g:identifier_exists>no</g:identifier_exists>
+    </item>
+    <item>
+      <g:id>2506081319043</g:id>
+      <title><![CDATA[Ford Transit Connect 210 L2 1.5 TDCi 100 5 Puertas 6 Velocidades Etiqueta medioambiental C]]></title>
+      <description><![CDATA[Ford Transit Connect 210 L2 1.5 TDCi 100 5 Puertas  6 Velocidades Etiqueta medioambiental C de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
+      <link>https://www.midcar.net/ford-transit-connect-210-l2-15-tdci-100-5-puertas--6-velocidades-etiqueta-medioambiental-c-2019-2506081319043</link>
+      <g:link_template>https://www.midcar.net/ford-transit-connect-210-l2-15-tdci-100-5-puertas--6-velocidades-etiqueta-medioambiental-c-2019-2506081319043?store={102026}</g:link_template>
+      <g:image_link>https://midcar.azureedge.net/vehiculos/2506081319043/Ford%20Transit%20Connect%20210%20L2%201.5%20TDCi%20100%205%20Puertas%20%206%20Velocidades%20Etiqueta%20medioambiental%20C1-25062026081319043-1500px.jpg</g:image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2506081319043/Ford%20Transit%20Connect%20210%20L2%201.5%20TDCi%20100%205%20Puertas%20%206%20Velocidades%20Etiqueta%20medioambiental%20C2-25062026081319296-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2506081319043/Ford%20Transit%20Connect%20210%20L2%201.5%20TDCi%20100%205%20Puertas%20%206%20Velocidades%20Etiqueta%20medioambiental%20C3%20Informe%20Carfax-25062026081319365-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2506081319043/Ford%20Transit%20Connect%20210%20L2%201.5%20TDCi%20100%205%20Puertas%20%206%20Velocidades%20Etiqueta%20medioambiental%20C4%20Historial%20mantenimiento-25062026081319414-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2506081319043/Ford%20Transit%20Connect%20210%20L2%201.5%20TDCi%20100%205%20Puertas%20%206%20Velocidades%20Etiqueta%20medioambiental%20C5-25062026081319470-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2506081319043/Ford%20Transit%20Connect%20210%20L2%201.5%20TDCi%20100%205%20Puertas%20%206%20Velocidades%20Etiqueta%20medioambiental%20C6%20Nacional-25062026081319515-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2506081319043/Ford%20Transit%20Connect%20210%20L2%201.5%20TDCi%20100%205%20Puertas%20%206%20Velocidades%20Etiqueta%20medioambiental%20C7%201Due%C3%B1o-25062026081319567-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2506081319043/Ford%20Transit%20Connect%20210%20L2%201.5%20TDCi%20100%205%20Puertas%20%206%20Velocidades%20Etiqueta%20medioambiental%20C9%20Amplia%20carga-25062026081319617-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2506081319043/Ford%20Transit%20Connect%20210%20L2%201.5%20TDCi%20100%205%20Puertas%20%206%20Velocidades%20Etiqueta%20medioambiental%20C10-25062026081319666-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2506081319043/Ford%20Transit%20Connect%20210%20L2%201.5%20TDCi%20100%205%20Puertas%20%206%20Velocidades%20Etiqueta%20medioambiental%20C11-25062026081319704-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2506081319043/Ford%20Transit%20Connect%20210%20L2%201.5%20TDCi%20100%205%20Puertas%20%206%20Velocidades%20Etiqueta%20medioambiental%20C12-25062026081319753-1500px.jpg</g:additional_image_link>
+      <g:brand><![CDATA[Ford]]></g:brand>
+      <g:model><![CDATA[Transit Connect]]></g:model>
+      <g:mpn>2506081319043</g:mpn>
+      <g:condition>used</g:condition>
+      <g:availability>in_stock</g:availability>
+      <g:price>10950.00 EUR</g:price>
+      <g:date_first_registered>2019-01</g:date_first_registered>
+      <g:color><![CDATA[Blanco]]></g:color>
+      <g:mileage>180000 KM</g:mileage>
+      <g:store_code>102026</g:store_code>
+      <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>
+      <g:product_type><![CDATA[Vehículos > Coches de ocasión > Ford]]></g:product_type>
+      <g:identifier_exists>no</g:identifier_exists>
+    </item>
+    <item>
+      <g:id>2906200823020</g:id>
+      <title><![CDATA[Peugeot Partner Premium 1.5 BlueHDi 100Cv 3 Plazas con Doble puerta lateral Pantalla tactíl Apple CarPlay y Android Auto IVA y Garantía Inc]]></title>
+      <description><![CDATA[Peugeot Partner Premium 1.5 BlueHDi 100Cv 3 Plazas con Doble puerta lateral Pantalla tactíl Apple CarPlay y Android Auto IVA y Garantía Inc de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
+      <link>https://www.midcar.net/peugeot-partner-premium-15-bluehdi-100cv-3-plazas-con-doble-puerta-lateral-pantalla-tactil-apple-carplay-y-android-auto-iva-y-garantia-inc-2021-2906200823020</link>
+      <g:link_template>https://www.midcar.net/peugeot-partner-premium-15-bluehdi-100cv-3-plazas-con-doble-puerta-lateral-pantalla-tactil-apple-carplay-y-android-auto-iva-y-garantia-inc-2021-2906200823020?store={102026}</g:link_template>
+      <g:image_link>https://midcar.azureedge.net/vehiculos/2906200823020/Peugeot%20Partner%20Premium%20100Cv%20Doble%20Puerta%203Plazas%20IVA%20Inc1%20Garant%C3%ADa%20Inc-29062026200823021-1500px.jpg</g:image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2906200823020/Peugeot%20Partner%20Premium%20100Cv%20Doble%20Puerta%203Plazas%20IVA%20Inc2%20Informe%20carfax-29062026200823244-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2906200823020/Peugeot%20Partner%20Premium%20100Cv%20Doble%20Puerta%203Plazas%20IVA%20Inc3%20nacional-29062026200823286-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2906200823020/Peugeot%20Partner%20Premium%20100Cv%20Doble%20Puerta%203Plazas%20IVA%20Inc4%201Due%C3%B1o-29062026200823336-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2906200823020/Peugeot%20Partner%20Premium%20100Cv%20Doble%20Puerta%203Plazas%20IVA%20Inc5%20Pantalla-29062026200823376-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2906200823020/Peugeot%20Partner%20Premium%20100Cv%20Doble%20Puerta%203Plazas%20IVA%20Inc6-29062026200823428-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2906200823020/Peugeot%20Partner%20Premium%20100Cv%20Doble%20Puerta%203Plazas%20IVA%20Inc7-29062026200823475-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2906200823020/Peugeot%20Partner%20Premium%20100Cv%20Doble%20Puerta%203Plazas%20IVA%20Inc8-29062026200823521-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2906200823020/Peugeot%20Partner%20Premium%20100Cv%20Doble%20Puerta%203Plazas%20IVA%20Inc9-29062026200823561-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2906200823020/Peugeot%20Partner%20Premium%20100Cv%20Doble%20Puerta%203Plazas%20IVA%20Inc10-29062026200823633-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/2906200823020/Peugeot%20Partner%20Premium%20100Cv%20Doble%20Puerta%203Plazas%20IVA%20Inc11-29062026200823685-1500px.jpg</g:additional_image_link>
+      <g:brand><![CDATA[Peugeot]]></g:brand>
+      <g:model><![CDATA[Partner]]></g:model>
+      <g:mpn>2906200823020</g:mpn>
+      <g:condition>used</g:condition>
+      <g:availability>in_stock</g:availability>
+      <g:price>12949.00 EUR</g:price>
+      <g:date_first_registered>2021-01</g:date_first_registered>
+      <g:color><![CDATA[Blanco]]></g:color>
+      <g:mileage>143000 KM</g:mileage>
+      <g:store_code>102026</g:store_code>
+      <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>
+      <g:product_type><![CDATA[Vehículos > Coches de ocasión > Peugeot]]></g:product_type>
+      <g:identifier_exists>no</g:identifier_exists>
+    </item>
+    <item>
+      <g:id>0207161545845</g:id>
+      <title><![CDATA[Seat Leon 1.5 EcoTGI 110kW DSG-7 S&S Xcellence]]></title>
+      <description><![CDATA[Seat Leon 1.5 EcoTGI 110kW DSG-7 S&S Xcellence de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
+      <link>https://www.midcar.net/seat-leon-15-ecotgi-110kw-dsg-7-s26s-xcellence-2020-0207161545845</link>
+      <g:link_template>https://www.midcar.net/seat-leon-15-ecotgi-110kw-dsg-7-s26s-xcellence-2020-0207161545845?store={102026}</g:link_template>
+      <g:image_link>https://midcar.azureedge.net/vehiculos/0207161545845/(FILEminimizer)%20PXL_20260702_064601063.PORTRAIT.ORIGINAL-02072026161545845-1500px.jpg</g:image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0207161545845/(FILEminimizer)%20PXL_20260702_064601064.PORTRAIT.ORIGINAL-02072026161546195-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0207161545845/(FILEminimizer)%20PXL_20260702_064702937.PORTRAIT-02072026161546292-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0207161545845/(FILEminimizer)%20PXL_20260702_064914864-02072026161546348-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0207161545845/(FILEminimizer)%20PXL_20260702_064948061-02072026161546391-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0207161545845/(FILEminimizer)%20PXL_20260702_064959922-02072026161546440-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0207161545845/(FILEminimizer)%20PXL_20260702_065030063.PORTRAIT.ORIGINAL-02072026161546489-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0207161545845/(FILEminimizer)%20PXL_20260702_065038516.PORTRAIT-02072026161546536-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0207161545845/(FILEminimizer)%20PXL_20260702_065053252.PORTRAIT.ORIGINAL-02072026161546580-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0207161545845/(FILEminimizer)%20PXL_20260702_065059978.PORTRAIT-02072026161546628-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0207161545845/(FILEminimizer)%20PXL_20260702_065104964.PORTRAIT.ORIGINAL-02072026161546674-1500px.jpg</g:additional_image_link>
+      <g:brand><![CDATA[Seat]]></g:brand>
+      <g:model><![CDATA[Leon]]></g:model>
+      <g:mpn>0207161545845</g:mpn>
+      <g:condition>used</g:condition>
+      <g:availability>in_stock</g:availability>
+      <g:price>13800.00 EUR</g:price>
+      <g:date_first_registered>2020-01</g:date_first_registered>
+      <g:color><![CDATA[Gris]]></g:color>
+      <g:mileage>98000 KM</g:mileage>
+      <g:store_code>102026</g:store_code>
+      <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>
+      <g:product_type><![CDATA[Vehículos > Coches de ocasión > Seat]]></g:product_type>
+      <g:identifier_exists>no</g:identifier_exists>
+    </item>
+    <item>
+      <g:id>0207173043725</g:id>
+      <title><![CDATA[Ford Transit Custom 2.0EcoBlue 260 105Cv Etiqueta medioambiental C IVA y Garantía Incl]]></title>
+      <description><![CDATA[Ford Transit Custom 2.0EcoBlue 260 105Cv Etiqueta medioambiental C IVA y Garantía Incl de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
+      <link>https://www.midcar.net/ford-transit-custom-20ecoblue-260-105cv-etiqueta-medioambiental-c-iva-y-garantia-incl-2021-0207173043725</link>
+      <g:link_template>https://www.midcar.net/ford-transit-custom-20ecoblue-260-105cv-etiqueta-medioambiental-c-iva-y-garantia-incl-2021-0207173043725?store={102026}</g:link_template>
+      <g:image_link>https://midcar.azureedge.net/vehiculos/0207173043725/01-02072026173043726-1500px.jpg</g:image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0207173043725/02-02072026173043965-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0207173043725/03-02072026173043993-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0207173043725/04-02072026173044031-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0207173043725/05-02072026173044059-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0207173043725/06-02072026173044092-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0207173043725/07-02072026173044122-1500px.jpg</g:additional_image_link>
+      <g:brand><![CDATA[Ford]]></g:brand>
+      <g:model><![CDATA[Custom]]></g:model>
+      <g:mpn>0207173043725</g:mpn>
+      <g:condition>used</g:condition>
+      <g:availability>in_stock</g:availability>
+      <g:price>16950.00 EUR</g:price>
+      <g:date_first_registered>2021-01</g:date_first_registered>
+      <g:color><![CDATA[Blanco]]></g:color>
+      <g:mileage>116000 KM</g:mileage>
+      <g:store_code>102026</g:store_code>
+      <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>
+      <g:product_type><![CDATA[Vehículos > Coches de ocasión > Ford]]></g:product_type>
+      <g:identifier_exists>no</g:identifier_exists>
+    </item>
+    <item>
+      <g:id>0707171915602</g:id>
+      <title><![CDATA[Toyota Corolla 1.8 125H Hybrid Active TECH E-CVT Sedan]]></title>
+      <description><![CDATA[Toyota Corolla 1.8 125H Hybrid Active TECH E-CVT Sedan de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
+      <link>https://www.midcar.net/toyota-corolla-18-125h-hybrid-active-tech-e-cvt-sedan-2020-0707171915602</link>
+      <g:link_template>https://www.midcar.net/toyota-corolla-18-125h-hybrid-active-tech-e-cvt-sedan-2020-0707171915602?store={102026}</g:link_template>
+      <g:image_link>https://midcar.azureedge.net/vehiculos/0707171915602/1-07072026171915614-1500px.jpg</g:image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0707171915602/2-07072026171916104-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0707171915602/3-07072026171916192-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0707171915602/4-07072026171916288-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0707171915602/5-07072026171916371-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0707171915602/6-07072026171916811-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0707171915602/7-07072026171916884-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0707171915602/8-07072026171916931-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0707171915602/9-07072026171917191-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0707171915602/10-07072026171917256-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/0707171915602/11-07072026171917304-1500px.jpg</g:additional_image_link>
+      <g:brand><![CDATA[Toyota]]></g:brand>
+      <g:model><![CDATA[Corolla]]></g:model>
+      <g:mpn>0707171915602</g:mpn>
+      <g:condition>used</g:condition>
+      <g:availability>in_stock</g:availability>
+      <g:price>17950.00 EUR</g:price>
+      <g:date_first_registered>2020-01</g:date_first_registered>
+      <g:color><![CDATA[Bronce Oliva]]></g:color>
+      <g:mileage>162000 KM</g:mileage>
+      <g:store_code>102026</g:store_code>
+      <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>
+      <g:product_type><![CDATA[Vehículos > Coches de ocasión > Toyota]]></g:product_type>
+      <g:identifier_exists>no</g:identifier_exists>
+    </item>
+    <item>
+      <g:id>1407090800749</g:id>
+      <title><![CDATA[Fiat Doblo Cargo Base Maxi 1.4 T-JET Natu Power CNG 4P]]></title>
+      <description><![CDATA[Fiat Doblo Cargo Base Maxi 1.4 T-JET Natu Power CNG 4P de segunda mano en MIDCar. Tu concesionario de coches de ocasión con la mejor garantía y los vehículos de mejor calidad en Madrid, Torrejón de Ardoz]]></description>
+      <link>https://www.midcar.net/fiat-doblo-cargo-base-maxi-14-t-jet-natu-power-cng-4p-2020-1407090800749</link>
+      <g:link_template>https://www.midcar.net/fiat-doblo-cargo-base-maxi-14-t-jet-natu-power-cng-4p-2020-1407090800749?store={102026}</g:link_template>
+      <g:image_link>https://midcar.azureedge.net/vehiculos/1407090800749/Fiat%20Doblo%20Maxi%201.4GNC%20Etiqueta%20ECO%20120Cv%20IVA%20y%20Garant%C3%ADa%20Incl1Informe%20Crfax-15072026072011555-1500px.jpg</g:image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1407090800749/Fiat%20Doblo%20Maxi%201.4GNC%20Etiqueta%20ECO%20120Cv%20IVA%20y%20Garant%C3%ADa%20Incl2%20Primer%20Due%C3%B1o-15072026072011653-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1407090800749/Fiat%20Doblo%20Maxi%201.4GNC%20Etiqueta%20ECO%20120Cv%20IVA%20y%20Garant%C3%ADa%20Incl3%20Nacional-15072026072011701-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1407090800749/Fiat%20Doblo%20Maxi%201.4GNC%20Etiqueta%20ECO%20120Cv%20IVA%20y%20Garant%C3%ADa%20Incl4-15072026072011748-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1407090800749/Fiat%20Doblo%20Maxi%201.4GNC%20Etiqueta%20ECO%20120Cv%20IVA%20y%20Garant%C3%ADa%20Incl5-15072026072011788-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1407090800749/Fiat%20Doblo%20Maxi%201.4GNC%20Etiqueta%20ECO%20120Cv%20IVA%20y%20Garant%C3%ADa%20Incl6-15072026072011832-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1407090800749/Fiat%20Doblo%20Maxi%201.4GNC%20Etiqueta%20ECO%20120Cv%20IVA%20y%20Garant%C3%ADa%20Incl7-15072026072011878-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1407090800749/Fiat%20Doblo%20Maxi%201.4GNC%20Etiqueta%20ECO%20120Cv%20IVA%20y%20Garant%C3%ADa%20Incl8-15072026072011930-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1407090800749/Fiat%20Doblo%20Maxi%201.4GNC%20Etiqueta%20ECO%20120Cv%20IVA%20y%20Garant%C3%ADa%20Incl9-15072026072011974-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1407090800749/Fiat%20Doblo%20Maxi%201.4GNC%20Etiqueta%20ECO%20120Cv%20IVA%20y%20Garant%C3%ADa%20Incl10-15072026072012017-1500px.jpg</g:additional_image_link>
+      <g:additional_image_link>https://midcar.azureedge.net/vehiculos/1407090800749/Fiat%20Doblo%20Maxi%201.4GNC%20Etiqueta%20ECO%20120Cv%20IVA%20y%20Garant%C3%ADa%20Incl11-15072026072012090-1500px.jpg</g:additional_image_link>
+      <g:brand><![CDATA[Fiat]]></g:brand>
+      <g:model><![CDATA[Doblo]]></g:model>
+      <g:mpn>1407090800749</g:mpn>
+      <g:condition>used</g:condition>
+      <g:availability>in_stock</g:availability>
+      <g:price>12950.00 EUR</g:price>
+      <g:date_first_registered>2020-01</g:date_first_registered>
+      <g:color><![CDATA[Blanco]]></g:color>
+      <g:mileage>123000 KM</g:mileage>
+      <g:store_code>102026</g:store_code>
+      <g:google_product_category>Vehicles &amp; Parts &gt; Vehicles &gt; Motor Vehicles &gt; Cars, Trucks &amp; Vans</g:google_product_category>
+      <g:product_type><![CDATA[Vehículos > Coches de ocasión > Fiat]]></g:product_type>
       <g:identifier_exists>no</g:identifier_exists>
     </item>
   </channel>

@@ -77,17 +77,21 @@ export const IVA_OPTIONS = [
   { value: 3, label: 'IGIC Reducido (3%)', description: 'Canarias - Tipo reducido' },
 ];
 
+// Fallback de último recurso si no llega la empresa seleccionada desde el
+// asistente. Los documentos SIEMPRE deben usar la empresa elegida en el paso
+// "Empresa" (tabla `empresas` de Supabase); estos datos solo evitan imprimir
+// campos vacíos si ese flujo falla.
 export const EMPRESA_DATOS = {
-  nombre: 'MIDCAR AUTOMOCIÓN S.L.',
-  cif: 'B12345678',
-  direccion: 'Calle Principal, 123',
-  codigoPostal: '28001',
-  localidad: 'Madrid',
+  nombre: 'MID CAR SOLUCIONES SL',
+  cif: 'B87595435',
+  direccion: 'Calle Polo Sur, Nrº2',
+  codigoPostal: '28850',
+  localidad: 'Torrejón de Ardoz',
   provincia: 'Madrid',
-  telefono: '912 345 678',
-  email: 'info@midcar.es',
-  web: 'www.midcar.es',
-  cuentaBancaria: 'ES12 1234 5678 9012 3456 7890'
+  telefono: '617728087',
+  email: 'Info@midcar.net',
+  web: 'www.midcar.net',
+  cuentaBancaria: 'ES 02 30230121616281520707'
 };
 
 export const PROVINCIAS_ESPANA = [

@@ -50,3 +50,6 @@ next-env.d.ts
 tmpclaude-*
 *.tmp
 *.temp
+
+# Generado en postinstall desde pdfjs-dist (scripts/copy-pdf-worker.mjs)
+public/pdf.worker.min.mjs

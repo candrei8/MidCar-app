@@ -1,12 +1,12 @@
 /**
  * insuranceFileParser.ts
- * 
+ *
  * Robust parsing service for insurance policy files.
- * Supports: Excel (.xlsx, .xls), CSV (.csv)
- * 
- * For PDFs: Currently not supported for automatic parsing in browser.
- * PDFs would require OCR or server-side processing.
- * We log a message and return empty, allowing manual entry.
+ * Supports: Excel (.xlsx, .xls), CSV (.csv) y PDF de la aseguradora.
+ *
+ * Los PDF se procesan en el navegador con pdf.js (ver insurancePdfParser.ts):
+ * se extraen las matrículas españolas del texto y se convierten al mismo
+ * formato ParsedPolicy que la importación Excel/CSV.
  */
 
 import * as XLSX from 'xlsx'
@@ -131,15 +131,51 @@ export async function parseInsuranceFile(file: File, vehicles: Vehicle[] = []): 
         fileType = 'pdf'
     }
 
-    // PDF not supported for auto-parsing
+    // PDF: extracción de matrículas con pdf.js en el navegador
     if (fileType === 'pdf') {
-        return {
-            success: false,
-            policies: [],
-            errors: ['Los archivos PDF requieren procesamiento manual o OCR. Por favor, usa un archivo Excel o CSV, o introduce los datos manualmente.'],
-            fileType,
-            matchedCount: 0,
-            unmatchedCount: 0
+        try {
+            const { parseInsurancePdf } = await import('./insurancePdfParser')
+            const pdfResult = await parseInsurancePdf(file)
+
+            let matchedCount = 0
+            let unmatchedCount = 0
+            pdfResult.policies.forEach(policy => {
+                const vehicleMatch = vehicles.find(
+                    v => normalizeMatricula(v.matricula) === policy.matricula
+                )
+                if (vehicleMatch) {
+                    matchedCount++
+                } else {
+                    unmatchedCount++
+                }
+            })
+
+            const pdfErrors = [...pdfResult.errors]
+            if (pdfResult.policies.length > 0) {
+                pdfErrors.push(
+                    `PDF procesado: ${pdfResult.policies.length} matrícula(s) asegurada(s) detectada(s)` +
+                    (pdfResult.aseguradora ? ` (${pdfResult.aseguradora})` : '')
+                )
+            }
+
+            return {
+                success: pdfResult.policies.length > 0,
+                policies: pdfResult.policies,
+                errors: pdfErrors,
+                fileType,
+                matchedCount,
+                unmatchedCount
+            }
+        } catch (error) {
+            console.error('Error parsing PDF:', error)
+            return {
+                success: false,
+                policies: [],
+                errors: [`Error al procesar el PDF: ${error instanceof Error ? error.message : 'Error desconocido'}`],
+                fileType,
+                matchedCount: 0,
+                unmatchedCount: 0
+            }
         }
     }
 
@@ -147,7 +183,7 @@ export async function parseInsuranceFile(file: File, vehicles: Vehicle[] = []): 
         return {
             success: false,
             policies: [],
-            errors: [`Tipo de archivo no soportado: ${file.name}. Usa .xlsx, .xls, o .csv`],
+            errors: [`Tipo de archivo no soportado: ${file.name}. Usa .xlsx, .xls, .csv o .pdf`],
             fileType,
             matchedCount: 0,
             unmatchedCount: 0
@@ -251,8 +287,10 @@ export async function parseInsuranceFile(file: File, vehicles: Vehicle[] = []): 
                 unmatchedCount++
             }
 
+            const numeroPolizaRaw = polizaKey ? String(row[polizaKey] || '').trim() : ''
             const policy: ParsedPolicy = {
-                numeroPoliza: polizaKey ? String(row[polizaKey] || `AUTO-${Date.now()}-${idx}`) : `AUTO-${Date.now()}-${idx}`,
+                numeroPoliza: numeroPolizaRaw || `AUTO-${Date.now()}-${idx}`,
+                numeroPolizaGenerado: !numeroPolizaRaw,
                 matricula: matricula,
                 marcaModelo: marcaKey ? String(row[marcaKey] || '') : undefined,
                 fechaAlta: altaKey ? parseDate(row[altaKey]) : null,

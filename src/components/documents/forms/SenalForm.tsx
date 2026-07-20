@@ -6,12 +6,12 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SenalData, VehicleDocumentData, CustomerData } from '@/lib/documents/document-types';
-import { EMPRESA_DATOS } from '@/lib/documents/constants';
 import { VehicleSummary } from '../VehicleSummary';
 
 interface SenalFormProps {
   vehicle: VehicleDocumentData;
   customer: CustomerData;
+  vendedor: CustomerData;
   formData: Partial<SenalData>;
   onChange: (data: Partial<SenalData>) => void;
   suggestedPrice?: number;
@@ -21,6 +21,7 @@ interface SenalFormProps {
 export function SenalForm({
   vehicle,
   customer,
+  vendedor,
   formData,
   onChange,
   suggestedPrice = 0,
@@ -32,31 +33,19 @@ export function SenalForm({
   const defaultLimitDate = new Date();
   defaultLimitDate.setDate(defaultLimitDate.getDate() + 15);
 
-  // Inicializar valores por defecto
+  // Inicializar valores por defecto. El vendedor viene SIEMPRE de la empresa
+  // seleccionada en el asistente (nunca hardcodeado), por eso va tras el spread.
   const data: Partial<SenalData> = {
     vehiculo: vehicle,
     comprador: customer,
-    vendedor: {
-      nombre: EMPRESA_DATOS.nombre,
-      apellidos: '',
-      dni: EMPRESA_DATOS.cif,
-      direccion: EMPRESA_DATOS.direccion,
-      codigoPostal: EMPRESA_DATOS.codigoPostal,
-      localidad: EMPRESA_DATOS.localidad,
-      provincia: EMPRESA_DATOS.provincia,
-      telefono: EMPRESA_DATOS.telefono,
-      email: EMPRESA_DATOS.email,
-      isEmpresa: true,
-      nombreEmpresa: EMPRESA_DATOS.nombre,
-      cifEmpresa: EMPRESA_DATOS.cif
-    },
     precioTotal: suggestedPrice,
     importeSenal: formData.importeSenal || Math.round(suggestedPrice * 0.1), // 10% por defecto
-    cuentaBancaria: formData.cuentaBancaria || empresaIban || EMPRESA_DATOS.cuentaBancaria,
+    cuentaBancaria: formData.cuentaBancaria || empresaIban || '',
     fechaContrato: formData.fechaContrato || new Date().toISOString().split('T')[0],
-    lugarContrato: formData.lugarContrato || EMPRESA_DATOS.localidad,
+    lugarContrato: formData.lugarContrato || vendedor.localidad,
     fechaLimiteVenta: formData.fechaLimiteVenta || defaultLimitDate.toISOString().split('T')[0],
-    ...formData
+    ...formData,
+    vendedor
   };
 
   // Propagar valores por defecto al padre al montar el componente
@@ -90,9 +79,12 @@ export function SenalForm({
     <div className="space-y-6">
       {/* Resumen del vehículo */}
       <VehicleSummary
-        vehicle={vehicle}
+        vehicle={data.vehiculo || vehicle}
         showPrice={true}
         price={data.precioTotal}
+        onIdentityChange={({ matricula, bastidor }) =>
+          onChange({ ...data, vehiculo: { ...(data.vehiculo || vehicle), matricula, bastidor } })
+        }
       />
 
       {/* Condiciones de la reserva */}

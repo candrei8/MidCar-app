@@ -117,16 +117,17 @@ export class FacturaTemplate extends BaseDocumentTemplate {
     this.doc.setLineWidth(0.2);
 
     const labels = this.getFacturarABlockLabels();
-    this.renderFacturarABlock(leftBlockX + 4, startY, this.data.comprador, labels.left, { caps: false });
+    // Bloque izquierdo: EMISOR (empresa vendedora elegida en el asistente).
+    // Bloque derecho: cliente al que se factura. Antes ambos bloques
+    // duplicaban al cliente y los datos del vendedor no salían en la factura.
+    this.renderFacturarABlock(leftBlockX + 4, startY, this.data.vendedor, labels.left, { caps: false });
     this.renderFacturarABlock(rightBlockX + 4, startY, this.data.comprador, labels.right, { caps: true });
 
     this.currentY = startY + 32;
   }
 
-  // Hook: la factura usa "Facturar a:" en ambos bloques (PDF de referencia).
-  // La proforma sobreescribe a "Cliente:" / "Facturar a:".
   protected getFacturarABlockLabels(): { left: string; right: string } {
-    return { left: 'Facturar a:', right: 'Facturar a:' };
+    return { left: 'Datos del vendedor:', right: 'Facturar a:' };
   }
 
   protected renderFacturarABlock(

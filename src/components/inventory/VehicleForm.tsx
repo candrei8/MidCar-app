@@ -193,6 +193,11 @@ export function VehicleForm({ initialData, onSubmit, isSubmitting = false, onCan
             if (!formData.kilometraje) newErrors.kilometraje = "Los kilómetros son obligatorios"
             if (!formData.combustible) newErrors.combustible = "El combustible es obligatorio"
             if (!formData.transmision) newErrors.transmision = "La transmisión es obligatoria"
+            // El VIN es opcional (hay vehículos importados de la web sin él),
+            // pero si se introduce debe tener los 17 caracteres estándar
+            if (formData.vin && formData.vin.trim().length !== 17) {
+                newErrors.vin = "El bastidor (VIN) debe tener 17 caracteres"
+            }
         }
 
         if (stepNum === 3) {
@@ -373,6 +378,7 @@ export function VehicleForm({ initialData, onSubmit, isSubmitting = false, onCan
                                     value={formData.vin}
                                     onChange={(e) => updateField('vin', e.target.value.toUpperCase())}
                                 />
+                                {errors.vin && <p className="text-xs text-destructive">{errors.vin}</p>}
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="mes_mat">Mes Matriculación</Label>

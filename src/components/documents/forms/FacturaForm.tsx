@@ -6,28 +6,23 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FacturaData, VehicleDocumentData, CustomerData, EconomicConditions } from '@/lib/documents/document-types';
-import { FORMA_PAGO_OPTIONS, IVA_PERCENT, EMPRESA_DATOS } from '@/lib/documents/constants';
+import { FORMA_PAGO_OPTIONS, IVA_PERCENT } from '@/lib/documents/constants';
 import { VehicleSummary } from '../VehicleSummary';
 
 interface FacturaFormProps {
   vehicle: VehicleDocumentData;
   customer: CustomerData;
+  vendedor: CustomerData;
   formData: Partial<FacturaData>;
   onChange: (data: Partial<FacturaData>) => void;
   suggestedPrice?: number;
   empresaIban?: string;
 }
 
-// Generar número de factura único
-function generateInvoiceNumber(): string {
-  const year = new Date().getFullYear();
-  const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-  return `F-${year}-${random}`;
-}
-
 export function FacturaForm({
   vehicle,
   customer,
+  vendedor,
   formData,
   empresaIban,
   onChange,
@@ -35,24 +30,11 @@ export function FacturaForm({
 }: FacturaFormProps) {
   const initializedRef = useRef(false);
 
-  // Inicializar valores por defecto
+  // Inicializar valores por defecto. El vendedor viene SIEMPRE de la empresa
+  // seleccionada en el asistente (nunca hardcodeado), por eso va tras el spread.
   const data: Partial<FacturaData> = {
     vehiculo: vehicle,
     comprador: customer,
-    vendedor: {
-      nombre: EMPRESA_DATOS.nombre,
-      apellidos: '',
-      dni: EMPRESA_DATOS.cif,
-      direccion: EMPRESA_DATOS.direccion,
-      codigoPostal: EMPRESA_DATOS.codigoPostal,
-      localidad: EMPRESA_DATOS.localidad,
-      provincia: EMPRESA_DATOS.provincia,
-      telefono: EMPRESA_DATOS.telefono,
-      email: EMPRESA_DATOS.email,
-      isEmpresa: true,
-      nombreEmpresa: EMPRESA_DATOS.nombre,
-      cifEmpresa: EMPRESA_DATOS.cif
-    },
     condiciones: {
       precioVenta: suggestedPrice,
       baseImponible: Math.round(suggestedPrice / 1.21 * 100) / 100,
@@ -60,12 +42,15 @@ export function FacturaForm({
       ivaImporte: Math.round((suggestedPrice - suggestedPrice / 1.21) * 100) / 100,
       totalConIva: suggestedPrice,
       formaPago: 'transferencia',
-      cuentaBancaria: empresaIban || EMPRESA_DATOS.cuentaBancaria,
+      cuentaBancaria: empresaIban || '',
       ...formData.condiciones
     },
-    numeroFactura: formData.numeroFactura || generateInvoiceNumber(),
+    // El número se reserva de forma secuencial desde la BD (lo prellena el
+    // asistente al entrar en este paso); nunca se genera aleatorio.
+    numeroFactura: formData.numeroFactura || '',
     fechaFactura: formData.fechaFactura || new Date().toISOString().split('T')[0],
-    ...formData
+    ...formData,
+    vendedor
   };
 
   // Propagar valores por defecto al padre al montar el componente
@@ -102,9 +87,12 @@ export function FacturaForm({
     <div className="space-y-6">
       {/* Resumen del vehículo */}
       <VehicleSummary
-        vehicle={vehicle}
+        vehicle={data.vehiculo || vehicle}
         showPrice={true}
         price={data.condiciones?.totalConIva}
+        onIdentityChange={({ matricula, bastidor }) =>
+          onChange({ ...data, vehiculo: { ...(data.vehiculo || vehicle), matricula, bastidor } })
+        }
       />
 
       {/* Datos de la factura */}
@@ -123,8 +111,11 @@ export function FacturaForm({
                 id="numeroFactura"
                 value={data.numeroFactura || ''}
                 onChange={(e) => onChange({ ...data, numeroFactura: e.target.value })}
-                placeholder="F-2024-0001"
+                placeholder="Asignando número…"
               />
+              <p className="text-xs text-slate-500 mt-1">
+                Número secuencial asignado automáticamente desde el sistema
+              </p>
             </div>
             <div>
               <Label htmlFor="fechaFactura">Fecha de factura *</Label>

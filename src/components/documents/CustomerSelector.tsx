@@ -54,7 +54,7 @@ export function CustomerSelector({
   const [activeTab, setActiveTab] = useState<'existing' | 'manual'>('existing');
   const [searchTerm, setSearchTerm] = useState('');
   const [manualCustomer, setManualCustomer] = useState<CustomerData>(selectedCustomer || emptyCustomer);
-  const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
+  const [selectedContactId, setSelectedContactId] = useState<string | null>(selectedCustomer?.id || null);
 
   // Si se monta sin customer previo, notificar al padre con un customer vacío para permitir continuar
   useEffect(() => {

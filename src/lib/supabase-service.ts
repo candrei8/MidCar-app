@@ -928,18 +928,32 @@ export async function deleteContract(id: string): Promise<boolean> {
 }
 
 export async function generateContractNumber(): Promise<string> {
+    const year = new Date().getFullYear()
+
     if (!isSupabaseConfigured) {
-        const year = new Date().getFullYear()
         return `CV-${year}-${Date.now().toString().slice(-4)}`
     }
 
-    const year = new Date().getFullYear()
+    // Misma serie atómica CV-AAAA-NNNN que usa el asistente de documentos
+    // (contador con bloqueo de fila en Postgres): un único contador para
+    // todos los flujos que escriben en contratos.numero_contrato.
+    try {
+        const { data, error } = await supabase.rpc('next_document_number', { p_doc_type: 'compraventa' })
+        if (!error && typeof data === 'string' && data.length > 0) {
+            return data
+        }
+        if (error) {
+            console.warn('RPC next_document_number no disponible, usando fallback:', error.message)
+        }
+    } catch (err) {
+        console.warn('RPC next_document_number falló, usando fallback:', err)
+    }
 
     const { data, error } = await supabase
         .from('contratos')
         .select('numero_contrato')
         .like('numero_contrato', `CV-${year}-%`)
-        .order('created_at', { ascending: false })
+        .order('numero_contrato', { ascending: false })
         .limit(1)
 
     if (error || !data || data.length === 0) {
@@ -1079,29 +1093,43 @@ export async function deleteInvoice(id: string): Promise<boolean> {
 }
 
 export async function generateInvoiceNumber(): Promise<string> {
+    const year = new Date().getFullYear()
+
     if (!isSupabaseConfigured) {
-        const year = new Date().getFullYear()
-        return `FAC-${year}-${Date.now().toString().slice(-6)}`
+        return `FA-${year}-${Date.now().toString().slice(-4)}`
     }
 
-    const year = new Date().getFullYear()
+    // Serie única y atómica FA-AAAA-NNNN compartida por todos los flujos de
+    // facturación (contador con bloqueo de fila en Postgres): numeración
+    // correlativa legal sin duplicados entre usuarios simultáneos.
+    try {
+        const { data, error } = await supabase.rpc('next_document_number', { p_doc_type: 'factura' })
+        if (!error && typeof data === 'string' && data.length > 0) {
+            return data
+        }
+        if (error) {
+            console.warn('RPC next_document_number no disponible, usando fallback:', error.message)
+        }
+    } catch (err) {
+        console.warn('RPC next_document_number falló, usando fallback:', err)
+    }
 
     const { data, error } = await supabase
         .from('facturas')
         .select('numero_factura')
-        .like('numero_factura', `FAC-${year}-%`)
-        .order('created_at', { ascending: false })
+        .like('numero_factura', `FA-${year}-%`)
+        .order('numero_factura', { ascending: false })
         .limit(1)
 
     if (error || !data || data.length === 0) {
-        return `FAC-${year}-000001`
+        return `FA-${year}-0001`
     }
 
     const lastNumber = data[0].numero_factura
-    const match = lastNumber.match(/FAC-\d{4}-(\d+)/)
+    const match = lastNumber.match(/FA-\d{4}-(\d+)/)
     const nextNum = match ? parseInt(match[1], 10) + 1 : 1
 
-    return `FAC-${year}-${String(nextNum).padStart(6, '0')}`
+    return `FA-${year}-${String(nextNum).padStart(4, '0')}`
 }
 
 // ============================================================================

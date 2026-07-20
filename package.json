@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "node scripts/build-merchant-feed.mjs",
+    "postinstall": "node scripts/copy-pdf-worker.mjs",
+    "prebuild": "node scripts/build-merchant-feed.mjs && node scripts/copy-pdf-worker.mjs",
     "build": "next build",
     "build:feed": "node scripts/build-merchant-feed.mjs",
     "start": "next start",
@@ -42,6 +43,7 @@
     "jspdf-autotable": "^5.0.7",
     "lucide-react": "^0.454.0",
     "next": "^16.1.1",
+    "pdfjs-dist": "^6.1.200",
     "qrcode": "^1.5.4",
     "qrcode.react": "^4.2.0",
     "react": "^19.2.3",

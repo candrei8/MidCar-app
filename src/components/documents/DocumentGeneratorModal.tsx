@@ -22,6 +22,7 @@ import {
 } from '@/lib/documents/document-types';
 import { getEmpresasActivas } from '@/lib/empresas';
 import { saveDocument, getNextDocumentNumber } from '@/lib/documents/document-service';
+import { updateVehicle } from '@/lib/supabase-service';
 import type { EmpresaVendedora } from '@/types';
 import { DocumentTypeSelector } from './DocumentTypeSelector';
 import { CustomerSelector } from './CustomerSelector';
@@ -70,6 +71,11 @@ interface DocumentGeneratorModalProps {
   vehicle: VehicleInput;
   contacts: ContactInput[];
   onDocumentGenerated?: (documentType: DocumentType, data: unknown) => void;
+  /**
+   * Si se abre desde la ficha de un contacto, su id: el cliente queda
+   * preseleccionado y no hay que volver a elegirlo en el paso 3.
+   */
+  preselectedContactId?: string;
 }
 
 const STEPS = [
@@ -85,7 +91,8 @@ export function DocumentGeneratorModal({
   onClose,
   vehicle,
   contacts,
-  onDocumentGenerated
+  onDocumentGenerated,
+  preselectedContactId
 }: DocumentGeneratorModalProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [documentType, setDocumentType] = useState<DocumentType | null>(null);
@@ -102,14 +109,20 @@ export function DocumentGeneratorModal({
   const [selectedEmpresa, setSelectedEmpresa] = useState<EmpresaVendedora | null>(null);
   const [loadingEmpresas, setLoadingEmpresas] = useState(false);
 
+  // Las referencias internas del scraper web (WEB-xxxx) NO son matrículas
+  // reales: en los documentos se tratan como "sin matrícula" para que el
+  // usuario introduzca la real en el paso de datos.
+  const isPlaceholderMatricula = (m: string | undefined | null): boolean =>
+    !m || m.toUpperCase().startsWith('WEB-');
+
   // Convertir vehículo al formato del documento
   const vehicleDocData: VehicleDocumentData = {
     id: vehicle.id,
     marca: vehicle.marca,
     modelo: vehicle.modelo,
     version: vehicle.version,
-    matricula: vehicle.matricula,
-    bastidor: vehicle.vin,
+    matricula: isPlaceholderMatricula(vehicle.matricula) ? '' : vehicle.matricula,
+    bastidor: vehicle.vin || '',
     fechaMatriculacion: vehicle.año_matriculacion ? String(vehicle.año_matriculacion) : '',
     kilometros: vehicle.kilometraje || 0,
     combustible: vehicle.combustible || '',
@@ -127,6 +140,31 @@ export function DocumentGeneratorModal({
       loadEmpresas();
     }
   }, [isOpen]);
+
+  // Preseleccionar el cliente cuando el asistente se abre desde la ficha de
+  // un contacto (mismo mapeo que usa CustomerSelector)
+  useEffect(() => {
+    if (!isOpen || !preselectedContactId) return;
+    const contact = contacts.find((c) => c.id === preselectedContactId);
+    if (!contact) return;
+    setCustomer({
+      id: contact.id,
+      nombre: contact.nombre || '',
+      apellidos: contact.apellidos || '',
+      dni: contact.dni_cif || '',
+      direccion: contact.direccion || '',
+      codigoPostal: contact.codigo_postal || '',
+      localidad: contact.municipio || '',
+      provincia: contact.provincia || '',
+      telefono: contact.telefono || '',
+      email: contact.email || '',
+      isEmpresa: false,
+      nombreEmpresa: '',
+      cifEmpresa: ''
+    });
+    setIsNewCustomer(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, preselectedContactId]);
 
   // Reset al cerrar
   useEffect(() => {
@@ -158,6 +196,59 @@ export function DocumentGeneratorModal({
     }
   };
 
+  // Reservar el número secuencial de factura/proforma desde la BD al entrar
+  // al paso de datos (sustituye a la antigua numeración aleatoria). El guard
+  // "cancelled" evita que una reserva en vuelo escriba sobre el estado ya
+  // reseteado si el usuario cierra el modal antes de que responda la BD.
+  useEffect(() => {
+    if (currentStep !== 4 || !documentType || !isOpen) return;
+    let cancelled = false;
+    if (documentType === 'factura' && !(formData as Partial<FacturaData>).numeroFactura) {
+      getNextDocumentNumber('factura').then((n) => {
+        if (cancelled) return;
+        setFormData((prev) => (prev.numeroFactura ? prev : { ...prev, numeroFactura: n }));
+      });
+    }
+    if (documentType === 'proforma' && !(formData as Partial<ProformaData>).numeroProforma) {
+      getNextDocumentNumber('proforma').then((n) => {
+        if (cancelled) return;
+        setFormData((prev) => (prev.numeroProforma ? prev : { ...prev, numeroProforma: n }));
+      });
+    }
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStep, documentType, isOpen]);
+
+  // Vehículo con las correcciones hechas en el formulario (matrícula/bastidor)
+  const getFormVehicle = (): VehicleDocumentData =>
+    (formData as { vehiculo?: VehicleDocumentData }).vehiculo || vehicleDocData;
+
+  // La matrícula real es obligatoria en todos los documentos; el bastidor lo
+  // es en factura y contrato de compraventa (documentos legales/fiscales).
+  const vehicleIdentityValid = (): boolean => {
+    const v = getFormVehicle();
+    if (!v.matricula || !v.matricula.trim()) return false;
+    if ((documentType === 'factura' || documentType === 'compraventa') && !(v.bastidor || '').trim()) {
+      return false;
+    }
+    return true;
+  };
+
+  // Factura y proforma no pueden avanzar a la vista previa sin su número
+  // secuencial asignado: evita descargar PDFs sin número o con un número
+  // distinto al que luego se registraría en la BD.
+  const documentNumberReady = (): boolean => {
+    if (documentType === 'factura') {
+      return Boolean(((formData as Partial<FacturaData>).numeroFactura || '').trim());
+    }
+    if (documentType === 'proforma') {
+      return Boolean(((formData as Partial<ProformaData>).numeroProforma || '').trim());
+    }
+    return true;
+  };
+
   // Validar si se puede avanzar al siguiente paso
   const canProceed = (): boolean => {
     switch (currentStep) {
@@ -170,8 +261,7 @@ export function DocumentGeneratorModal({
         // Los campos se pueden dejar vacíos y rellenar en el documento
         return customer !== null;
       case 4:
-        // Siempre permitir avanzar - los valores por defecto ya están establecidos
-        return true;
+        return vehicleIdentityValid() && documentNumberReady();
       default:
         return true;
     }
@@ -202,6 +292,66 @@ export function DocumentGeneratorModal({
 
   const handleFormChange = (data: Record<string, unknown>) => {
     setFormData(data);
+  };
+
+  // Al cambiar de tipo de documento se descartan los datos del formulario:
+  // cada tipo tiene campos y numeración propios, y arrastrarlos entre tipos
+  // provoca números/condiciones espurios en el documento final.
+  const handleSelectDocumentType = (type: DocumentType) => {
+    if (type !== documentType) {
+      setFormData({});
+    }
+    setDocumentType(type);
+  };
+
+  // Al cambiar de empresa, los campos derivados de la empresa anterior (IBAN,
+  // lugar de contrato/entrega) se actualizan a los de la nueva si el usuario
+  // no los había personalizado; si escribió un valor propio, se respeta.
+  const handleSelectEmpresa = (empresa: EmpresaVendedora) => {
+    const prevIban = selectedEmpresa?.iban || '';
+    const prevLugarContrato = selectedEmpresa?.localidad || '';
+    const prevLugarEntrega = selectedEmpresa
+      ? `${selectedEmpresa.direccion}, ${selectedEmpresa.localidad}`
+      : '';
+    setSelectedEmpresa(empresa);
+    setFormData((prev) => {
+      const next = { ...prev };
+      const cond = next.condiciones as Record<string, unknown> | undefined;
+      if (cond && (!cond.cuentaBancaria || cond.cuentaBancaria === prevIban)) {
+        next.condiciones = { ...cond, cuentaBancaria: empresa.iban || '' };
+      }
+      if ('cuentaBancaria' in next && (!next.cuentaBancaria || next.cuentaBancaria === prevIban)) {
+        next.cuentaBancaria = empresa.iban || '';
+      }
+      if ('lugarContrato' in next && (!next.lugarContrato || next.lugarContrato === prevLugarContrato)) {
+        next.lugarContrato = empresa.localidad;
+      }
+      if ('lugarEntrega' in next && (!next.lugarEntrega || next.lugarEntrega === prevLugarEntrega)) {
+        next.lugarEntrega = `${empresa.direccion}, ${empresa.localidad}`;
+      }
+      return next;
+    });
+  };
+
+  // Si el usuario corrigió matrícula/bastidor en el asistente, guardarlos
+  // también en la ficha del vehículo para sanear el inventario.
+  const persistVehicleIdentity = async (): Promise<void> => {
+    const v = getFormVehicle();
+    const updates: { matricula?: string; vin?: string } = {};
+    const matriculaOriginal = isPlaceholderMatricula(vehicle.matricula) ? '' : vehicle.matricula;
+    if (v.matricula && v.matricula.trim() && v.matricula !== matriculaOriginal) {
+      updates.matricula = v.matricula.trim();
+    }
+    if (v.bastidor && v.bastidor.trim() && v.bastidor !== (vehicle.vin || '')) {
+      updates.vin = v.bastidor.trim();
+    }
+    if (Object.keys(updates).length === 0) return;
+    try {
+      await updateVehicle(vehicle.id, updates);
+      window.dispatchEvent(new CustomEvent('midcar-data-updated', { detail: { type: 'vehicles' } }));
+    } catch (err) {
+      console.error('Error guardando matrícula/bastidor en la ficha del vehículo:', err);
+    }
   };
 
   // Construir datos de vendedor desde la empresa seleccionada
@@ -241,12 +391,15 @@ export function DocumentGeneratorModal({
     const vendedor = buildVendedorData();
     const empresaIban = selectedEmpresa?.iban || '';
 
+    // El vendedor, el comprador y la empresa elegidos en el asistente son
+    // SIEMPRE autoritativos: van después del spread para que un formData
+    // antiguo (p.ej. tras volver atrás y cambiar de empresa) no los pise.
     const base = {
-      empresaId: selectedEmpresa?.id,
       vehiculo: vehicleDocData,
+      ...formData,
+      empresaId: selectedEmpresa?.id,
       vendedor,
-      comprador: customer!,
-      ...formData
+      comprador: customer!
     };
 
     // Auto-fill cuentaBancaria from empresa IBAN if not already set
@@ -265,14 +418,16 @@ export function DocumentGeneratorModal({
     return base as CompraventaData | SenalData | FacturaData | ProformaData;
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     setIsGenerating(true);
-    setTimeout(() => {
+    try {
+      await persistVehicleIdentity();
+    } finally {
       setIsGenerating(false);
-      if (onDocumentGenerated && documentType) {
-        onDocumentGenerated(documentType, buildCompleteFormData());
-      }
-    }, 500);
+    }
+    if (onDocumentGenerated && documentType) {
+      onDocumentGenerated(documentType, buildCompleteFormData());
+    }
   };
 
   const handleSave = async () => {
@@ -283,6 +438,7 @@ export function DocumentGeneratorModal({
     setSaveSuccess(false);
 
     try {
+      await persistVehicleIdentity();
       const data = buildCompleteFormData();
       const result = await saveDocument(documentType, data);
 
@@ -318,7 +474,7 @@ export function DocumentGeneratorModal({
         return (
           <DocumentTypeSelector
             selectedType={documentType}
-            onSelect={setDocumentType}
+            onSelect={handleSelectDocumentType}
           />
         );
       case 2:
@@ -404,7 +560,7 @@ export function DocumentGeneratorModal({
             <button
               key={empresa.id}
               type="button"
-              onClick={() => setSelectedEmpresa(empresa)}
+              onClick={() => handleSelectEmpresa(empresa)}
               className={cn(
                 'w-full p-4 rounded-xl border-2 text-left transition-all',
                 selectedEmpresa?.id === empresa.id
@@ -456,6 +612,7 @@ export function DocumentGeneratorModal({
           <CompraventaForm
             vehicle={vehicleDocData}
             customer={customer!}
+            vendedor={buildVendedorData()}
             formData={formData as Partial<CompraventaData>}
             onChange={handleFormChange}
             suggestedPrice={suggestedPrice}
@@ -467,6 +624,7 @@ export function DocumentGeneratorModal({
           <SenalForm
             vehicle={vehicleDocData}
             customer={customer!}
+            vendedor={buildVendedorData()}
             formData={formData as Partial<SenalData>}
             onChange={handleFormChange}
             suggestedPrice={suggestedPrice}
@@ -478,6 +636,7 @@ export function DocumentGeneratorModal({
           <FacturaForm
             vehicle={vehicleDocData}
             customer={customer!}
+            vendedor={buildVendedorData()}
             formData={formData as Partial<FacturaData>}
             onChange={handleFormChange}
             suggestedPrice={suggestedPrice}
@@ -489,6 +648,7 @@ export function DocumentGeneratorModal({
           <ProformaForm
             vehicle={vehicleDocData}
             customer={customer!}
+            vendedor={buildVendedorData()}
             formData={formData as Partial<ProformaData>}
             onChange={handleFormChange}
             suggestedPrice={suggestedPrice}
@@ -579,14 +739,23 @@ export function DocumentGeneratorModal({
               {currentStep === 1 ? 'Cancelar' : 'Atrás'}
             </Button>
             {currentStep < 5 && (
-              <Button
-                onClick={handleNext}
-                disabled={!canProceed()}
-                className="bg-[#135bec] hover:bg-[#0f4fd6]"
-              >
-                Continuar
-                <span className="material-symbols-outlined ml-1 text-sm">arrow_forward</span>
-              </Button>
+              <div className="flex flex-col items-end gap-1">
+                <Button
+                  onClick={handleNext}
+                  disabled={!canProceed()}
+                  className="bg-[#135bec] hover:bg-[#0f4fd6]"
+                >
+                  Continuar
+                  <span className="material-symbols-outlined ml-1 text-sm">arrow_forward</span>
+                </Button>
+                {currentStep === 4 && !canProceed() && (
+                  <p className="text-xs text-amber-600">
+                    {!vehicleIdentityValid()
+                      ? `Introduce la matrícula${documentType === 'factura' || documentType === 'compraventa' ? ' y el bastidor' : ''} del vehículo para continuar`
+                      : 'Asignando el número de documento…'}
+                  </p>
+                )}
+              </div>
             )}
             {currentStep === 5 && (
               <Button

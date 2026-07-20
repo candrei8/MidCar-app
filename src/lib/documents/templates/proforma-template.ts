@@ -66,12 +66,6 @@ export class ProformaTemplate extends FacturaTemplate {
     this.applyMidCarOverlay();
   }
 
-  // En la proforma el bloque izquierdo se etiqueta "Cliente:" mientras el
-  // derecho mantiene "Facturar a:" (PDF de referencia 1740).
-  protected getFacturarABlockLabels(): { left: string; right: string } {
-    return { left: 'Cliente:', right: 'Facturar a:' };
-  }
-
   // Etiqueta "N.º de factura" cambia por el número de proforma (manteniendo
   // el mismo wording que en el documento de referencia: "N.º de factura").
   protected addNumeroYFechaProforma(): void {

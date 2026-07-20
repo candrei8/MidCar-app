@@ -15,6 +15,7 @@ import { generateCompraventaPDFWithQR } from '@/lib/documents/templates/comprave
 import { generateSenalPDFWithQR } from '@/lib/documents/templates/senal-template';
 import { generateFacturaPDFWithQR } from '@/lib/documents/templates/factura-template';
 import { generateProformaPDFWithQR } from '@/lib/documents/templates/proforma-template';
+import type { EmpresaDocumentData } from '@/lib/documents/templates/base-template';
 
 interface DocumentPreviewProps {
   documentType: DocumentType;
@@ -42,16 +43,40 @@ export function DocumentPreview({
     generatePreview();
   }, [documentType, formData]);
 
+  // La empresa emisora del documento se construye desde el vendedor elegido
+  // en el asistente; así las plantillas nunca caen en la empresa por defecto.
+  const buildEmpresaFromVendedor = (): EmpresaDocumentData | undefined => {
+    const vendedor = formData.vendedor;
+    if (!vendedor || !(vendedor.nombreEmpresa || vendedor.nombre)) return undefined;
+    const cuentaBancaria =
+      'condiciones' in formData
+        ? formData.condiciones?.cuentaBancaria
+        : (formData as SenalData).cuentaBancaria;
+    return {
+      nombre: vendedor.nombre || vendedor.nombreEmpresa || '',
+      razonSocial: vendedor.nombreEmpresa,
+      cif: vendedor.cifEmpresa || vendedor.dni || '',
+      direccion: vendedor.direccion || '',
+      codigoPostal: vendedor.codigoPostal || '',
+      localidad: vendedor.localidad || '',
+      provincia: vendedor.provincia || '',
+      telefono: vendedor.telefono || '',
+      email: vendedor.email || '',
+      cuentaBancaria: cuentaBancaria || undefined
+    };
+  };
+
   const buildTemplate = async () => {
+    const empresa = buildEmpresaFromVendedor();
     switch (documentType) {
       case 'compraventa':
-        return generateCompraventaPDFWithQR(formData as CompraventaData);
+        return generateCompraventaPDFWithQR(formData as CompraventaData, undefined, empresa);
       case 'senal':
-        return generateSenalPDFWithQR(formData as SenalData);
+        return generateSenalPDFWithQR(formData as SenalData, undefined, empresa);
       case 'factura':
-        return generateFacturaPDFWithQR(formData as FacturaData);
+        return generateFacturaPDFWithQR(formData as FacturaData, undefined, empresa);
       case 'proforma':
-        return generateProformaPDFWithQR(formData as ProformaData);
+        return generateProformaPDFWithQR(formData as ProformaData, undefined, empresa);
       default:
         throw new Error('Tipo de documento no soportado');
     }

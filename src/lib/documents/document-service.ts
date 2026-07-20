@@ -32,7 +32,14 @@ interface DocumentListResponse<T> {
 // ============================================================================
 
 /**
- * Genera el siguiente número de documento secuencial
+ * Genera el siguiente número de documento secuencial.
+ *
+ * Usa la función atómica `next_document_number` de Postgres (tabla de
+ * contadores con bloqueo de fila), que garantiza numeración correlativa sin
+ * duplicados aunque haya varios usuarios generando documentos a la vez
+ * (requisito legal en España para facturas). Si la RPC aún no está desplegada
+ * cae al método antiguo (SELECT max+1), que no es atómico pero mantiene la
+ * serie correlativa.
  */
 export async function getNextDocumentNumber(type: DocumentType): Promise<string> {
   const year = new Date().getFullYear();
@@ -52,8 +59,21 @@ export async function getNextDocumentNumber(type: DocumentType): Promise<string>
     return `${config.prefix}-${year}-${timestamp}`;
   }
 
+  // Vía preferente: contador atómico en BD
   try {
-    // Obtener el último número de este año
+    const { data, error } = await supabase.rpc('next_document_number', { p_doc_type: type });
+    if (!error && typeof data === 'string' && data.length > 0) {
+      return data;
+    }
+    if (error) {
+      console.warn('RPC next_document_number no disponible, usando fallback:', error.message);
+    }
+  } catch (err) {
+    console.warn('RPC next_document_number falló, usando fallback:', err);
+  }
+
+  try {
+    // Fallback: obtener el último número de este año
     const { data, error } = await supabase
       .from(config.table)
       .select(config.column)
@@ -88,6 +108,37 @@ export async function getNextDocumentNumber(type: DocumentType): Promise<string>
 }
 
 // ============================================================================
+// USUARIO CREADOR
+// ============================================================================
+
+/**
+ * Usuario autenticado que genera el documento, para trazabilidad
+ * (created_by / created_by_name en contratos, señales, facturas y proformas).
+ * created_by solo se rellena si existe la fila en public.users (FK).
+ */
+async function getCurrentUserInfo(): Promise<{ id: string | null; name: string | null }> {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { id: null, name: null };
+
+    const { data: profile } = await supabase
+      .from('users')
+      .select('id, nombre, apellidos')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (profile) {
+      const name = [profile.nombre, profile.apellidos].filter(Boolean).join(' ').trim();
+      return { id: profile.id, name: name || user.email || null };
+    }
+    return { id: null, name: user.email || null };
+  } catch (err) {
+    console.warn('No se pudo obtener el usuario creador del documento:', err);
+    return { id: null, name: null };
+  }
+}
+
+// ============================================================================
 // CONTRATOS DE COMPRAVENTA
 // ============================================================================
 
@@ -97,6 +148,7 @@ export async function saveContrato(data: CompraventaData): Promise<DocumentRespo
   }
 
   try {
+    const creador = await getCurrentUserInfo();
     const numeroContrato = await getNextDocumentNumber('compraventa');
     const midcarIdentifier =
       data.identifier ||
@@ -140,7 +192,9 @@ export async function saveContrato(data: CompraventaData): Promise<DocumentRespo
         estado: 'borrador',
         fecha_firma: data.fechaContrato,
         fecha_entrega: data.fechaEntrega,
-        clausulas_adicionales: data.clausulasAdicionales
+        clausulas_adicionales: data.clausulasAdicionales,
+        created_by: creador.id,
+        created_by_name: creador.name
       })
       .select('id')
       .single();
@@ -165,6 +219,7 @@ export async function saveSenal(data: SenalData): Promise<DocumentResponse<strin
   }
 
   try {
+    const creador = await getCurrentUserInfo();
     const numeroSenal = await getNextDocumentNumber('senal');
     const midcarIdentifier =
       data.identifier ||
@@ -205,7 +260,9 @@ export async function saveSenal(data: SenalData): Promise<DocumentResponse<strin
         fecha_limite_venta: data.fechaLimiteVenta,
         cuenta_bancaria: data.cuentaBancaria,
         observaciones: data.observaciones,
-        estado: 'activa'
+        estado: 'activa',
+        created_by: creador.id,
+        created_by_name: creador.name
       })
       .select('id')
       .single();
@@ -230,7 +287,8 @@ export async function saveFactura(data: FacturaData): Promise<DocumentResponse<s
   }
 
   try {
-    const numeroFactura = data.numeroFactura || await getNextDocumentNumber('factura');
+    const creador = await getCurrentUserInfo();
+    const numeroFactura = data.numeroFactura?.trim() || await getNextDocumentNumber('factura');
     const midcarIdentifier =
       data.identifier ||
       buildDocumentIdentifier({
@@ -266,7 +324,9 @@ export async function saveFactura(data: FacturaData): Promise<DocumentResponse<s
         forma_pago: data.condiciones.formaPago,
         cuenta_bancaria: data.condiciones.cuentaBancaria,
         notas: data.conceptoAdicional,
-        estado: 'pendiente'
+        estado: 'pendiente',
+        created_by: creador.id,
+        created_by_name: creador.name
       })
       .select('id')
       .single();
@@ -291,7 +351,8 @@ export async function saveProforma(data: ProformaData): Promise<DocumentResponse
   }
 
   try {
-    const numeroProforma = data.numeroProforma || await getNextDocumentNumber('proforma');
+    const creador = await getCurrentUserInfo();
+    const numeroProforma = data.numeroProforma?.trim() || await getNextDocumentNumber('proforma');
     const midcarIdentifier =
       data.identifier ||
       buildDocumentIdentifier({
@@ -335,7 +396,9 @@ export async function saveProforma(data: ProformaData): Promise<DocumentResponse
         forma_pago: data.condiciones.formaPago,
         cuenta_bancaria: data.condiciones.cuentaBancaria,
         observaciones: data.conceptoAdicional,
-        estado: 'vigente'
+        estado: 'vigente',
+        created_by: creador.id,
+        created_by_name: creador.name
       })
       .select('id')
       .single();

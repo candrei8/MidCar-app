@@ -37,6 +37,7 @@ import {
     createPolicy,
     updatePolicy,
     deletePolicy as deletePolicyDB,
+    updateVehicle,
     PolicyDB,
     getDaysRemaining,
     calculateInsuranceState
@@ -205,7 +206,7 @@ export default function SeguroPage() {
                     daysRemaining: policy ? getDaysRemaining(policy.fecha_vencimiento) : null,
                 }
             })
-    }, [getPolicyForVehicle, getPolicyState])
+    }, [filteredVehicles, getPolicyForVehicle, getPolicyState])
 
     // Filtered Data for Table
     const filteredData = useMemo(() => {
@@ -330,6 +331,7 @@ export default function SeguroPage() {
             'application/vnd.ms-excel': ['.xls'],
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
             'text/csv': ['.csv'],
+            'application/pdf': ['.pdf'],
         },
         maxFiles: 1,
         noClick: false,
@@ -339,6 +341,32 @@ export default function SeguroPage() {
         onDropAccepted: () => setIsDragActive(false),
     })
 
+    // Asignación manual: vincula una póliza sin coincidencia a un vehículo del
+    // stock (típicamente uno importado de la web con referencia WEB- en vez de
+    // matrícula real). Al confirmar, la matrícula real del PDF/Excel se guarda
+    // también en la ficha del vehículo.
+    const handleAssignVehicle = (policy: ParsedPolicy, vehicleId: string) => {
+        const vehicle = filteredVehicles.find(v => v.id === vehicleId)
+        if (!vehicle || !importResult) return
+
+        setImportResult(prev => {
+            if (!prev) return prev
+            return {
+                ...prev,
+                matched: [
+                    ...prev.matched,
+                    {
+                        policy,
+                        vehicleId: vehicle.id,
+                        vehicleName: `${vehicle.marca} ${vehicle.modelo}`,
+                        matricula: policy.matricula, // matrícula real del documento importado
+                    }
+                ],
+                unmatched: prev.unmatched.filter(p => p !== policy)
+            }
+        })
+    }
+
     // Confirm import - Creates real policies in Supabase and updates state
     const handleConfirmImport = async () => {
         if (!importResult) return
@@ -347,20 +375,29 @@ export default function SeguroPage() {
         try {
             const savedPolicies: PolicyDB[] = []
             const errors: string[] = []
+            let matriculasActualizadas = 0
 
             for (const match of importResult.matched) {
+                // Si la matrícula del vehículo en el CRM no es la real (p.ej.
+                // referencia WEB- del scraper), guardar la matrícula real
+                const vehicle = filteredVehicles.find(v => v.id === match.vehicleId)
+                if (vehicle && normalizeMatricula(vehicle.matricula) !== match.policy.matricula) {
+                    const updatedVehicle = await updateVehicle(vehicle.id, { matricula: match.policy.matricula })
+                    if (updatedVehicle) matriculasActualizadas++
+                }
+
                 const policyData: Omit<PolicyDB, 'id' | 'created_at' | 'updated_at'> = {
                     vehiculo_id: match.vehicleId,
                     vehiculo_matricula: match.matricula,
                     numero_poliza: match.policy.numeroPoliza,
-                    compania_aseguradora: 'AXA',
+                    compania_aseguradora: match.policy.aseguradora || 'AXA',
                     tipo_poliza: (match.policy.tipoPoliza?.toLowerCase().includes('terceros') ? 'terceros_basico' : 'todo_riesgo_franquicia') as PolicyDB['tipo_poliza'],
                     fecha_alta: match.policy.fechaAlta || new Date().toISOString().split('T')[0],
                     fecha_vencimiento: match.policy.fechaVencimiento || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
                     prima_anual: match.policy.prima || 350,
                     franquicia: 300,
-                    tomador_nombre: 'MidCar Concesionario S.L.',
-                    tomador_nif: 'B12345678',
+                    tomador_nombre: 'MID CAR SOLUCIONES SL',
+                    tomador_nif: 'B87595435',
                     coberturas: defaultCoverages,
                     estado: 'activa',
                     created_by: user?.id,
@@ -370,7 +407,27 @@ export default function SeguroPage() {
                 // Check if policy already exists for this vehicle and update it
                 const existingPolicy = policies.find(p => p.vehiculo_id === match.vehicleId)
                 if (existingPolicy) {
-                    const updated = await updatePolicy(existingPolicy.id, policyData)
+                    // Solo pisar los campos que el archivo REALMENTE aporta: un
+                    // PDF de flota que solo lista matrículas no debe sustituir
+                    // el número, fechas o prima reales de una póliza ya
+                    // registrada por valores por defecto inventados.
+                    const updateData: Partial<PolicyDB> = { vehiculo_matricula: match.matricula }
+                    if (match.policy.numeroPoliza && !match.policy.numeroPolizaGenerado) {
+                        updateData.numero_poliza = match.policy.numeroPoliza
+                    }
+                    if (match.policy.fechaAlta) updateData.fecha_alta = match.policy.fechaAlta
+                    if (match.policy.fechaVencimiento) updateData.fecha_vencimiento = match.policy.fechaVencimiento
+                    if (match.policy.prima) updateData.prima_anual = match.policy.prima
+                    if (match.policy.aseguradora) updateData.compania_aseguradora = match.policy.aseguradora
+
+                    const aportaDatos = Object.keys(updateData).length > 1
+                    if (!aportaDatos) {
+                        // Nada nuevo que registrar: la póliza existente ya cubre este vehículo
+                        savedPolicies.push(existingPolicy)
+                        continue
+                    }
+
+                    const updated = await updatePolicy(existingPolicy.id, updateData)
                     if (updated) {
                         savedPolicies.push(updated)
                     } else {
@@ -398,13 +455,24 @@ export default function SeguroPage() {
             setShowImportPreview(false)
             setImportResult(null)
 
+            const successMessages: ParseError[] = [
+                { message: `${savedPolicies.length} pólizas importadas correctamente`, type: 'warning' }
+            ]
+            if (matriculasActualizadas > 0) {
+                successMessages.push({
+                    message: `${matriculasActualizadas} matrícula(s) real(es) guardada(s) en la ficha del vehículo`,
+                    type: 'warning'
+                })
+                window.dispatchEvent(new CustomEvent('midcar-data-updated', { detail: { type: 'vehicles' } }))
+            }
+
             if (errors.length > 0) {
                 setParseErrors([
-                    { message: `${savedPolicies.length} pólizas importadas correctamente`, type: 'warning' },
+                    ...successMessages,
                     ...errors.map(e => ({ message: e, type: 'error' as const }))
                 ])
             } else {
-                setParseErrors([{ message: `${savedPolicies.length} pólizas importadas correctamente`, type: 'warning' }])
+                setParseErrors(successMessages)
             }
 
             // Clear success message after 3 seconds
@@ -416,6 +484,14 @@ export default function SeguroPage() {
             setIsImporting(false)
         }
     }
+
+    // Vehículos aún sin póliza asignada en esta importación (candidatos para
+    // la asignación manual de pólizas sin coincidencia)
+    const assignableVehicles = useMemo(() => {
+        if (!importResult) return []
+        const matchedIds = new Set(importResult.matched.map(m => m.vehicleId))
+        return filteredVehicles.filter(v => v.estado !== 'vendido' && !matchedIds.has(v.id))
+    }, [importResult, filteredVehicles])
 
     // Modal Handlers
     const handleAddPolicy = (vehicle: Vehicle) => {
@@ -544,7 +620,7 @@ export default function SeguroPage() {
                                         {isLoading ? 'Procesando...' : isDragActive ? 'Suelta el archivo aquí' : 'Importar Pólizas'}
                                     </p>
                                     <p className="text-[#616f89] dark:text-gray-400 text-xs font-normal leading-normal text-center max-w-[240px]">
-                                        {isDragActive ? 'Archivo Excel o CSV compatible' : 'Arrastra un archivo o haz clic para seleccionar'}
+                                        {isDragActive ? 'Archivo PDF, Excel o CSV compatible' : 'Arrastra el PDF de la aseguradora (o Excel/CSV) o haz clic para seleccionar'}
                                     </p>
                                 </div>
                                 {!isLoading && !isDragActive && (
@@ -584,6 +660,10 @@ export default function SeguroPage() {
 
                             {/* Supported formats hint */}
                             <div className="flex items-center justify-center gap-4 text-[10px] text-gray-400">
+                                <span className="flex items-center gap-1">
+                                    <span className="material-symbols-outlined text-[12px]">picture_as_pdf</span>
+                                    PDF aseguradora
+                                </span>
                                 <span className="flex items-center gap-1">
                                     <span className="material-symbols-outlined text-[12px]">table_chart</span>
                                     Excel (.xlsx, .xls)
@@ -817,6 +897,8 @@ export default function SeguroPage() {
                 result={importResult}
                 onConfirm={handleConfirmImport}
                 isImporting={isImporting}
+                assignableVehicles={assignableVehicles}
+                onAssignVehicle={handleAssignVehicle}
             />
 
             {selectedVehicle && (

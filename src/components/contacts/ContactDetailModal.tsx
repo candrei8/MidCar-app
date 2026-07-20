@@ -21,9 +21,9 @@ import { AddTaskModal, TaskData } from "./AddTaskModal"
 import { SetPriorityModal } from "./SetPriorityModal"
 import { PostponeContactModal } from "./PostponeContactModal"
 import { AssignCommercialModal } from "./AssignCommercialModal"
-import { DocumentModal } from "./DocumentModal"
 import { EditContactModal } from "./EditContactModal"
 import { VehicleSelector } from "./VehicleSelector"
+import { DocumentGeneratorModal } from "@/components/documents/DocumentGeneratorModal"
 
 // Helper para verificar si una URL de imagen es válida (excluye Azure CDN que no existe)
 const isValidImageUrl = (url: string | null | undefined): boolean => {
@@ -55,8 +55,9 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
     // Estados mantenidos para funcionalidad
     const [showInteractionModal, setShowInteractionModal] = useState(false)
     const [showTaskModal, setShowTaskModal] = useState(false)
-    const [showDocumentModal, setShowDocumentModal] = useState(false)
-    const [documentType, setDocumentType] = useState<'proforma' | 'senal' | 'contrato' | 'factura'>('proforma')
+    const [showDocGenerator, setShowDocGenerator] = useState(false)
+    const [docVehicle, setDocVehicle] = useState<Vehicle | null>(null)
+    const [showDocVehiclePicker, setShowDocVehiclePicker] = useState(false)
     const [interactions, setInteractions] = useState<InteractionData[]>([])
     const [tasks, setTasks] = useState<TaskData[]>([])
     const [estadoLead, setEstadoLead] = useState(contact.estado)
@@ -124,9 +125,25 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
         setShowTaskModal(false)
     }
 
-    const openDocument = (type: 'proforma' | 'senal' | 'contrato' | 'factura') => {
-        setDocumentType(type)
-        setShowDocumentModal(true)
+    // Generar factura / contrato de señal / compraventa / proforma
+    // directamente desde la ficha del contacto
+    const openDocumentGenerator = (vehicle?: Vehicle) => {
+        if (vehicle) {
+            setDocVehicle(vehicle)
+            setShowDocGenerator(true)
+            return
+        }
+        if (contactVehicles.length === 0) {
+            setActiveTab('vehiculos')
+            addToast('Asigna primero un vehículo al contacto para generar el documento', 'error')
+            return
+        }
+        if (contactVehicles.length === 1) {
+            setDocVehicle(contactVehicles[0])
+            setShowDocGenerator(true)
+            return
+        }
+        setShowDocVehiclePicker(true)
     }
 
     return (
@@ -228,14 +245,14 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
                         )}
 
                         {/* ActionsBar */}
-                        <div className="grid grid-cols-4 gap-2 px-4 mb-6">
+                        <div className="grid grid-cols-5 gap-2 px-4 mb-6">
                             <button className="flex flex-col items-center gap-2 group" onClick={() => window.open(`tel:${currentContact.telefono}`)}>
                                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#135bec] text-white shadow-lg shadow-[#135bec]/30 active:scale-95 transition-all">
                                     <span className="material-symbols-outlined text-2xl">call</span>
                                 </div>
                                 <span className="text-xs font-medium text-[#3c3c4399] dark:text-[#ebebf599] group-hover:text-[#135bec] transition-colors">Llamar</span>
                             </button>
-                            <button className="flex flex-col items-center gap-2 group">
+                            <button className="flex flex-col items-center gap-2 group" onClick={() => window.open(`https://wa.me/${(currentContact.telefono || '').replace(/\D/g, '').replace(/^(?!34)/, '34')}`)}>
                                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#135bec] text-white shadow-lg shadow-[#135bec]/30 active:scale-95 transition-all">
                                     <span className="material-symbols-outlined text-2xl">chat</span>
                                 </div>
@@ -246,6 +263,12 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
                                     <span className="material-symbols-outlined text-2xl">mail</span>
                                 </div>
                                 <span className="text-xs font-medium text-[#3c3c4399] dark:text-[#ebebf599] group-hover:text-[#135bec] transition-colors">Email</span>
+                            </button>
+                            <button className="flex flex-col items-center gap-2 group" onClick={() => openDocumentGenerator()}>
+                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 active:scale-95 transition-all">
+                                    <span className="material-symbols-outlined text-2xl">description</span>
+                                </div>
+                                <span className="text-xs font-medium text-[#3c3c4399] dark:text-[#ebebf599] group-hover:text-emerald-600 transition-colors">Documento</span>
                             </button>
                             <button className="flex flex-col items-center gap-2 group" onClick={() => setShowTaskModal(true)}>
                                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 active:scale-95 transition-all">
@@ -425,6 +448,13 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
                                                             {vehicle.estado}
                                                         </span>
                                                         <button
+                                                            onClick={() => openDocumentGenerator(vehicle)}
+                                                            className="h-8 w-8 flex items-center justify-center rounded-full text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+                                                            title="Generar documento (factura, señal, compraventa, proforma)"
+                                                        >
+                                                            <span className="material-symbols-outlined text-lg">description</span>
+                                                        </button>
+                                                        <button
                                                             onClick={() => handleRemoveVehicle(vehicle.id)}
                                                             className="h-8 w-8 flex items-center justify-center rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
                                                             title="Quitar vehículo"
@@ -484,7 +514,51 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
             {/* Hidden Modals reused logic */}
             <NewInteractionModal open={showInteractionModal} onClose={() => setShowInteractionModal(false)} contactId={currentContact.id} contactName={`${currentContact.nombre}`} onSave={handleSaveInteraction} />
             <AddTaskModal open={showTaskModal} onClose={() => setShowTaskModal(false)} contactId={currentContact.id} contactName={`${currentContact.nombre}`} onSave={handleSaveTask} />
-            <DocumentModal open={showDocumentModal} onClose={() => setShowDocumentModal(false)} type={documentType} contact={currentContact} vehicle={contactVehicles[0]} onGenerate={() => { }} />
+
+            {/* Generador de documentos (factura, señal, compraventa, proforma)
+                con el contacto ya preseleccionado como cliente */}
+            {docVehicle && (
+                <DocumentGeneratorModal
+                    isOpen={showDocGenerator}
+                    onClose={() => setShowDocGenerator(false)}
+                    vehicle={docVehicle}
+                    contacts={[currentContact]}
+                    preselectedContactId={currentContact.id}
+                />
+            )}
+
+            {/* Selector de vehículo cuando el contacto tiene varios de interés */}
+            <Dialog open={showDocVehiclePicker} onOpenChange={setShowDocVehiclePicker}>
+                <DialogContent className="max-w-sm p-0 overflow-y-auto max-h-[80dvh] gap-0">
+                    <DialogTitle className="sr-only">Elegir vehículo para el documento</DialogTitle>
+                    <div className="p-5">
+                        <h3 className="text-lg font-bold mb-1">¿Para qué vehículo?</h3>
+                        <p className="text-sm text-gray-500 mb-4">Elige el vehículo del documento</p>
+                        <div className="space-y-2">
+                            {contactVehicles.map(vehicle => (
+                                <button
+                                    key={vehicle.id}
+                                    onClick={() => {
+                                        setShowDocVehiclePicker(false)
+                                        setDocVehicle(vehicle)
+                                        setShowDocGenerator(true)
+                                    }}
+                                    className="w-full flex items-center gap-3 p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-[#135bec] hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-colors text-left"
+                                >
+                                    <div
+                                        className="w-12 h-12 rounded-lg bg-cover bg-center bg-gray-100 flex-shrink-0"
+                                        style={{ backgroundImage: `url(${getValidImageUrl(vehicle.imagen_principal)})` }}
+                                    />
+                                    <div className="min-w-0">
+                                        <p className="text-sm font-bold truncate">{vehicle.marca} {vehicle.modelo}</p>
+                                        <p className="text-xs text-gray-500">{vehicle.matricula} • {formatCurrency(vehicle.precio_venta)}</p>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
 
             {/* Vehicle Selector Modal */}
             <VehicleSelector
