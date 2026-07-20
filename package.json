@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "postinstall": "node scripts/copy-pdf-worker.mjs",
-    "prebuild": "node scripts/build-merchant-feed.mjs && node scripts/copy-pdf-worker.mjs",
+    "prebuild": "node scripts/build-merchant-feed.mjs && node scripts/copy-pdf-worker.mjs && node scripts/write-version.mjs",
     "build": "next build",
     "build:feed": "node scripts/build-merchant-feed.mjs",
     "start": "next start",
