@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect, useCallback } from "react"
+import { modeloCorto } from "@/lib/vehicle-name"
 import { formatCurrency, cn } from "@/lib/utils"
 import { useAuth } from "@/lib/auth-context"
 import type { Vehicle, PersonData, EmpresaVendedora, TipoDocumentoIdentidad, TipoCliente, ContractWarranty, ContractEconomics } from "@/types"
@@ -228,7 +229,7 @@ export function ContractGeneratorModal({ vehicle, open, onOpenChange, onSuccess 
         y += 8
         doc.setFont('helvetica', 'normal')
         const vehiculoData = [
-            ['Marca/Modelo:', `${vehicle.marca} ${vehicle.modelo} ${vehicle.version || ''}`],
+            ['Marca/Modelo:', `${vehicle.marca} ${modeloCorto(vehicle.modelo) || vehicle.modelo}`],
             ['Matricula:', vehicle.matricula],
             ['Bastidor (VIN):', vehicle.vin],
             ['Fecha 1a Matriculacion:', String(vehicle.año_matriculacion)],

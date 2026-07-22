@@ -2,10 +2,15 @@
  * insurancePdfParser.ts
  *
  * Extracción de pólizas desde el PDF que envía la aseguradora (AXA, etc.).
- * Se procesa íntegramente en el navegador con pdf.js: se reconstruyen las
- * líneas de texto del PDF y se detectan las matrículas españolas (formato
- * nuevo 0000XXX y antiguo M-0000-XX), junto con número de póliza, fechas y
- * compañía cuando aparecen.
+ * Se procesa íntegramente en el navegador en dos fases:
+ *
+ *  1. Capa de texto de pdf.js: se reconstruyen las líneas y se detectan las
+ *     matrículas españolas con regex.
+ *  2. OCR de respaldo (tesseract.js): si el PDF no tiene texto utilizable —
+ *     documentos escaneados o con fuentes incrustadas sin tabla ToUnicode,
+ *     como los listados de flota de AXA, que extraen glifos ilegibles — se
+ *     renderiza cada página a imagen y se reconocen las matrículas por OCR,
+ *     con tolerancia a los errores típicos (O por 0, puntos intercalados).
  *
  * El resultado usa el mismo formato ParsedPolicy que la importación
  * Excel/CSV, de modo que reutiliza el matching con vehículos y el modal de
@@ -14,6 +19,7 @@
 
 import { ParsedPolicy } from '@/components/insurance/ImportPreviewModal'
 import { normalizeMatricula } from './insuranceFileParser'
+import type { PDFDocumentProxy } from 'pdfjs-dist'
 
 // Compañías conocidas para detectar la aseguradora en el texto del PDF
 const ASEGURADORAS_CONOCIDAS = [
@@ -25,6 +31,7 @@ const ASEGURADORAS_CONOCIDAS = [
 
 // Matrícula española formato nuevo: 4 dígitos + 3 consonantes (sin vocales ni Ñ/Q)
 const PLATE_NEW = /(?<![A-ZÑ0-9])(\d{4})[\s.-]?([BCDFGHJKLMNPRSTVWXYZ]{3})(?![A-ZÑ0-9])/g
+const PLATE_LETTERS_RE = /^[BCDFGHJKLMNPRSTVWXYZ]{3}$/
 // Falsos positivos habituales en pólizas: "AÑO 2015 BMW", "PMA 3500 KGS",
 // "1.4 GLP"… — tríos de consonantes que son unidades, marcas o motores,
 // nunca (en la práctica) el bloque de letras de una matrícula del documento
@@ -50,14 +57,34 @@ const DATE_RE = /\b(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})\b/g
 // Número de póliza: cadena de 6-15 dígitos (fuera de fechas)
 const POLICY_NUM_RE = /\b(\d{6,15})\b/
 // Número de póliza global del documento ("Póliza nº: 12345678",
-// "PÓLIZA NUMERO 076543210"). El token capturado debe empezar por dígito.
-const GLOBAL_POLICY_RE = /P[ÓO]LIZA\s*(?:N(?:UM(?:ERO)?)?\.?[ºO°]?\.?\s*)?[:\-]?\s*(\d[A-Z0-9\/-]{4,19})/i
+// "Anexo a la Póliza número: 030-0047248350"). El token capturado debe
+// empezar por dígito.
+const GLOBAL_POLICY_RE = /P[ÓO]LIZA\s*(?:N(?:[UÚ]M(?:ERO)?)?\.?[ºO°]?\.?\s*)?[:\-]?\s*(\d[A-Z0-9\/-]{4,19})/i
+
+// Escala de render para el OCR (equilibrio precisión/memoria)
+const OCR_RENDER_SCALE = 2.5
+// Límite de páginas a OCR (los listados de flota son de pocas páginas;
+// evita colgar el navegador con documentos enormes)
+const OCR_MAX_PAGES = 15
 
 export interface PdfParseOutput {
     policies: ParsedPolicy[]
     errors: string[]
     aseguradora?: string
     pages: number
+    /** true si las matrículas se obtuvieron por OCR (PDF sin texto utilizable) */
+    usedOcr?: boolean
+}
+
+async function loadPdf(file: File): Promise<PDFDocumentProxy> {
+    const pdfjs = await import('pdfjs-dist')
+    if (!pdfjs.GlobalWorkerOptions.workerSrc) {
+        // El worker se copia a /public en postinstall/prebuild
+        // (scripts/copy-pdf-worker.mjs) para servirlo como asset estático
+        pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'
+    }
+    const data = await file.arrayBuffer()
+    return pdfjs.getDocument({ data }).promise
 }
 
 /**
@@ -65,16 +92,7 @@ export interface PdfParseOutput {
  * pdf.js devuelve fragmentos sueltos con coordenadas; se agrupan por
  * coordenada Y (con tolerancia) y se ordenan por X para recomponer cada línea.
  */
-async function extractPdfLines(file: File): Promise<{ lines: string[]; pages: number }> {
-    const pdfjs = await import('pdfjs-dist')
-    if (!pdfjs.GlobalWorkerOptions.workerSrc) {
-        // El worker se copia a /public en postinstall/prebuild
-        // (scripts/copy-pdf-worker.mjs) para servirlo como asset estático
-        pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'
-    }
-
-    const data = await file.arrayBuffer()
-    const pdf = await pdfjs.getDocument({ data }).promise
+async function extractTextLines(pdf: PDFDocumentProxy): Promise<string[]> {
     const lines: string[] = []
 
     for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
@@ -106,7 +124,45 @@ async function extractPdfLines(file: File): Promise<{ lines: string[]; pages: nu
         }
     }
 
-    return { lines, pages: pdf.numPages }
+    return lines
+}
+
+/**
+ * OCR de respaldo: renderiza cada página a un canvas y reconoce el texto con
+ * tesseract.js (idioma español). Solo se usa cuando la capa de texto del PDF
+ * no contiene matrículas (escaneos o fuentes sin ToUnicode).
+ */
+async function ocrPdfLines(pdf: PDFDocumentProxy): Promise<string[]> {
+    const { createWorker } = await import('tesseract.js')
+    const worker = await createWorker('spa')
+    const lines: string[] = []
+
+    try {
+        const numPages = Math.min(pdf.numPages, OCR_MAX_PAGES)
+        for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+            const page = await pdf.getPage(pageNum)
+            const viewport = page.getViewport({ scale: OCR_RENDER_SCALE })
+            const canvas = document.createElement('canvas')
+            canvas.width = Math.ceil(viewport.width)
+            canvas.height = Math.ceil(viewport.height)
+            const ctx = canvas.getContext('2d')
+            if (!ctx) throw new Error('No se pudo crear el canvas para el OCR')
+
+            await page.render({ canvasContext: ctx, viewport, canvas }).promise
+            const { data } = await worker.recognize(canvas)
+            for (const rawLine of data.text.split('\n')) {
+                const line = rawLine.replace(/\s+/g, ' ').trim()
+                if (line) lines.push(line)
+            }
+            // Liberar memoria del canvas
+            canvas.width = 0
+            canvas.height = 0
+        }
+    } finally {
+        await worker.terminate()
+    }
+
+    return lines
 }
 
 function toIsoDate(day: string, month: string, year: string): string | null {
@@ -141,6 +197,31 @@ export function findPlates(text: string): string[] {
     return plates
 }
 
+/**
+ * Variante tolerante para texto procedente de OCR: además de los regex
+ * estrictos, recupera matrículas con los errores típicos del reconocimiento —
+ * "O553LWL" (letra O en lugar de cero), "0444L.LGW" (punto intercalado y
+ * letra duplicada).
+ */
+export function findPlatesLoose(text: string): string[] {
+    const plates = new Set<string>(findPlates(text))
+
+    for (const rawToken of text.split(/\s+/)) {
+        const token = rawToken.replace(/[.,;:()]/g, '')
+        const m = token.match(/^([0-9O]{4})-?([A-ZÑ]{3,4})$/)
+        if (!m) continue
+        const digits = m[1].replace(/O/g, '0')
+        let letters = m[2]
+        // El OCR a veces duplica la primera letra ("LGW" → "LLGW")
+        if (letters.length === 4 && letters[0] === letters[1]) letters = letters.slice(1)
+        if (!PLATE_LETTERS_RE.test(letters)) continue
+        if (PLATE_LETTER_BLOCKLIST.has(letters)) continue
+        plates.add(digits + letters)
+    }
+
+    return [...plates]
+}
+
 export function detectAseguradora(fullText: string): string | undefined {
     const upper = fullText.toUpperCase()
     for (const name of ASEGURADORAS_CONOCIDAS) {
@@ -155,28 +236,20 @@ export function detectAseguradora(fullText: string): string | undefined {
     return undefined
 }
 
+interface ScanResult {
+    policies: ParsedPolicy[]
+    aseguradora?: string
+}
+
 /**
- * Parsea el PDF de la aseguradora y devuelve una póliza por matrícula
- * detectada. Los campos que el PDF no aporte (fechas, prima…) quedan a null
- * y reciben valores por defecto al confirmar la importación.
+ * Recorre las líneas del documento y construye una póliza por matrícula
+ * detectada (número de póliza, fechas y tipo si acompañan en la misma línea).
+ * Exportada para poder testearla con líneas reales de PDFs de aseguradoras.
  */
-export async function parseInsurancePdf(file: File): Promise<PdfParseOutput> {
-    const errors: string[] = []
-
-    const { lines, pages } = await extractPdfLines(file)
-    if (lines.length === 0) {
-        return {
-            policies: [],
-            errors: [
-                'No se pudo extraer texto del PDF. Si es un documento escaneado (imagen), no contiene texto seleccionable: usa un PDF original de la aseguradora o un Excel/CSV.'
-            ],
-            pages
-        }
-    }
-
+export function scanPolicies(lines: string[], plateFinder: (text: string) => string[]): ScanResult {
     const fullText = lines.join('\n')
     const aseguradora = detectAseguradora(fullText)
-    const globalPolicyMatch = fullText.match(GLOBAL_POLICY_RE)
+    const globalPolicyMatch = fullText.toUpperCase().match(GLOBAL_POLICY_RE)
     const globalPolicyNum = globalPolicyMatch ? globalPolicyMatch[1] : null
 
     const seen = new Set<string>()
@@ -184,7 +257,7 @@ export async function parseInsurancePdf(file: File): Promise<PdfParseOutput> {
 
     for (const line of lines) {
         const upperLine = line.toUpperCase()
-        const plates = findPlates(upperLine)
+        const plates = plateFinder(upperLine)
         if (plates.length === 0) continue
 
         // Fechas y número de póliza de la misma línea (si el PDF es un
@@ -220,12 +293,58 @@ export async function parseInsurancePdf(file: File): Promise<PdfParseOutput> {
         }
     }
 
-    if (policies.length === 0) {
+    return { policies, aseguradora }
+}
+
+/**
+ * Parsea el PDF de la aseguradora y devuelve una póliza por matrícula
+ * detectada. Los campos que el PDF no aporte (fechas, prima…) quedan a null
+ * y reciben valores por defecto al confirmar la importación.
+ */
+export async function parseInsurancePdf(file: File): Promise<PdfParseOutput> {
+    const errors: string[] = []
+    const pdf = await loadPdf(file)
+    const pages = pdf.numPages
+
+    // Fase 1: capa de texto del PDF
+    let result: ScanResult = { policies: [] }
+    try {
+        const textLines = await extractTextLines(pdf)
+        result = scanPolicies(textLines, findPlates)
+    } catch (err) {
+        console.warn('Fallo extrayendo la capa de texto del PDF:', err)
+    }
+    let usedOcr = false
+
+    // Fase 2: OCR de respaldo cuando el texto no contiene matrículas
+    // (PDF escaneado o con fuentes sin ToUnicode, como los listados AXA)
+    if (result.policies.length === 0) {
+        try {
+            const ocrLines = await ocrPdfLines(pdf)
+            const ocrResult = scanPolicies(ocrLines, findPlatesLoose)
+            if (ocrResult.policies.length > 0) {
+                result = ocrResult
+                usedOcr = true
+            }
+        } catch (err) {
+            console.error('Fallo en el OCR del PDF:', err)
+            errors.push(
+                `El OCR del documento falló: ${err instanceof Error ? err.message : 'error desconocido'}. ` +
+                'Comprueba la conexión a internet (el reconocimiento descarga sus datos la primera vez) y vuelve a intentarlo.'
+            )
+        }
+    }
+
+    if (result.policies.length === 0 && errors.length === 0) {
         errors.push(
-            `Se leyeron ${pages} página(s) del PDF pero no se encontró ninguna matrícula española. ` +
+            `Se leyeron ${pages} página(s) del PDF (texto y OCR) pero no se encontró ninguna matrícula española. ` +
             'Comprueba que el documento incluye las matrículas de los vehículos asegurados.'
         )
     }
 
-    return { policies, errors, aseguradora, pages }
+    if (usedOcr) {
+        errors.push('El PDF no contenía texto legible: las matrículas se han reconocido por OCR. Revisa la lista antes de confirmar.')
+    }
+
+    return { policies: result.policies, errors, aseguradora: result.aseguradora, pages, usedOcr }
 }

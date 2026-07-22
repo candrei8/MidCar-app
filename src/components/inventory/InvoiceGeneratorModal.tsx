@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react"
+import { modeloCorto } from "@/lib/vehicle-name"
 import { formatCurrency } from "@/lib/utils"
 import { useAuth } from "@/lib/auth-context"
 import type { Vehicle, EmpresaVendedora, TipoDocumentoIdentidad, TipoCliente } from "@/types"
@@ -80,7 +81,7 @@ export function InvoiceGeneratorModal({ vehicle, open, onOpenChange, onSuccess }
     // Datos de la factura
     const [fechaFactura, setFechaFactura] = useState(new Date().toISOString().split('T')[0])
     const [fechaVencimiento, setFechaVencimiento] = useState('')
-    const [concepto, setConcepto] = useState(`Venta de vehículo ${vehicle.marca} ${vehicle.modelo} - ${vehicle.matricula}`)
+    const [concepto, setConcepto] = useState(`Venta de vehículo ${vehicle.marca} ${modeloCorto(vehicle.modelo) || vehicle.modelo} - ${vehicle.matricula}`)
 
     // Importes - precio_venta ya incluye IVA, lo usamos como total
     const [precioTotal, setPrecioTotal] = useState<number>(vehicle.precio_venta)
@@ -127,7 +128,7 @@ export function InvoiceGeneratorModal({ vehicle, open, onOpenChange, onSuccess }
     // Update when vehicle changes
     useEffect(() => {
         setPrecioTotal(vehicle.precio_venta)
-        setConcepto(`Venta de vehículo ${vehicle.marca} ${vehicle.modelo} - ${vehicle.matricula}`)
+        setConcepto(`Venta de vehículo ${vehicle.marca} ${modeloCorto(vehicle.modelo) || vehicle.modelo} - ${vehicle.matricula}`)
     }, [vehicle])
 
     // Auto-rellenar desde contrato seleccionado
@@ -249,7 +250,7 @@ export function InvoiceGeneratorModal({ vehicle, open, onOpenChange, onSuccess }
             y += 6
             doc.setFontSize(10)
             doc.setTextColor(0)
-            addText(`${vehicle.marca} ${vehicle.modelo} ${vehicle.version || ''}`, margin, y)
+            addText(`${vehicle.marca} ${modeloCorto(vehicle.modelo) || vehicle.modelo}`, margin, y)
             y += 5
             addText(`Matrícula: ${vehicle.matricula} | Bastidor: ${vehicle.vin}`, margin, y)
             y += 5
@@ -368,7 +369,7 @@ export function InvoiceGeneratorModal({ vehicle, open, onOpenChange, onSuccess }
                 empresa_cif: empresaSeleccionada.cif,
                 empresa_direccion: `${empresaSeleccionada.direccion}, ${empresaSeleccionada.codigo_postal} ${empresaSeleccionada.localidad}`,
                 vehiculo_id: vehicle.id,
-                vehiculo_descripcion: `${vehicle.marca} ${vehicle.modelo} - ${vehicle.matricula}`,
+                vehiculo_descripcion: `${vehicle.marca} ${modeloCorto(vehicle.modelo) || vehicle.modelo} - ${vehicle.matricula}`,
                 contrato_id: selectedContratoId || undefined,
                 cliente_tipo: tipoCliente,
                 cliente_nombre: clienteNombre,

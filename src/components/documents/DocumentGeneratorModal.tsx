@@ -23,6 +23,7 @@ import {
 import { getEmpresasActivas } from '@/lib/empresas';
 import { saveDocument, getNextDocumentNumber } from '@/lib/documents/document-service';
 import { updateVehicle } from '@/lib/supabase-service';
+import { modeloCorto } from '@/lib/vehicle-name';
 import type { EmpresaVendedora } from '@/types';
 import { DocumentTypeSelector } from './DocumentTypeSelector';
 import { CustomerSelector } from './CustomerSelector';
@@ -115,12 +116,14 @@ export function DocumentGeneratorModal({
   const isPlaceholderMatricula = (m: string | undefined | null): boolean =>
     !m || m.toUpperCase().startsWith('WEB-');
 
-  // Convertir vehículo al formato del documento
+  // Convertir vehículo al formato del documento. En los documentos sale el
+  // nombre comercial corto ("Transit Connect"), no la denominación completa
+  // del anuncio con motorización y acabado.
   const vehicleDocData: VehicleDocumentData = {
     id: vehicle.id,
     marca: vehicle.marca,
-    modelo: vehicle.modelo,
-    version: vehicle.version,
+    modelo: modeloCorto(vehicle.modelo) || vehicle.modelo,
+    version: undefined,
     matricula: isPlaceholderMatricula(vehicle.matricula) ? '' : vehicle.matricula,
     bastidor: vehicle.vin || '',
     fechaMatriculacion: vehicle.año_matriculacion ? String(vehicle.año_matriculacion) : '',

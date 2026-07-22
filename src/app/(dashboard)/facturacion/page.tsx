@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react"
 import { formatCurrency, cn } from "@/lib/utils"
+import { modeloCorto } from "@/lib/vehicle-name"
 import { useFilteredData } from "@/hooks/useFilteredData"
 import { useAuth } from "@/lib/auth-context"
 import type { Vehicle, PersonData, EmpresaVendedora, Invoice, InvoiceStatus, TipoDocumentoIdentidad, TipoCliente } from "@/types"
@@ -152,7 +153,7 @@ export default function FacturacionPage() {
     const handleSelectVehicle = (vehicle: Vehicle) => {
         setSelectedVehicle(vehicle)
         setBaseImponible(vehicle.precio_venta)
-        setConcepto(`Venta de vehiculo ${vehicle.marca} ${vehicle.modelo} - ${vehicle.matricula}`)
+        setConcepto(`Venta de vehiculo ${vehicle.marca} ${modeloCorto(vehicle.modelo) || vehicle.modelo} - ${vehicle.matricula}`)
         setMobileStep('form')
     }
 
@@ -254,7 +255,7 @@ export default function FacturacionPage() {
         y += 6
         doc.setTextColor(0)
         doc.setFontSize(11)
-        addText(`${selectedVehicle.marca} ${selectedVehicle.modelo}`, margin, y)
+        addText(`${selectedVehicle.marca} ${modeloCorto(selectedVehicle.modelo) || selectedVehicle.modelo}`, margin, y)
         y += 5
         addText(`Matricula: ${selectedVehicle.matricula}`, margin, y)
         y += 5
@@ -371,7 +372,7 @@ export default function FacturacionPage() {
                 empresa_cif: empresaSeleccionada.cif,
                 empresa_direccion: `${empresaSeleccionada.direccion}, ${empresaSeleccionada.codigo_postal} ${empresaSeleccionada.localidad}`,
                 vehiculo_id: selectedVehicle.id,
-                vehiculo_descripcion: `${selectedVehicle.marca} ${selectedVehicle.modelo} - ${selectedVehicle.matricula}`,
+                vehiculo_descripcion: `${selectedVehicle.marca} ${modeloCorto(selectedVehicle.modelo) || selectedVehicle.modelo} - ${selectedVehicle.matricula}`,
                 cliente_tipo: tipoCliente,
                 cliente_nombre: cliente.nombre,
                 cliente_apellidos: cliente.apellidos,
