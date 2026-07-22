@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Vehicle } from "@/types"
 import { formatCurrency } from "@/lib/utils"
+import { modeloCorto } from "@/lib/vehicle-name"
 import { EQUIPAMIENTO_VEHICULO } from "@/lib/constants"
 import { jsPDF } from "jspdf"
 import QRCode from "qrcode"
@@ -154,6 +155,32 @@ export function ShareModal({ vehicle, open, onClose }: ShareModalProps) {
             }
 
             // Helper: draw a spec pill (red accent)
+            // Dibuja texto SIN salirse del ancho disponible: primero reduce la
+            // fuente (hasta 6pt) y, si aún no cabe, recorta con "…". Evita que
+            // valores largos (versión, color, equipamiento…) pisen la columna
+            // de al lado — jsPDF dibuja en coordenadas absolutas y no recorta.
+            const drawFittedText = (
+                text: string,
+                x: number,
+                yPos: number,
+                maxWidth: number,
+                options?: { align?: 'center' | 'right' }
+            ) => {
+                const startSize = doc.getFontSize()
+                let size = startSize
+                while (size > 6 && doc.getTextWidth(text) > maxWidth) {
+                    size -= 0.5
+                    doc.setFontSize(size)
+                }
+                let out = text
+                while (out.length > 3 && doc.getTextWidth(out + '…') > maxWidth) {
+                    out = out.slice(0, -1)
+                }
+                if (out !== text) out = out.trimEnd() + '…'
+                doc.text(out, x, yPos, options)
+                doc.setFontSize(startSize)
+            }
+
             const drawSpecPill = (x: number, y: number, w: number, _icon: string, label: string, value: string) => {
                 drawRoundedRect(x, y, w, 18, 2, [255, 245, 245])
                 // Red top accent line
@@ -162,11 +189,11 @@ export function ShareModal({ vehicle, open, onClose }: ShareModalProps) {
                 doc.setFontSize(7)
                 doc.setTextColor(...gray)
                 doc.setFont('helvetica', 'normal')
-                doc.text(label.toUpperCase(), x + w / 2, y + 6, { align: 'center' })
+                drawFittedText(label.toUpperCase(), x + w / 2, y + 6, w - 5, { align: 'center' })
                 doc.setFontSize(10)
                 doc.setTextColor(...dark)
                 doc.setFont('helvetica', 'bold')
-                doc.text(value, x + w / 2, y + 13, { align: 'center' })
+                drawFittedText(value, x + w / 2, y + 13, w - 5, { align: 'center' })
             }
 
             let y = 0
@@ -251,16 +278,17 @@ export function ShareModal({ vehicle, open, onClose }: ShareModalProps) {
             doc.setFontSize(18)
             doc.setFont('helvetica', 'bold')
 
-            const fullTitle = `${vehicle.marca} ${vehicle.modelo}`
-            doc.text(fullTitle, margin, y + 6)
+            // Título con el nombre comercial corto; el texto completo del
+            // anuncio va debajo como "versión" en una sola línea ajustada
+            const fullTitle = `${vehicle.marca} ${modeloCorto(vehicle.modelo) || vehicle.modelo}`
+            drawFittedText(fullTitle, margin, y + 6, contentWidth - 62)
 
             // Version below title
             if (vehicle.version) {
                 doc.setFontSize(10)
                 doc.setTextColor(...gray)
                 doc.setFont('helvetica', 'normal')
-                const versionLines = doc.splitTextToSize(vehicle.version, contentWidth - 70)
-                doc.text(versionLines, margin, y + 12)
+                drawFittedText(vehicle.version, margin, y + 12, contentWidth - 62)
             }
 
             // Matriculacion (month/year)
@@ -396,7 +424,9 @@ export function ShareModal({ vehicle, open, onClose }: ShareModalProps) {
 
                     doc.setTextColor(...dark)
                     doc.setFont('helvetica', 'bold')
-                    doc.text(spec.value, x + 35, rowY + 2.5)
+                    // Ajustado al ancho de la media columna para que una
+                    // versión larga no pise la columna de la derecha
+                    drawFittedText(spec.value, x + 35, rowY + 2.5, colW - 38)
                 })
 
                 y += Math.ceil(detailSpecs.length / 2) * rowH + 6
@@ -442,7 +472,7 @@ export function ShareModal({ vehicle, open, onClose }: ShareModalProps) {
 
                     doc.setTextColor(...dark)
                     doc.setFont('helvetica', 'normal')
-                    doc.text(label, x + 5, eqY)
+                    drawFittedText(label, x + 5, eqY, eqColW - 7)
                 })
 
                 y += Math.ceil(eqLabels.length / eqCols) * eqRowH + 4
@@ -549,7 +579,7 @@ export function ShareModal({ vehicle, open, onClose }: ShareModalProps) {
             doc.setFont('helvetica', 'normal')
             doc.setFontSize(7)
             doc.setTextColor(...gray)
-            doc.text('Tel: +34 900 123 456  |  info@midcar.es  |  www.midcar.es', margin, footerY + 13)
+            doc.text('Tel: 617 728 087  |  Info@midcar.net  |  www.midcar.net', margin, footerY + 13)
 
             // Reference
             doc.setTextColor(...lightGray)
