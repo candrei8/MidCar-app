@@ -304,7 +304,7 @@ export function ShareModal({ vehicle, open, onClose }: ShareModalProps) {
                 doc.text(matriculacionText, margin, y + 17)
             }
 
-            // Price - right aligned with +IVA incluido
+            // Price - right aligned (el precio ya lleva el IVA incluido)
             const finalPrice = vehicle.precio_venta - (vehicle.descuento || 0)
             const priceText = formatCurrency(finalPrice)
 
@@ -313,11 +313,11 @@ export function ShareModal({ vehicle, open, onClose }: ShareModalProps) {
             doc.setFont('helvetica', 'bold')
             doc.text(priceText, pageWidth - margin, y + 6, { align: 'right' })
 
-            // +IVA incluido below price
+            // IVA incluido below price
             doc.setFontSize(8)
             doc.setTextColor(...primaryLight)
             doc.setFont('helvetica', 'normal')
-            doc.text('+IVA incluido', pageWidth - margin, y + 11, { align: 'right' })
+            doc.text('IVA incluido', pageWidth - margin, y + 11, { align: 'right' })
 
             // Old price if discount
             if (vehicle.descuento > 0) {
@@ -497,7 +497,7 @@ export function ShareModal({ vehicle, open, onClose }: ShareModalProps) {
                 doc.setTextColor(...primary)
                 doc.setFontSize(10)
                 doc.setFont('helvetica', 'bold')
-                doc.text(`${formatCurrency(finalPrice)} +IVA incl.`, pageWidth - margin - 4, y + 7.5, { align: 'right' })
+                doc.text(`${formatCurrency(finalPrice)} IVA incl.`, pageWidth - margin - 4, y + 7.5, { align: 'right' })
 
                 y += 16
             }
@@ -656,7 +656,7 @@ export function ShareModal({ vehicle, open, onClose }: ShareModalProps) {
                             </p>
                             <p className="text-red-600 font-bold text-lg mt-1 tracking-tight">
                                 {formatCurrency(vehicle.precio_venta - (vehicle.descuento || 0))}
-                                <span className="text-red-400 text-xs font-normal ml-1">+IVA incl.</span>
+                                <span className="text-red-400 text-xs font-normal ml-1">IVA incl.</span>
                             </p>
                         </div>
                     </div>
