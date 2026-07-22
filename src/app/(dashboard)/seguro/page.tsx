@@ -496,6 +496,15 @@ export default function SeguroPage() {
         return filteredVehicles.filter(v => v.estado !== 'vendido' && !matchedIds.has(v.id))
     }, [importResult, filteredVehicles])
 
+    // Matrículas de vehículos VENDIDOS: si aparecen aseguradas en el archivo,
+    // el modal las marca para valorar dar de baja esa póliza (gasto innecesario)
+    const soldPlates = useMemo(
+        () => filteredVehicles
+            .filter(v => v.estado === 'vendido')
+            .map(v => normalizeMatricula(v.matricula)),
+        [filteredVehicles]
+    )
+
     // Modal Handlers
     const handleAddPolicy = (vehicle: Vehicle) => {
         setSelectedVehicle(vehicle)
@@ -902,6 +911,7 @@ export default function SeguroPage() {
                 isImporting={isImporting}
                 assignableVehicles={assignableVehicles}
                 onAssignVehicle={handleAssignVehicle}
+                soldPlates={soldPlates}
             />
 
             {selectedVehicle && (

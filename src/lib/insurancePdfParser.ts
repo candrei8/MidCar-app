@@ -242,6 +242,24 @@ interface ScanResult {
 }
 
 /**
+ * Marca del vehículo que acompaña a la matrícula en los listados de flota
+ * ("0198LXP CITROEN 0218KRT FORD…"): texto tras las letras de la matrícula
+ * hasta el siguiente bloque de 4 dígitos. Sirve para prefiltrar el buscador
+ * al asignar manualmente pólizas sin coincidencia.
+ */
+export function extractBrandForPlate(upperLine: string, matricula: string): string | undefined {
+    const digits = matricula.match(/\d{4}/)?.[0]
+    if (!digits) return undefined
+    const idx = upperLine.indexOf(digits)
+    if (idx < 0) return undefined
+    const after = upperLine.slice(idx + 4)
+    const m = after.match(/^[\s.-]*[A-ZÑ.]{3,5}\s+([A-ZÑ][A-ZÑ\s.-]*?)(?=\s+[0-9O]{4}|$)/)
+    const brand = m?.[1]?.trim()
+    if (!brand || brand.length > 25) return undefined
+    return brand
+}
+
+/**
  * Recorre las líneas del documento y construye una póliza por matrícula
  * detectada (número de póliza, fechas y tipo si acompañan en la misma línea).
  * Exportada para poder testearla con líneas reales de PDFs de aseguradoras.
@@ -283,7 +301,7 @@ export function scanPolicies(lines: string[], plateFinder: (text: string) => str
                 // no debe machacar el número real de una póliza ya registrada
                 numeroPolizaGenerado: !lineNumeroPoliza,
                 matricula,
-                marcaModelo: undefined,
+                marcaModelo: extractBrandForPlate(upperLine, matricula),
                 fechaAlta: dates[0] || null,
                 fechaVencimiento: dates[1] || null,
                 tipoPoliza: upperLine.includes('TERCEROS') ? 'Terceros' : 'Todo Riesgo',

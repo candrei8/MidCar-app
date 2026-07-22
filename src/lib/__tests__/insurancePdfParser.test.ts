@@ -3,7 +3,7 @@
  * Protegen contra los falsos positivos detectados en revisión: años + marca
  * (2015 BMW), pesos (3500 KGS), cilindradas (A 1800 CC) y prosa legal.
  */
-import { findPlates, findPlatesLoose, findDates, detectAseguradora, scanPolicies } from '../insurancePdfParser'
+import { findPlates, findPlatesLoose, findDates, detectAseguradora, scanPolicies, extractBrandForPlate } from '../insurancePdfParser'
 
 describe('findPlates', () => {
     it('detecta matrículas formato nuevo (4 dígitos + 3 consonantes)', () => {
@@ -93,6 +93,25 @@ describe('scanPolicies (líneas reales del listado AXA)', () => {
     it('no confunde la fecha de la cabecera con matrículas', () => {
         const { policies } = scanPolicies(['Relación de vehículos asegurados a 21/07/2026 17:57:26'], findPlatesLoose)
         expect(policies).toHaveLength(0)
+    })
+
+    it('extrae la marca que acompaña a cada matrícula (layout de 3 columnas)', () => {
+        const { policies } = scanPolicies(['0198LXP CITROEN 0218KRT FORD 0444L.LGW VOLKSWAGEN'], findPlatesLoose)
+        const byMat = Object.fromEntries(policies.map(p => [p.matricula, p.marcaModelo]))
+        expect(byMat['0198LXP']).toBe('CITROEN')
+        expect(byMat['0218KRT']).toBe('FORD')
+        expect(byMat['0444LGW']).toBe('VOLKSWAGEN')
+    })
+})
+
+describe('extractBrandForPlate', () => {
+    it('extrae la marca con letras separadas y al final de línea', () => {
+        expect(extractBrandForPlate('0218 KRT FORD', '0218KRT')).toBe('FORD')
+        expect(extractBrandForPlate('1961KSB VOLVO', '1961KSB')).toBe('VOLVO')
+    })
+
+    it('devuelve undefined si no hay marca detrás', () => {
+        expect(extractBrandForPlate('0218KRT', '0218KRT')).toBeUndefined()
     })
 })
 
