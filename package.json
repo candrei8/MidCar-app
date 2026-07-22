@@ -58,7 +58,6 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@napi-rs/canvas": "^1.0.2",
     "@netlify/plugin-nextjs": "^5.15.4",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",
