@@ -221,8 +221,11 @@ export class FacturaTemplate extends BaseDocumentTemplate {
 
     const cond = this.data.condiciones;
     const rightX = this.pageWidth - this.style.margins.right;
-    const labelX = rightX - 55;
     const valueX = rightX;
+    // Las etiquetas se alinean a la derecha contra la columna de importes
+    // dejando 32 mm reservados para el número: una etiqueta larga ("Total
+    // Proforma (EURO)") crece hacia la izquierda y nunca pisa el importe.
+    const labelRightX = rightX - 32;
 
     this.preNotaProforma();
 
@@ -235,7 +238,7 @@ export class FacturaTemplate extends BaseDocumentTemplate {
     let y = this.currentY + 65;
     for (const f of filas) {
       this.setFont(this.style.fontSize.normal, f.bold ? 'bold' : 'normal');
-      this.doc.text(f.label, labelX, y, { align: 'left' });
+      this.doc.text(f.label, labelRightX, y, { align: 'right' });
       this.doc.text(f.valor, valueX, y, { align: 'right' });
       y += 6;
     }
