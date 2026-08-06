@@ -407,7 +407,8 @@ export function serializeMidcarNetItem(
         ? `      <g:mileage>${escapeXml(scraped.mileageKm)} KM</g:mileage>`
         : ''
 
-    const linkTemplate = `${entry.url}?store={${FIXED_STORE_CODE}}`
+    // Google exige el placeholder literal {store_code}; lo sustituye él en el anuncio
+    const linkTemplate = `${entry.url}?store={store_code}`
 
     return [
         '    <item>',
