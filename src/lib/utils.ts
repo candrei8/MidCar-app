@@ -53,6 +53,13 @@ export function formatShortDate(date: Date | string): string {
     })
 }
 
+// Al insertar un registro created_at y updated_at pueden diferir en milisegundos,
+// así que solo se considera "modificado" si hay más de un minuto de diferencia
+export function isModifiedAfterCreation(createdAt?: string, updatedAt?: string): boolean {
+    if (!createdAt || !updatedAt) return false
+    return new Date(updatedAt).getTime() - new Date(createdAt).getTime() > 60_000
+}
+
 export function truncate(str: string, maxLength: number): string {
     if (str.length <= maxLength) return str
     return str.slice(0, maxLength - 3) + '...'

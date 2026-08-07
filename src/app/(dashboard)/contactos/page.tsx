@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import { cn } from "@/lib/utils"
+import { cn, formatShortDate, isModifiedAfterCreation } from "@/lib/utils"
 import type { Contact } from "@/types"
 import { NewContactModal } from "@/components/contacts/NewContactModal"
 import { ContactDetailModal } from "@/components/contacts/ContactDetailModal"
@@ -58,6 +58,17 @@ export default function ContactosPage() {
     // Reload when filters/page change
     useEffect(() => {
         loadContacts(page, debouncedSearch, estadoFilter)
+    }, [page, debouncedSearch, estadoFilter, loadContacts])
+
+    // Refresh the list when a contact is edited elsewhere (e.g. EditContactModal)
+    useEffect(() => {
+        const handler = (e: Event) => {
+            if ((e as CustomEvent).detail?.type === 'contacts') {
+                loadContacts(page, debouncedSearch, estadoFilter)
+            }
+        }
+        window.addEventListener('midcar-data-updated', handler)
+        return () => window.removeEventListener('midcar-data-updated', handler)
     }, [page, debouncedSearch, estadoFilter, loadContacts])
 
     const handleFilterChange = (f: FilterType) => {
@@ -358,6 +369,22 @@ function ContactCard({
                         </DropdownMenu>
                     </div>
                 </div>
+
+                {/* Fechas de alta y modificación */}
+                {contact.created_at && (
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-3 text-[11px] text-slate-400">
+                        <span className="flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[13px]">event</span>
+                            Añadido {formatShortDate(contact.created_at)}
+                        </span>
+                        {isModifiedAfterCreation(contact.created_at, contact.updated_at) && (
+                            <span className="flex items-center gap-1">
+                                <span className="material-symbols-outlined text-[13px]">edit_calendar</span>
+                                Modificado {formatShortDate(contact.updated_at)}
+                            </span>
+                        )}
+                    </div>
+                )}
 
                 {/* Action Bar */}
                 <div className="grid grid-cols-3 divide-x divide-slate-100 border-t border-slate-100 -mx-4 mt-3">

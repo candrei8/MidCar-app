@@ -8,7 +8,7 @@ import {
     DialogClose,
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
-import { cn, formatDate, formatCurrency } from "@/lib/utils"
+import { cn, formatDate, formatCurrency, isModifiedAfterCreation } from "@/lib/utils"
 import { Contact, Vehicle } from "@/types"
 import { useFilteredData } from "@/hooks/useFilteredData"
 import { ESTADOS_BACKOFFICE, ORIGENES_CONTACTO } from "@/lib/constants"
@@ -212,25 +212,25 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
                         </div>
 
                         {/* Creator Info Card */}
-                        {(contact.created_by_name || contact.created_at) && (
+                        {(currentContact.created_by_name || currentContact.created_at) && (
                             <div className="mx-4 mb-4 p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-100 dark:border-indigo-800">
                                 <div className="flex items-center justify-between">
-                                    {contact.created_by_name && (
+                                    {currentContact.created_by_name && (
                                         <div className="flex items-center gap-2">
                                             <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center">
                                                 <span className="material-symbols-outlined text-indigo-600 dark:text-indigo-400 text-sm">person</span>
                                             </div>
                                             <div>
                                                 <p className="text-[10px] text-indigo-500 dark:text-indigo-400 uppercase tracking-wider font-medium">Creado por</p>
-                                                <p className="text-sm font-semibold text-indigo-700 dark:text-indigo-300">{contact.created_by_name}</p>
+                                                <p className="text-sm font-semibold text-indigo-700 dark:text-indigo-300">{currentContact.created_by_name}</p>
                                             </div>
                                         </div>
                                     )}
-                                    {contact.created_at && (
+                                    {currentContact.created_at && (
                                         <div className="text-right">
-                                            <p className="text-[10px] text-indigo-500 dark:text-indigo-400 uppercase tracking-wider font-medium">Fecha</p>
+                                            <p className="text-[10px] text-indigo-500 dark:text-indigo-400 uppercase tracking-wider font-medium">Añadido</p>
                                             <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400">
-                                                {new Date(contact.created_at).toLocaleDateString('es-ES', {
+                                                {new Date(currentContact.created_at).toLocaleDateString('es-ES', {
                                                     day: '2-digit',
                                                     month: '2-digit',
                                                     year: 'numeric',
@@ -241,6 +241,21 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
                                         </div>
                                     )}
                                 </div>
+                                {isModifiedAfterCreation(currentContact.created_at, currentContact.updated_at) && (
+                                    <div className="flex items-center justify-end gap-1.5 mt-2 pt-2 border-t border-indigo-100 dark:border-indigo-800">
+                                        <span className="material-symbols-outlined text-indigo-500 dark:text-indigo-400 text-sm">edit_calendar</span>
+                                        <p className="text-[10px] text-indigo-500 dark:text-indigo-400 uppercase tracking-wider font-medium">Modificado</p>
+                                        <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400">
+                                            {new Date(currentContact.updated_at).toLocaleDateString('es-ES', {
+                                                day: '2-digit',
+                                                month: '2-digit',
+                                                year: 'numeric',
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            })}
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                         )}
 

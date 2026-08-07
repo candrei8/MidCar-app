@@ -107,7 +107,8 @@ export function EditContactModal({ contact, open, onClose, onSave }: EditContact
                 addToast('Contacto actualizado correctamente', 'success')
 
                 if (onSave) {
-                    onSave({ ...contact, ...updates })
+                    // result viene de la BD con el updated_at recién puesto por el trigger
+                    onSave({ ...contact, ...updates, updated_at: result.updated_at })
                 }
                 onClose()
             } else {
