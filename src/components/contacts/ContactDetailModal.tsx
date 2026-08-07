@@ -149,7 +149,7 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
     return (
         <>
             <Dialog open={open} onOpenChange={onClose}>
-                <DialogContent className="max-w-md p-0 overflow-hidden h-[90vh] flex flex-col gap-0 border-0 bg-[#f2f2f7] dark:bg-[#000000]">
+                <DialogContent hideClose className="max-w-md p-0 overflow-hidden h-[90vh] flex flex-col gap-0 border-0 bg-[#f2f2f7] dark:bg-[#000000]">
                     <DialogTitle className="sr-only">Ficha de Contacto</DialogTitle>
 
                     {/* TopAppBar */}

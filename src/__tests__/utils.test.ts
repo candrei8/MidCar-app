@@ -8,6 +8,7 @@ import {
     truncate,
     slugify,
     generateId,
+    isModifiedAfterCreation,
 } from '@/lib/utils'
 
 describe('Utilidades - cn (classnames)', () => {
@@ -131,5 +132,34 @@ describe('Utilidades - generateId', () => {
     it('genera IDs con longitud esperada', () => {
         const id = generateId()
         expect(id.length).toBeGreaterThan(5)
+    })
+})
+
+describe('Utilidades - isModifiedAfterCreation', () => {
+    it('devuelve false si las fechas son idénticas', () => {
+        const t = '2026-08-01T10:00:00.000Z'
+        expect(isModifiedAfterCreation(t, t)).toBe(false)
+    })
+
+    it('devuelve false si la diferencia es de milisegundos (alta del registro)', () => {
+        expect(isModifiedAfterCreation('2026-08-01T10:00:00.000Z', '2026-08-01T10:00:00.850Z')).toBe(false)
+    })
+
+    it('devuelve false si la diferencia es menor de un minuto', () => {
+        expect(isModifiedAfterCreation('2026-08-01T10:00:00.000Z', '2026-08-01T10:00:59.000Z')).toBe(false)
+    })
+
+    it('devuelve true si la modificación es posterior en más de un minuto', () => {
+        expect(isModifiedAfterCreation('2026-08-01T10:00:00.000Z', '2026-08-01T10:05:00.000Z')).toBe(true)
+    })
+
+    it('devuelve true para modificaciones de días después', () => {
+        expect(isModifiedAfterCreation('2026-07-01T10:00:00.000Z', '2026-08-01T10:00:00.000Z')).toBe(true)
+    })
+
+    it('devuelve false si falta alguna fecha', () => {
+        expect(isModifiedAfterCreation(undefined, '2026-08-01T10:00:00.000Z')).toBe(false)
+        expect(isModifiedAfterCreation('2026-08-01T10:00:00.000Z', undefined)).toBe(false)
+        expect(isModifiedAfterCreation(undefined, undefined)).toBe(false)
     })
 })
