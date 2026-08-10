@@ -12,7 +12,17 @@ import { cn, formatDate, formatCurrency, isModifiedAfterCreation } from "@/lib/u
 import { Contact, Vehicle } from "@/types"
 import { useFilteredData } from "@/hooks/useFilteredData"
 import { ESTADOS_BACKOFFICE, ORIGENES_CONTACTO } from "@/lib/constants"
-import { deleteContact, updateContact } from "@/lib/supabase-service"
+import {
+    deleteContact,
+    updateContact,
+    getInteractionsByContact,
+    createInteraction,
+    getTasksByContact,
+    createTask,
+    updateTask,
+    InteractionDB,
+    TaskDB,
+} from "@/lib/supabase-service"
 import { useToast } from "@/components/ui/toast"
 import { useAuth } from "@/lib/auth-context"
 import { parseNotes, appendNote, removeNote } from "@/lib/contact-notes"
@@ -20,9 +30,6 @@ import { parseNotes, appendNote, removeNote } from "@/lib/contact-notes"
 // Modales de acción
 import { NewInteractionModal, InteractionData } from "./NewInteractionModal"
 import { AddTaskModal, TaskData } from "./AddTaskModal"
-import { SetPriorityModal } from "./SetPriorityModal"
-import { PostponeContactModal } from "./PostponeContactModal"
-import { AssignCommercialModal } from "./AssignCommercialModal"
 import { EditContactModal } from "./EditContactModal"
 import { VehicleSelector } from "./VehicleSelector"
 import { DocumentGeneratorModal } from "@/components/documents/DocumentGeneratorModal"
@@ -60,8 +67,8 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
     const [showDocGenerator, setShowDocGenerator] = useState(false)
     const [docVehicle, setDocVehicle] = useState<Vehicle | null>(null)
     const [showDocVehiclePicker, setShowDocVehiclePicker] = useState(false)
-    const [interactions, setInteractions] = useState<InteractionData[]>([])
-    const [tasks, setTasks] = useState<TaskData[]>([])
+    const [interactions, setInteractions] = useState<InteractionDB[]>([])
+    const [tasks, setTasks] = useState<TaskDB[]>([])
     const [estadoLead, setEstadoLead] = useState(contact.estado)
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
@@ -78,8 +85,26 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
     // Si el modal se reutiliza para otro contacto, refrescamos el estado local
     useEffect(() => {
         setCurrentContact(contact)
+        setEstadoLead(contact.estado)
         setNuevaNota('')
     }, [contact])
+
+    // Cronología y tareas guardadas en la BD
+    useEffect(() => {
+        if (!open) return
+        let cancelado = false
+        const cargar = async () => {
+            const [ints, tsks] = await Promise.all([
+                getInteractionsByContact(contact.id),
+                getTasksByContact(contact.id),
+            ])
+            if (cancelado) return
+            setInteractions(ints)
+            setTasks(tsks)
+        }
+        cargar()
+        return () => { cancelado = true }
+    }, [contact.id, open])
 
     // Guarda el texto completo de notas en la BD y sincroniza el resto de la app
     const persistNotes = async (nuevoTexto: string): Promise<boolean> => {
@@ -163,14 +188,98 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
         }
     }
 
-    // Handlers (simplificados para la demo visual, manteniendo lógica básica)
-    const handleSaveInteraction = (data: InteractionData) => {
-        setInteractions(prev => [data, ...prev])
-        setShowInteractionModal(false)
+    // El modal de tareas usa etiquetas propias; la BD tiene su propio CHECK
+    const TIPO_TAREA_DB: Record<string, string> = {
+        llamar: 'llamada',
+        email: 'email',
+        documento: 'otro',
+        cita: 'visita',
     }
-    const handleSaveTask = (data: TaskData) => {
-        setTasks(prev => [data, ...prev])
+    const PRIORIDAD_TAREA_DB: Record<string, string> = {
+        baja: 'baja',
+        normal: 'media',
+        alta: 'alta',
+        urgente: 'urgente',
+    }
+
+    const handleSaveInteraction = async (data: InteractionData) => {
+        setShowInteractionModal(false)
+        const creada = await createInteraction({
+            contact_id: currentContact.id,
+            tipo: data.tipo,
+            fecha: data.fecha,
+            hora: data.hora,
+            descripcion: data.descripcion || null,
+            resultado: data.resultado || null,
+            seguimiento_fecha: data.seguimiento?.fecha || null,
+            seguimiento_hora: data.seguimiento?.hora || null,
+            realizada_por: profile?.id || null,
+        })
+
+        if (!creada) {
+            addToast('Error al guardar la interacción', 'error')
+            return
+        }
+
+        setInteractions(prev => [creada, ...prev])
+        addToast('Interacción guardada', 'success')
+
+        // La interacción cuenta como último contacto del cliente
+        const ultima = new Date().toISOString()
+        await updateContact(currentContact.id, { ultima_interaccion: ultima, fecha_ultimo_contacto: data.fecha })
+        setCurrentContact(prev => ({ ...prev, ultima_interaccion: ultima, fecha_ultimo_contacto: data.fecha }))
+        window.dispatchEvent(new CustomEvent('midcar-data-updated', { detail: { type: 'contacts' } }))
+    }
+
+    const handleSaveTask = async (data: TaskData) => {
         setShowTaskModal(false)
+        const creada = await createTask({
+            contact_id: currentContact.id,
+            titulo: data.titulo,
+            descripcion: data.descripcion || null,
+            tipo: TIPO_TAREA_DB[data.tipo] || 'otro',
+            prioridad: PRIORIDAD_TAREA_DB[data.prioridad] || 'media',
+            fecha_vencimiento: data.fechaLimite,
+            hora_vencimiento: data.horaLimite || null,
+            asignado_a: profile?.id || null,
+            completada: false,
+        })
+
+        if (!creada) {
+            addToast('Error al guardar la tarea', 'error')
+            return
+        }
+
+        setTasks(prev => [creada, ...prev])
+        addToast('Tarea creada', 'success')
+    }
+
+    const handleToggleTask = async (task: TaskDB) => {
+        const completada = !task.completada
+        const actualizada = await updateTask(task.id, {
+            completada,
+            fecha_completada: completada ? new Date().toISOString() : null,
+        })
+        if (!actualizada) {
+            addToast('Error al actualizar la tarea', 'error')
+            return
+        }
+        setTasks(prev => prev.map(t => (t.id === task.id ? actualizada : t)))
+    }
+
+    // Cambio de estado del contacto: se guarda en la BD, no solo en pantalla
+    const handleEstadoChange = async (nuevoEstado: Contact['estado']) => {
+        const anterior = estadoLead
+        setEstadoLead(nuevoEstado)
+        const result = await updateContact(currentContact.id, { estado: nuevoEstado })
+        if (!result) {
+            setEstadoLead(anterior)
+            addToast('Error al cambiar el estado', 'error')
+            return
+        }
+        setCurrentContact(prev => ({ ...prev, estado: nuevoEstado, updated_at: result.updated_at }))
+        onStatusChange?.(currentContact.id, nuevoEstado)
+        window.dispatchEvent(new CustomEvent('midcar-data-updated', { detail: { type: 'contacts' } }))
     }
 
     // Generar factura / contrato de señal / compraventa / proforma
@@ -350,11 +459,7 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
                                     return (
                                         <button
                                             key={estado.value}
-                                            onClick={() => {
-                                                setEstadoLead(estado.value)
-                                                // Notificar al padre del cambio
-                                                onStatusChange?.(contact.id, estado.value)
-                                            }}
+                                            onClick={() => handleEstadoChange(estado.value as Contact['estado'])}
                                             className={cn(
                                                 "flex h-9 items-center justify-center gap-x-2 rounded-lg px-3 shadow-sm active:scale-95 transition-all duration-200",
                                                 isActive
@@ -405,8 +510,45 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
                         {/* Content Sections */}
                         <div className="px-4 mb-8">
                             {activeTab === 'cronologia' && (
+                                <>
+                                {/* Tareas pendientes del contacto */}
+                                {tasks.length > 0 && (
+                                    <div className="mb-6 space-y-2">
+                                        <h3 className="text-xs uppercase tracking-widest text-[#3c3c4399] dark:text-[#ebebf599] font-bold pl-1">Tareas</h3>
+                                        {tasks.map(task => (
+                                            <div key={task.id} className="flex items-start gap-3 bg-white dark:bg-[#1c1c1e] p-3 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+                                                <button
+                                                    onClick={() => handleToggleTask(task)}
+                                                    className={cn(
+                                                        "mt-0.5 shrink-0 transition-colors",
+                                                        task.completada ? "text-green-600" : "text-gray-300 hover:text-[#135bec]"
+                                                    )}
+                                                    title={task.completada ? 'Marcar como pendiente' : 'Marcar como completada'}
+                                                >
+                                                    <span className="material-symbols-outlined text-xl">
+                                                        {task.completada ? 'check_circle' : 'radio_button_unchecked'}
+                                                    </span>
+                                                </button>
+                                                <div className="min-w-0 flex-1">
+                                                    <p className={cn(
+                                                        "text-sm font-semibold text-black dark:text-white",
+                                                        task.completada && "line-through text-gray-400 dark:text-gray-500"
+                                                    )}>{task.titulo}</p>
+                                                    {task.descripcion && (
+                                                        <p className="text-xs text-[#3c3c4399] dark:text-[#ebebf599] whitespace-pre-wrap break-words">{task.descripcion}</p>
+                                                    )}
+                                                    <p className="text-[11px] text-gray-400 mt-0.5">
+                                                        Vence {formatDate(task.fecha_vencimiento)}{task.hora_vencimiento ? ` · ${task.hora_vencimiento.slice(0, 5)}` : ''}
+                                                        {task.prioridad ? ` · Prioridad ${task.prioridad}` : ''}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
                                 <div className="relative pl-4 border-l-2 border-gray-200 dark:border-gray-800 ml-3 space-y-8">
-                                    {/* Nuevas interacciones guardadas */}
+                                    {/* Interacciones guardadas */}
                                     {interactions.map((interaction) => {
                                         const tipoConfig: Record<string, { icon: string, bg: string, color: string, label: string }> = {
                                             'llamada_saliente': { icon: 'call', bg: 'bg-green-100', color: 'text-green-600', label: 'Llamada saliente' },
@@ -424,17 +566,21 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
                                                 <div className={`absolute -left-[25px] mt-1.5 flex h-8 w-8 items-center justify-center rounded-full ${config.bg} border-2 border-white dark:border-[#000000]`}>
                                                     <span className={`material-symbols-outlined ${config.color} text-sm`}>{config.icon}</span>
                                                 </div>
-                                                <div className="bg-white dark:bg-[#1c1c1e] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 ring-2 ring-green-500/20">
-                                                    <div className="flex justify-between items-start mb-1">
-                                                        <div className="flex items-center gap-2">
-                                                            <h4 className="text-base font-bold text-black dark:text-white">{config.label}</h4>
-                                                            <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-medium">Nuevo</span>
-                                                        </div>
-                                                        <span className="text-xs text-[#3c3c4399] dark:text-[#ebebf599] font-medium">{interaction.fecha} {interaction.hora}</span>
+                                                <div className="bg-white dark:bg-[#1c1c1e] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+                                                    <div className="flex justify-between items-start gap-2 mb-1">
+                                                        <h4 className="text-base font-bold text-black dark:text-white">{config.label}</h4>
+                                                        <span className="text-xs text-[#3c3c4399] dark:text-[#ebebf599] font-medium whitespace-nowrap">
+                                                            {formatDate(interaction.fecha)}{interaction.hora ? ` · ${interaction.hora.slice(0, 5)}` : ''}
+                                                        </span>
                                                     </div>
-                                                    <p className="text-sm text-[#3c3c4399] dark:text-[#ebebf599]">
+                                                    <p className="text-sm text-[#3c3c4399] dark:text-[#ebebf599] whitespace-pre-wrap break-words">
                                                         {interaction.descripcion || 'Sin descripción'}
                                                     </p>
+                                                    {interaction.seguimiento_fecha && (
+                                                        <p className="text-[11px] text-[#135bec] font-medium mt-2">
+                                                            Seguimiento: {formatDate(interaction.seguimiento_fecha)}{interaction.seguimiento_hora ? ` · ${interaction.seguimiento_hora.slice(0, 5)}` : ''}
+                                                        </p>
+                                                    )}
                                                 </div>
                                             </div>
                                         )
@@ -474,6 +620,7 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
                                         </div>
                                     </div>
                                 </div>
+                                </>
                             )}
 
                             {activeTab === 'vehiculos' && (

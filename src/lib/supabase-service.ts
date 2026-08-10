@@ -1304,3 +1304,165 @@ export function getDaysRemaining(fechaVencimiento: string): number {
     const vencimiento = new Date(fechaVencimiento)
     return Math.ceil((vencimiento.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
 }
+
+// ============================================================================
+// INTERACCIONES (cronología de la ficha de contacto)
+// ============================================================================
+
+export interface InteractionDB {
+    id: string
+    contact_id: string | null
+    lead_id?: string | null
+    tipo: string
+    fecha: string
+    hora: string
+    duracion_minutos?: number | null
+    descripcion?: string | null
+    resultado?: string | null
+    seguimiento_fecha?: string | null
+    seguimiento_hora?: string | null
+    siguiente_accion?: string | null
+    fecha_siguiente_accion?: string | null
+    realizada_por?: string | null
+    created_at?: string
+}
+
+export async function getInteractionsByContact(contactId: string): Promise<InteractionDB[]> {
+    if (!isSupabaseConfigured) return []
+
+    const { data, error } = await supabase
+        .from('interactions')
+        .select('*')
+        .eq('contact_id', contactId)
+        .order('fecha', { ascending: false })
+        .order('hora', { ascending: false })
+
+    if (error) {
+        console.error('Error fetching interactions:', error)
+        return []
+    }
+
+    return data || []
+}
+
+export async function createInteraction(interaction: Omit<InteractionDB, 'id' | 'created_at'>): Promise<InteractionDB | null> {
+    if (!isSupabaseConfigured) return null
+
+    const { data, error } = await supabase
+        .from('interactions')
+        .insert(interaction)
+        .select()
+        .single()
+
+    if (error) {
+        console.error('Error creating interaction:', error)
+        return null
+    }
+
+    return data
+}
+
+export async function deleteInteraction(id: string): Promise<boolean> {
+    if (!isSupabaseConfigured) return false
+
+    const { error } = await supabase
+        .from('interactions')
+        .delete()
+        .eq('id', id)
+
+    if (error) {
+        console.error('Error deleting interaction:', error)
+        return false
+    }
+
+    return true
+}
+
+// ============================================================================
+// TAREAS
+// ============================================================================
+
+export interface TaskDB {
+    id: string
+    contact_id: string | null
+    lead_id?: string | null
+    titulo: string
+    descripcion?: string | null
+    tipo?: string | null
+    prioridad?: string | null
+    fecha_vencimiento: string
+    hora_vencimiento?: string | null
+    asignado_a?: string | null
+    completada?: boolean
+    fecha_completada?: string | null
+    created_at?: string
+    updated_at?: string
+}
+
+export async function getTasksByContact(contactId: string): Promise<TaskDB[]> {
+    if (!isSupabaseConfigured) return []
+
+    const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('contact_id', contactId)
+        .order('fecha_vencimiento', { ascending: true })
+
+    if (error) {
+        console.error('Error fetching tasks:', error)
+        return []
+    }
+
+    return data || []
+}
+
+export async function createTask(task: Omit<TaskDB, 'id' | 'created_at' | 'updated_at'>): Promise<TaskDB | null> {
+    if (!isSupabaseConfigured) return null
+
+    const { data, error } = await supabase
+        .from('tasks')
+        .insert(task)
+        .select()
+        .single()
+
+    if (error) {
+        console.error('Error creating task:', error)
+        return null
+    }
+
+    return data
+}
+
+export async function updateTask(id: string, updates: Partial<TaskDB>): Promise<TaskDB | null> {
+    if (!isSupabaseConfigured) return null
+
+    const { data, error } = await supabase
+        .from('tasks')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single()
+
+    if (error) {
+        console.error('Error updating task:', error)
+        return null
+    }
+
+    return data
+}
+
+export async function deleteTask(id: string): Promise<boolean> {
+    if (!isSupabaseConfigured) return false
+
+    const { error } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('id', id)
+
+    if (error) {
+        console.error('Error deleting task:', error)
+        return false
+    }
+
+    return true
+}
