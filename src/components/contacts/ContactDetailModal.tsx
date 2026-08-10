@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
     Dialog,
     DialogContent,
@@ -14,6 +14,8 @@ import { useFilteredData } from "@/hooks/useFilteredData"
 import { ESTADOS_BACKOFFICE, ORIGENES_CONTACTO } from "@/lib/constants"
 import { deleteContact, updateContact } from "@/lib/supabase-service"
 import { useToast } from "@/components/ui/toast"
+import { useAuth } from "@/lib/auth-context"
+import { parseNotes, appendNote, removeNote } from "@/lib/contact-notes"
 
 // Modales de acción
 import { NewInteractionModal, InteractionData } from "./NewInteractionModal"
@@ -66,6 +68,52 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
     const [showEditModal, setShowEditModal] = useState(false)
     const [showVehicleSelector, setShowVehicleSelector] = useState(false)
     const [currentContact, setCurrentContact] = useState<Contact>(contact)
+
+    // Notas
+    const { user, profile } = useAuth()
+    const [nuevaNota, setNuevaNota] = useState('')
+    const [savingNote, setSavingNote] = useState(false)
+    const notas = parseNotes(currentContact.notas)
+
+    // Si el modal se reutiliza para otro contacto, refrescamos el estado local
+    useEffect(() => {
+        setCurrentContact(contact)
+        setNuevaNota('')
+    }, [contact])
+
+    // Guarda el texto completo de notas en la BD y sincroniza el resto de la app
+    const persistNotes = async (nuevoTexto: string): Promise<boolean> => {
+        const result = await updateContact(currentContact.id, { notas: nuevoTexto })
+        if (!result) return false
+        setCurrentContact(prev => ({ ...prev, notas: nuevoTexto, updated_at: result.updated_at }))
+        window.dispatchEvent(new CustomEvent('midcar-data-updated', { detail: { type: 'contacts' } }))
+        return true
+    }
+
+    const handleSaveNote = async () => {
+        if (!nuevaNota.trim() || savingNote) return
+        setSavingNote(true)
+        try {
+            const autor = profile?.nombre || user?.email || undefined
+            const ok = await persistNotes(appendNote(currentContact.notas, nuevaNota, autor))
+            if (ok) {
+                setNuevaNota('')
+                addToast('Nota guardada', 'success')
+            } else {
+                addToast('Error al guardar la nota', 'error')
+            }
+        } catch (error) {
+            console.error('Error saving note:', error)
+            addToast('Error al guardar la nota', 'error')
+        } finally {
+            setSavingNote(false)
+        }
+    }
+
+    const handleDeleteNote = async (id: string) => {
+        const ok = await persistNotes(removeNote(currentContact.notas, id))
+        addToast(ok ? 'Nota eliminada' : 'Error al eliminar la nota', ok ? 'success' : 'error')
+    }
 
     const handleDelete = async () => {
         setIsDeleting(true)
@@ -493,21 +541,52 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
                             {activeTab === 'notas' && (
                                 <div className="space-y-4">
                                     <div className="bg-white dark:bg-[#1c1c1e] p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                                        <textarea className="w-full bg-transparent border-0 p-0 text-sm text-black dark:text-white placeholder-gray-400 focus:ring-0 resize-none focus:outline-none" placeholder="Escribe una nota rápida..." rows={3}></textarea>
-                                        <div className="flex justify-between items-center mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
-                                            <div className="flex gap-2">
-                                                <button className="text-gray-400 hover:text-[#135bec] transition-colors"><span className="material-symbols-outlined text-xl">attach_file</span></button>
-                                                <button className="text-gray-400 hover:text-[#135bec] transition-colors"><span className="material-symbols-outlined text-xl">image</span></button>
-                                            </div>
-                                            <button className="bg-[#135bec] hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-sm font-bold transition-colors">Guardar</button>
+                                        <textarea
+                                            value={nuevaNota}
+                                            onChange={e => setNuevaNota(e.target.value)}
+                                            className="w-full bg-transparent border-0 p-0 text-sm text-black dark:text-white placeholder-gray-400 focus:ring-0 resize-none focus:outline-none"
+                                            placeholder="Escribe una nota rápida..."
+                                            rows={3}
+                                        />
+                                        <div className="flex justify-end items-center mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
+                                            <button
+                                                onClick={handleSaveNote}
+                                                disabled={!nuevaNota.trim() || savingNote}
+                                                className="bg-[#135bec] hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white px-4 py-1.5 rounded-lg text-sm font-bold transition-colors"
+                                            >
+                                                {savingNote ? 'Guardando…' : 'Guardar'}
+                                            </button>
                                         </div>
                                     </div>
 
-                                    {/* Empty state cuando no hay notas */}
-                                    <div className="text-center py-8">
-                                        <span className="material-symbols-outlined text-4xl text-gray-300 dark:text-gray-600 mb-2 block">edit_note</span>
-                                        <p className="text-sm text-gray-400 dark:text-gray-500">Sin notas aún. Añade una nota para recordar detalles importantes.</p>
-                                    </div>
+                                    {notas.length > 0 ? (
+                                        <div className="space-y-3">
+                                            {notas.map(nota => (
+                                                <div key={nota.id} className="bg-white dark:bg-[#1c1c1e] p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                                                    <div className="flex justify-between items-start gap-2 mb-1">
+                                                        <span className="text-xs font-medium text-[#3c3c4399] dark:text-[#ebebf599]">
+                                                            {nota.fecha
+                                                                ? `${nota.fecha}${nota.hora ? ` · ${nota.hora}` : ''}${nota.autor ? ` · ${nota.autor}` : ''}`
+                                                                : 'Nota sin fecha'}
+                                                        </span>
+                                                        <button
+                                                            onClick={() => handleDeleteNote(nota.id)}
+                                                            className="text-gray-300 hover:text-red-500 transition-colors shrink-0"
+                                                            title="Eliminar nota"
+                                                        >
+                                                            <span className="material-symbols-outlined text-lg">delete</span>
+                                                        </button>
+                                                    </div>
+                                                    <p className="text-sm text-black dark:text-white whitespace-pre-wrap break-words">{nota.texto}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-8">
+                                            <span className="material-symbols-outlined text-4xl text-gray-300 dark:text-gray-600 mb-2 block">edit_note</span>
+                                            <p className="text-sm text-gray-400 dark:text-gray-500">Sin notas aún. Añade una nota para recordar detalles importantes.</p>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
