@@ -160,6 +160,12 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
         }
     }
 
+    // Muchos contactos entran sin nombre; evitamos mostrar "null" en los modales
+    const nombreContacto = [currentContact.nombre, currentContact.apellidos]
+        .filter(Boolean)
+        .join(' ')
+        .trim() || currentContact.telefono || 'este contacto'
+
     // Obtener vehículos del contacto actual
     const contactVehicles = (currentContact.vehiculos_interes || [])
         .map(id => vehicles.find(v => v.id === id))
@@ -753,8 +759,8 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
             </Dialog>
 
             {/* Hidden Modals reused logic */}
-            <NewInteractionModal open={showInteractionModal} onClose={() => setShowInteractionModal(false)} contactId={currentContact.id} contactName={`${currentContact.nombre}`} onSave={handleSaveInteraction} />
-            <AddTaskModal open={showTaskModal} onClose={() => setShowTaskModal(false)} contactId={currentContact.id} contactName={`${currentContact.nombre}`} onSave={handleSaveTask} />
+            <NewInteractionModal open={showInteractionModal} onClose={() => setShowInteractionModal(false)} contactId={currentContact.id} contactName={nombreContacto} onSave={handleSaveInteraction} />
+            <AddTaskModal open={showTaskModal} onClose={() => setShowTaskModal(false)} contactId={currentContact.id} contactName={nombreContacto} onSave={handleSaveTask} />
 
             {/* Generador de documentos (factura, señal, compraventa, proforma)
                 con el contacto ya preseleccionado como cliente */}
