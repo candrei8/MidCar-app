@@ -86,12 +86,14 @@ export function ContactDetailModal({ contact, open, initialTab = 'cronologia', o
     const [savingNote, setSavingNote] = useState(false)
     const notas = parseNotes(currentContact.notas)
 
-    // Si el modal se reutiliza para otro contacto, refrescamos el estado local
+    // Solo al cambiar de contacto: si dependiera del objeto entero, cada
+    // refresco del listado pisaría con datos viejos lo ya editado en la ficha
     useEffect(() => {
         setCurrentContact(contact)
         setEstadoLead(contact.estado)
         setNuevaNota('')
-    }, [contact])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [contact.id])
 
     // Al abrirse, respeta la pestaña con la que la han llamado
     useEffect(() => {
