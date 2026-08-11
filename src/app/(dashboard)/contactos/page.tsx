@@ -1,10 +1,13 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef } from "react"
-import { cn, formatShortDate, isModifiedAfterCreation } from "@/lib/utils"
-import type { Contact } from "@/types"
+import { useState, useEffect, useCallback, useRef, useMemo } from "react"
+import { cn, formatShortDate, formatCurrency, isModifiedAfterCreation } from "@/lib/utils"
+import type { Contact, Vehicle } from "@/types"
 import { NewContactModal } from "@/components/contacts/NewContactModal"
 import { ContactDetailModal } from "@/components/contacts/ContactDetailModal"
+import { DocumentGeneratorModal } from "@/components/documents/DocumentGeneratorModal"
+import { useFilteredData } from "@/hooks/useFilteredData"
+import { useToast } from "@/components/ui/toast"
 import { getContactsPage } from "@/lib/supabase-service"
 import { deleteContact as deleteContactFromDB } from "@/lib/supabase-service"
 import {
@@ -14,7 +17,13 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { MoreVertical, Trash2, Eye, Phone, MessageCircle, Mail, ChevronLeft, ChevronRight } from "lucide-react"
+import { MoreVertical, Trash2, Eye, Phone, MessageCircle, Mail, ChevronLeft, ChevronRight, FileText } from "lucide-react"
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
 
 const PAGE_SIZE = 50
 
@@ -31,6 +40,42 @@ export default function ContactosPage() {
     const [isNewContactOpen, setIsNewContactOpen] = useState(false)
     const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
     const [debouncedSearch, setDebouncedSearch] = useState("")
+
+    // Inventario (cacheado) para pintar la foto del vehículo de interés
+    const { vehicles } = useFilteredData()
+    const { addToast } = useToast()
+    const vehiclesById = useMemo(() => {
+        const map = new Map<string, Vehicle>()
+        vehicles.forEach(v => map.set(v.id, v))
+        return map
+    }, [vehicles])
+    const getContactVehicles = useCallback((c: Contact): Vehicle[] => {
+        return (c.vehiculos_interes || [])
+            .map(id => vehiclesById.get(id))
+            .filter(Boolean) as Vehicle[]
+    }, [vehiclesById])
+
+    // Generar factura / contrato / señal / proforma sin entrar en la ficha
+    const [docContact, setDocContact] = useState<Contact | null>(null)
+    const [docVehicle, setDocVehicle] = useState<Vehicle | null>(null)
+    const [vehiclePickerContact, setVehiclePickerContact] = useState<Contact | null>(null)
+    const [detailInitialTab, setDetailInitialTab] = useState<'cronologia' | 'vehiculos' | 'notas'>('cronologia')
+
+    const openDocumentGenerator = (contact: Contact) => {
+        const suyos = getContactVehicles(contact)
+        if (suyos.length === 0) {
+            addToast('Asigna primero un vehículo al contacto para generar el documento', 'error')
+            setDetailInitialTab('vehiculos')
+            setSelectedContact(contact)
+            return
+        }
+        if (suyos.length === 1) {
+            setDocContact(contact)
+            setDocVehicle(suyos[0])
+            return
+        }
+        setVehiclePickerContact(contact)
+    }
 
     const loadContacts = useCallback(async (p: number, search: string, estado: string) => {
         setIsLoading(true)
@@ -208,8 +253,10 @@ export default function ContactosPage() {
                                 getInitials={getInitials}
                                 getOrigenIcon={getOrigenIcon}
                                 getEstadoBadge={getEstadoBadge}
-                                onClick={() => setSelectedContact(contact)}
+                                vehicles={getContactVehicles(contact)}
+                                onClick={() => { setDetailInitialTab('cronologia'); setSelectedContact(contact) }}
                                 onDelete={handleDeleteContact}
+                                onGenerateDocument={() => openDocumentGenerator(contact)}
                             />
                         ))}
                     </div>
@@ -273,9 +320,51 @@ export default function ContactosPage() {
                 <ContactDetailModal
                     contact={selectedContact}
                     open={!!selectedContact}
+                    initialTab={detailInitialTab}
                     onClose={() => setSelectedContact(null)}
                     onStatusChange={handleStatusChange}
                     onDelete={handleDeleteContact}
+                />
+            )}
+
+            {/* Elegir vehículo cuando el contacto tiene más de uno */}
+            <Dialog open={!!vehiclePickerContact} onOpenChange={() => setVehiclePickerContact(null)}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>¿Para qué vehículo?</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-2">
+                        {vehiclePickerContact && getContactVehicles(vehiclePickerContact).map(v => (
+                            <button
+                                key={v.id}
+                                onClick={() => {
+                                    setDocContact(vehiclePickerContact)
+                                    setDocVehicle(v)
+                                    setVehiclePickerContact(null)
+                                }}
+                                className="w-full flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-[#135bec] hover:bg-blue-50/50 transition-colors text-left"
+                            >
+                                <div
+                                    className="w-14 h-14 rounded-lg bg-cover bg-center bg-slate-100 shrink-0"
+                                    style={{ backgroundImage: `url(${v.imagen_principal || '/placeholder-proximamente.svg'})` }}
+                                />
+                                <div className="min-w-0">
+                                    <p className="font-semibold text-sm text-slate-900 truncate">{v.marca} {v.modelo}</p>
+                                    <p className="text-xs text-slate-500">{v.matricula || 'Sin matrícula'} · {formatCurrency(v.precio_venta)}</p>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {docContact && docVehicle && (
+                <DocumentGeneratorModal
+                    isOpen={!!docVehicle}
+                    onClose={() => { setDocVehicle(null); setDocContact(null) }}
+                    vehicle={docVehicle}
+                    contacts={[docContact]}
+                    preselectedContactId={docContact.id}
                 />
             )}
         </div>
@@ -289,18 +378,24 @@ function ContactCard({
     getInitials,
     getOrigenIcon,
     getEstadoBadge,
+    vehicles,
     onClick,
     onDelete,
+    onGenerateDocument,
 }: {
     contact: Contact
     getContactName: (c: Contact) => string
     getInitials: (c: Contact) => string
     getOrigenIcon: (o: string) => string
     getEstadoBadge: (e: string) => { bg: string, text: string, label: string }
+    vehicles: Vehicle[]
     onClick: () => void
     onDelete: (id: string) => void
+    onGenerateDocument: () => void
 }) {
     const badge = getEstadoBadge(contact.estado)
+    const principal = vehicles[0]
+    const restantes = vehicles.length - 1
 
     return (
         <div
@@ -357,6 +452,13 @@ function ContactCard({
                                 )}
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
+                                    className="cursor-pointer"
+                                    onClick={(e) => { e.stopPropagation(); onGenerateDocument() }}
+                                >
+                                    <FileText className="h-4 w-4 mr-2" />Generar documento
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
                                     className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
                                     onClick={(e) => {
                                         e.stopPropagation()
@@ -369,6 +471,27 @@ function ContactCard({
                         </DropdownMenu>
                     </div>
                 </div>
+
+                {/* Vehículo de interés: la foto ayuda a reconocer al cliente de un vistazo */}
+                {principal && (
+                    <div className="flex items-center gap-2.5 p-2 rounded-lg bg-slate-50 border border-slate-100">
+                        <div
+                            className="w-14 h-11 rounded-md bg-cover bg-center bg-slate-200 shrink-0"
+                            style={{ backgroundImage: `url(${principal.imagen_principal || '/placeholder-proximamente.svg'})` }}
+                        />
+                        <div className="min-w-0 flex-1">
+                            <p className="text-xs font-bold text-slate-800 truncate">{principal.marca} {principal.modelo}</p>
+                            <p className="text-[11px] text-slate-500 truncate">
+                                {principal.matricula || 'Sin matrícula'} · {formatCurrency(principal.precio_venta)}
+                            </p>
+                        </div>
+                        {restantes > 0 && (
+                            <span className="shrink-0 text-[11px] font-bold text-[#135bec] bg-blue-50 rounded-full px-2 py-0.5">
+                                +{restantes}
+                            </span>
+                        )}
+                    </div>
+                )}
 
                 {/* Fechas de alta y modificación */}
                 {contact.created_at && (
@@ -387,7 +510,7 @@ function ContactCard({
                 )}
 
                 {/* Action Bar */}
-                <div className="grid grid-cols-3 divide-x divide-slate-100 border-t border-slate-100 -mx-4 mt-3">
+                <div className="grid grid-cols-4 divide-x divide-slate-100 border-t border-slate-100 -mx-4 mt-3">
                     <button
                         onClick={(e) => { e.stopPropagation(); if (contact.telefono) window.open(`tel:${contact.telefono}`, '_self') }}
                         className="flex items-center justify-center gap-1.5 py-2.5 hover:bg-slate-50 transition-colors"
@@ -408,6 +531,14 @@ function ContactCard({
                     >
                         <span className="material-symbols-outlined text-slate-400 text-[18px]">mail</span>
                         <span className="text-xs font-semibold text-slate-700">Email</span>
+                    </button>
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onGenerateDocument() }}
+                        className="flex items-center justify-center gap-1.5 py-2.5 hover:bg-slate-50 transition-colors"
+                        title="Generar factura, contrato, señal o proforma"
+                    >
+                        <span className="material-symbols-outlined text-emerald-600 text-[18px]">description</span>
+                        <span className="text-xs font-semibold text-slate-700">Documento</span>
                     </button>
                 </div>
             </div>

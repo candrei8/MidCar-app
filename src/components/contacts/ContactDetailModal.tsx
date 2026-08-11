@@ -48,17 +48,21 @@ const getValidImageUrl = (url: string | null | undefined): string => {
     return url
 }
 
+type ContactTab = 'cronologia' | 'vehiculos' | 'notas'
+
 interface ContactDetailModalProps {
     contact: Contact
     open: boolean
+    /** Pestaña con la que se abre la ficha (por defecto, la cronología) */
+    initialTab?: ContactTab
     onClose: () => void
     onStatusChange?: (contactId: string, newStatus: string) => void
     onDelete?: (contactId: string) => void
 }
 
-export function ContactDetailModal({ contact, open, onClose, onStatusChange, onDelete }: ContactDetailModalProps) {
+export function ContactDetailModal({ contact, open, initialTab = 'cronologia', onClose, onStatusChange, onDelete }: ContactDetailModalProps) {
     const { addToast } = useToast()
-    const [activeTab, setActiveTab] = useState<'cronologia' | 'vehiculos' | 'notas'>('cronologia')
+    const [activeTab, setActiveTab] = useState<ContactTab>(initialTab)
     const { vehicles } = useFilteredData()
 
     // Estados mantenidos para funcionalidad
@@ -88,6 +92,11 @@ export function ContactDetailModal({ contact, open, onClose, onStatusChange, onD
         setEstadoLead(contact.estado)
         setNuevaNota('')
     }, [contact])
+
+    // Al abrirse, respeta la pestaña con la que la han llamado
+    useEffect(() => {
+        if (open) setActiveTab(initialTab)
+    }, [open, initialTab, contact.id])
 
     // Cronología y tareas guardadas en la BD
     useEffect(() => {

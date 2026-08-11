@@ -277,9 +277,11 @@ export async function getContactsPage({
 }): Promise<{ data: Contact[]; total: number }> {
     if (!isSupabaseConfigured) return { data: [], total: 0 }
 
+    // Los últimos modificados primero: al tocar un contacto sube al principio
     let query = supabase
         .from('contacts')
         .select('*', { count: 'exact' })
+        .order('updated_at', { ascending: false })
         .order('created_at', { ascending: false })
         .range(page * pageSize, page * pageSize + pageSize - 1)
 
