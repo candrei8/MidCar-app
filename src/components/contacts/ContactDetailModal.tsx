@@ -186,6 +186,8 @@ export function ContactDetailModal({ contact, open, initialTab = 'cronologia', o
         const result = await updateContact(currentContact.id, { vehiculos_interes: updatedIds } as any)
         if (result) {
             setCurrentContact(prev => ({ ...prev, vehiculos_interes: updatedIds }))
+            // El listado pinta la foto del vehículo: hay que refrescarlo
+            window.dispatchEvent(new CustomEvent('midcar-data-updated', { detail: { type: 'contacts' } }))
             addToast(`${vehicleIds.length} vehículo${vehicleIds.length > 1 ? 's' : ''} añadido${vehicleIds.length > 1 ? 's' : ''}`, 'success')
         } else {
             addToast('Error al añadir vehículos', 'error')
@@ -199,6 +201,7 @@ export function ContactDetailModal({ contact, open, initialTab = 'cronologia', o
         const result = await updateContact(currentContact.id, { vehiculos_interes: updatedIds } as any)
         if (result) {
             setCurrentContact(prev => ({ ...prev, vehiculos_interes: updatedIds }))
+            window.dispatchEvent(new CustomEvent('midcar-data-updated', { detail: { type: 'contacts' } }))
             addToast('Vehículo eliminado del contacto', 'success')
         }
     }

@@ -7,6 +7,7 @@ import { NewContactModal } from "@/components/contacts/NewContactModal"
 import { ContactDetailModal } from "@/components/contacts/ContactDetailModal"
 import { DocumentGeneratorModal } from "@/components/documents/DocumentGeneratorModal"
 import { useFilteredData } from "@/hooks/useFilteredData"
+import { modeloCorto } from "@/lib/vehicle-name"
 import { useToast } from "@/components/ui/toast"
 import { getContactsPage } from "@/lib/supabase-service"
 import { deleteContact as deleteContactFromDB } from "@/lib/supabase-service"
@@ -349,7 +350,7 @@ export default function ContactosPage() {
                                     style={{ backgroundImage: `url(${v.imagen_principal || '/placeholder-proximamente.svg'})` }}
                                 />
                                 <div className="min-w-0">
-                                    <p className="font-semibold text-sm text-slate-900 truncate">{v.marca} {v.modelo}</p>
+                                    <p className="font-semibold text-sm text-slate-900 truncate">{v.marca} {modeloCorto(v.modelo)}</p>
                                     <p className="text-xs text-slate-500">{v.matricula || 'Sin matrícula'} · {formatCurrency(v.precio_venta)}</p>
                                 </div>
                             </button>
@@ -480,7 +481,7 @@ function ContactCard({
                             style={{ backgroundImage: `url(${principal.imagen_principal || '/placeholder-proximamente.svg'})` }}
                         />
                         <div className="min-w-0 flex-1">
-                            <p className="text-xs font-bold text-slate-800 truncate">{principal.marca} {principal.modelo}</p>
+                            <p className="text-xs font-bold text-slate-800 truncate">{principal.marca} {modeloCorto(principal.modelo)}</p>
                             <p className="text-[11px] text-slate-500 truncate">
                                 {principal.matricula || 'Sin matrícula'} · {formatCurrency(principal.precio_venta)}
                             </p>
