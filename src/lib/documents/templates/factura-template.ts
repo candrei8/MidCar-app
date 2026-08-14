@@ -64,6 +64,7 @@ export class FacturaTemplate extends BaseDocumentTemplate {
     this.addCabeceraAzul('Descripción del vehiculo');
     this.addFilasVehiculo();
     this.addBloqueTotales();
+    this.addObservaciones(this.data.conceptoAdicional);
     this.addGraciasPorSuConfianza();
     this.applyMidCarOverlay();
   }

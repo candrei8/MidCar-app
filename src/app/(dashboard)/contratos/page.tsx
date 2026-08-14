@@ -43,6 +43,7 @@ import {
     type ContractDB,
 } from "@/lib/supabase-service"
 import { getContacts } from "@/lib/db/contacts"
+import { ordinalClausula, parseClausulasAdicionales } from "@/lib/documents/clauses/clausulas-adicionales"
 import {
     PROVINCIAS,
     COMUNIDADES_AUTONOMAS,
@@ -439,7 +440,12 @@ export default function ContratosPage() {
             'QUINTA.- El comprador asume la responsabilidad del vehiculo desde la firma del presente contrato.',
         ]
 
-        clausulas.forEach((clausula) => {
+        // Las escritas a mano continúan la numeración de las fijas
+        const adicionales = parseClausulasAdicionales(clausulasAdicionales).map(
+            (texto, i) => `${ordinalClausula(clausulas.length + i)}.- ${texto}`
+        )
+
+        ;[...clausulas, ...adicionales].forEach((clausula) => {
             const lines = doc.splitTextToSize(clausula, pageWidth - 2 * margin)
             if (y + lines.length * 4 > 270) {
                 doc.addPage()
@@ -472,7 +478,7 @@ export default function ContratosPage() {
         addText(`${comprador.nombre} ${comprador.apellidos}`, pageWidth - margin - 30, y, { align: 'center' })
 
         return doc
-    }, [selectedVehicle, comprador, economico, garantia, documentacion, fechaContrato, lugarFirma, empresaSeleccionada])
+    }, [selectedVehicle, comprador, economico, garantia, documentacion, fechaContrato, lugarFirma, empresaSeleccionada, clausulasAdicionales])
 
     // Save contract and generate PDF
     const handleGenerarContrato = async () => {

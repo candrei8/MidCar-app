@@ -259,7 +259,9 @@ export async function saveSenal(data: SenalData): Promise<DocumentResponse<strin
         fecha_senal: data.fechaSenal,
         fecha_limite_venta: data.fechaLimiteVenta,
         cuenta_bancaria: data.cuentaBancaria,
-        observaciones: data.observaciones,
+        // El formulario de señal solo pide cláusulas adicionales; sin esto el
+        // texto escrito por el comercial no se guardaba en ningún sitio
+        observaciones: data.clausulasAdicionales || data.observaciones,
         estado: 'activa',
         created_by: creador.id,
         created_by_name: creador.name

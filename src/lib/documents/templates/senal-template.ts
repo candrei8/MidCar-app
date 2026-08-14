@@ -320,6 +320,13 @@ export class SenalTemplate extends BaseDocumentTemplate {
       }
       this.addLineBreak(2);
     }
+
+    // Cláusulas que ha añadido el comercial, numeradas tras las fijas
+    this.addClausulasAdicionales(
+      this.data.clausulasAdicionales,
+      CLAUSULAS_SENAL.length,
+      '.-'
+    );
   }
 
   private addCierre(): void {

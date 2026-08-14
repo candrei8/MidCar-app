@@ -1,4 +1,11 @@
 import '@testing-library/jest-dom'
+import { TextEncoder, TextDecoder } from 'util'
+
+// jsdom no trae TextEncoder/TextDecoder y jsPDF los necesita para generar PDFs
+if (typeof global.TextEncoder === 'undefined') {
+    global.TextEncoder = TextEncoder
+    global.TextDecoder = TextDecoder
+}
 
 // Mock next/navigation
 jest.mock('next/navigation', () => ({

@@ -302,6 +302,13 @@ export class CompraventaTemplate extends BaseDocumentTemplate {
       this.addLineBreak(2);
     }
 
+    // Cláusulas que ha añadido el comercial, numeradas tras las fijas
+    this.addClausulasAdicionales(
+      this.data.clausulasAdicionales,
+      CLAUSULAS_COMPRAVENTA.length,
+      '.'
+    );
+
     // Nota a pie de página de la SÉPTIMA
     this.checkPageBreak(12);
     this.setFont(this.style.fontSize.small, 'bold');

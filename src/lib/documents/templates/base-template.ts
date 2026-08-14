@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import { PDFStyleConfig, CustomerData, VehicleDocumentData } from '../document-types';
 import { DEFAULT_PDF_STYLE, EMPRESA_DATOS } from '../constants';
+import { ordinalClausula, parseClausulasAdicionales } from '../clauses/clausulas-adicionales';
 
 // Datos de empresa para documentos
 export interface EmpresaDocumentData {
@@ -227,6 +228,71 @@ export class BaseDocumentTemplate {
       this.checkPageBreak(6);
       this.doc.text(line, this.style.margins.left + indent, this.currentY);
       this.currentY += 5;
+    }
+    this.currentY += 2;
+  }
+
+  /**
+   * Cláusulas escritas a mano en el formulario. Se pintan con el mismo formato
+   * que las fijas (ordinal en negrita y sangría bajo la etiqueta) continuando
+   * su numeración, para que el documento no distinga unas de otras.
+   */
+  protected addClausulasAdicionales(
+    texto: string | undefined | null,
+    primerOrdinal: number,
+    separadorOrdinal: string = '.'
+  ): void {
+    const clausulas = parseClausulasAdicionales(texto);
+    if (clausulas.length === 0) return;
+
+    clausulas.forEach((clausula, i) => {
+      this.checkPageBreak(20);
+
+      const etiqueta = `${ordinalClausula(primerOrdinal + i)}${separadorOrdinal}`;
+      this.setFont(this.style.fontSize.normal, 'bold');
+      this.doc.text(etiqueta, this.style.margins.left, this.currentY);
+      const labelW = this.doc.getTextWidth(`${etiqueta}  `);
+      this.setFont(this.style.fontSize.normal, 'normal');
+
+      const parrafos = clausula.split('\n');
+      const primeras = this.doc.splitTextToSize(parrafos[0], this.contentWidth - labelW);
+      this.doc.text(primeras[0], this.style.margins.left + labelW, this.currentY);
+      this.currentY += 5;
+      for (let l = 1; l < primeras.length; l++) {
+        this.checkPageBreak(6);
+        this.doc.text(primeras[l], this.style.margins.left, this.currentY);
+        this.currentY += 5;
+      }
+      for (const parrafo of parrafos.slice(1)) {
+        for (const linea of this.doc.splitTextToSize(parrafo, this.contentWidth)) {
+          this.checkPageBreak(6);
+          this.doc.text(linea, this.style.margins.left, this.currentY);
+          this.currentY += 5;
+        }
+      }
+      this.addLineBreak(2);
+    });
+  }
+
+  /** Bloque de observaciones para documentos sin articulado (factura, proforma) */
+  protected addObservaciones(texto: string | undefined | null, titulo: string = 'OBSERVACIONES'): void {
+    const limpio = (texto || '').trim();
+    if (!limpio) return;
+
+    this.checkPageBreak(20);
+    this.addLineBreak(2);
+    this.setFont(this.style.fontSize.normal, 'bold');
+    this.doc.text(titulo, this.style.margins.left, this.currentY);
+    this.currentY += 6;
+
+    this.setFont(this.style.fontSize.normal, 'normal');
+    for (const parrafo of limpio.split('\n')) {
+      if (!parrafo.trim()) { this.currentY += 3; continue; }
+      for (const linea of this.doc.splitTextToSize(parrafo, this.contentWidth)) {
+        this.checkPageBreak(6);
+        this.doc.text(linea, this.style.margins.left, this.currentY);
+        this.currentY += 5;
+      }
     }
     this.currentY += 2;
   }
