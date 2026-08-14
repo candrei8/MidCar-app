@@ -17,6 +17,8 @@ interface FacturaFormProps {
   onChange: (data: Partial<FacturaData>) => void;
   suggestedPrice?: number;
   empresaIban?: string;
+  /** Número que tocará al guardar; todavía no está reservado */
+  numeroPrevisto?: string | null;
 }
 
 export function FacturaForm({
@@ -26,7 +28,8 @@ export function FacturaForm({
   formData,
   empresaIban,
   onChange,
-  suggestedPrice = 0
+  suggestedPrice = 0,
+  numeroPrevisto
 }: FacturaFormProps) {
   const initializedRef = useRef(false);
 
@@ -45,8 +48,8 @@ export function FacturaForm({
       cuentaBancaria: empresaIban || '',
       ...formData.condiciones
     },
-    // El número se reserva de forma secuencial desde la BD (lo prellena el
-    // asistente al entrar en este paso); nunca se genera aleatorio.
+    // El número definitivo lo asigna el contador de la BD al guardar; aquí solo
+    // se enseña el previsto, para no dejar huecos en la serie si no se guarda.
     numeroFactura: formData.numeroFactura || '',
     fechaFactura: formData.fechaFactura || new Date().toISOString().split('T')[0],
     ...formData,
@@ -111,10 +114,14 @@ export function FacturaForm({
                 id="numeroFactura"
                 value={data.numeroFactura || ''}
                 onChange={(e) => onChange({ ...data, numeroFactura: e.target.value })}
-                placeholder="Asignando número…"
+                placeholder={numeroPrevisto || 'Se asigna al guardar'}
               />
               <p className="text-xs text-slate-500 mt-1">
-                Número secuencial asignado automáticamente desde el sistema
+                {data.numeroFactura
+                  ? 'Número escrito a mano: se usará tal cual'
+                  : numeroPrevisto
+                    ? `Se asignará ${numeroPrevisto} al guardar en el sistema`
+                    : 'Número secuencial asignado automáticamente al guardar'}
               </p>
             </div>
             <div>

@@ -17,6 +17,8 @@ interface ProformaFormProps {
   onChange: (data: Partial<ProformaData>) => void;
   suggestedPrice?: number;
   empresaIban?: string;
+  /** Número que tocará al guardar; todavía no está reservado */
+  numeroPrevisto?: string | null;
 }
 
 export function ProformaForm({
@@ -26,7 +28,8 @@ export function ProformaForm({
   formData,
   onChange,
   suggestedPrice = 0,
-  empresaIban
+  empresaIban,
+  numeroPrevisto
 }: ProformaFormProps) {
   const initializedRef = useRef(false);
 
@@ -45,8 +48,8 @@ export function ProformaForm({
       cuentaBancaria: empresaIban || '',
       ...formData.condiciones
     },
-    // El número se reserva de forma secuencial desde la BD (lo prellena el
-    // asistente al entrar en este paso); nunca se genera aleatorio.
+    // El número definitivo lo asigna el contador de la BD al guardar; aquí solo
+    // se enseña el previsto, para no dejar huecos en la serie si no se guarda.
     numeroProforma: formData.numeroProforma || '',
     numeroFactura: formData.numeroFactura || '', // Se dejará vacío
     fechaProforma: formData.fechaProforma || new Date().toISOString().split('T')[0],
@@ -145,10 +148,14 @@ export function ProformaForm({
                 id="numeroProforma"
                 value={data.numeroProforma || ''}
                 onChange={(e) => onChange({ ...data, numeroProforma: e.target.value })}
-                placeholder="Asignando número…"
+                placeholder={numeroPrevisto || 'Se asigna al guardar'}
               />
               <p className="text-xs text-slate-500 mt-1">
-                Número secuencial asignado automáticamente desde el sistema
+                {data.numeroProforma
+                  ? 'Número escrito a mano: se usará tal cual'
+                  : numeroPrevisto
+                    ? `Se asignará ${numeroPrevisto} al guardar en el sistema`
+                    : 'Número secuencial asignado automáticamente al guardar'}
               </p>
             </div>
             <div>

@@ -21,7 +21,7 @@ import {
   ProformaData
 } from '@/lib/documents/document-types';
 import { getEmpresasActivas } from '@/lib/empresas';
-import { saveDocument, getNextDocumentNumber } from '@/lib/documents/document-service';
+import { saveDocument, getNextDocumentNumber, peekNextDocumentNumber } from '@/lib/documents/document-service';
 import { updateVehicle } from '@/lib/supabase-service';
 import { modeloCorto } from '@/lib/vehicle-name';
 import type { EmpresaVendedora } from '@/types';
@@ -100,6 +100,8 @@ export function DocumentGeneratorModal({
   const [customer, setCustomer] = useState<CustomerData | null>(null);
   const [isNewCustomer, setIsNewCustomer] = useState(false);
   const [formData, setFormData] = useState<Record<string, unknown>>({});
+  // Número provisional que se enseña en el asistente (no está reservado)
+  const [numeroPrevisto, setNumeroPrevisto] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -177,6 +179,7 @@ export function DocumentGeneratorModal({
       setCustomer(null);
       setIsNewCustomer(false);
       setFormData({});
+      setNumeroPrevisto(null);
       setSelectedEmpresa(null);
       setSaveSuccess(false);
       setSaveError(null);
@@ -199,29 +202,19 @@ export function DocumentGeneratorModal({
     }
   };
 
-  // Reservar el número secuencial de factura/proforma desde la BD al entrar
-  // al paso de datos (sustituye a la antigua numeración aleatoria). El guard
-  // "cancelled" evita que una reserva en vuelo escriba sobre el estado ya
-  // reseteado si el usuario cierra el modal antes de que responda la BD.
+  // Número que previsiblemente tocará, solo para enseñarlo. NO se reserva aquí:
+  // antes se consumía al entrar en este paso y cerrar sin guardar dejaba huecos
+  // permanentes en las series FA-/PF-. El definitivo se pide al guardar.
   useEffect(() => {
     if (currentStep !== 4 || !documentType || !isOpen) return;
+    if (documentType !== 'factura' && documentType !== 'proforma') return;
     let cancelled = false;
-    if (documentType === 'factura' && !(formData as Partial<FacturaData>).numeroFactura) {
-      getNextDocumentNumber('factura').then((n) => {
-        if (cancelled) return;
-        setFormData((prev) => (prev.numeroFactura ? prev : { ...prev, numeroFactura: n }));
-      });
-    }
-    if (documentType === 'proforma' && !(formData as Partial<ProformaData>).numeroProforma) {
-      getNextDocumentNumber('proforma').then((n) => {
-        if (cancelled) return;
-        setFormData((prev) => (prev.numeroProforma ? prev : { ...prev, numeroProforma: n }));
-      });
-    }
+    peekNextDocumentNumber(documentType).then((n) => {
+      if (!cancelled) setNumeroPrevisto(n);
+    });
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStep, documentType, isOpen]);
 
   // Vehículo con las correcciones hechas en el formulario (matrícula/bastidor)
@@ -303,6 +296,7 @@ export function DocumentGeneratorModal({
   const handleSelectDocumentType = (type: DocumentType) => {
     if (type !== documentType) {
       setFormData({});
+      setNumeroPrevisto(null);
     }
     setDocumentType(type);
   };
@@ -418,6 +412,14 @@ export function DocumentGeneratorModal({
       }
     }
 
+    // Para la vista previa y la descarga enseñamos el número provisional; al
+    // guardar se omite para que el servicio asigne el definitivo de la serie.
+    if (numeroPrevisto) {
+      const b = base as Record<string, unknown>;
+      if (documentType === 'factura' && !b.numeroFactura) b.numeroFactura = numeroPrevisto;
+      if (documentType === 'proforma' && !b.numeroProforma) b.numeroProforma = numeroPrevisto;
+    }
+
     return base as CompraventaData | SenalData | FacturaData | ProformaData;
   };
 
@@ -443,6 +445,17 @@ export function DocumentGeneratorModal({
     try {
       await persistVehicleIdentity();
       const data = buildCompleteFormData();
+
+      // Aquí, y solo aquí, se consume número de la serie. Se fija en formData
+      // para que un reintento tras un error reutilice el mismo y no deje hueco.
+      if (documentType === 'factura' || documentType === 'proforma') {
+        const campo = documentType === 'factura' ? 'numeroFactura' : 'numeroProforma';
+        const escritoAMano = (formData as Record<string, unknown>)[campo] as string | undefined;
+        const numeroDefinitivo = escritoAMano?.trim() || await getNextDocumentNumber(documentType);
+        (data as unknown as Record<string, unknown>)[campo] = numeroDefinitivo;
+        setFormData((prev) => ({ ...prev, [campo]: numeroDefinitivo }));
+      }
+
       const result = await saveDocument(documentType, data);
 
       if (result.error) {
@@ -644,6 +657,7 @@ export function DocumentGeneratorModal({
             onChange={handleFormChange}
             suggestedPrice={suggestedPrice}
             empresaIban={empresaIban}
+            numeroPrevisto={numeroPrevisto}
           />
         );
       case 'proforma':
@@ -656,6 +670,7 @@ export function DocumentGeneratorModal({
             onChange={handleFormChange}
             suggestedPrice={suggestedPrice}
             empresaIban={empresaIban}
+            numeroPrevisto={numeroPrevisto}
           />
         );
       default:

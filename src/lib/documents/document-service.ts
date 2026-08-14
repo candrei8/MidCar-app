@@ -41,14 +41,67 @@ interface DocumentListResponse<T> {
  * cae al método antiguo (SELECT max+1), que no es atómico pero mantiene la
  * serie correlativa.
  */
+const DOCUMENT_NUMBER_CONFIG: Record<DocumentType, { prefix: string; table: string; column: string }> = {
+  compraventa: { prefix: 'CV', table: 'contratos', column: 'numero_contrato' },
+  senal: { prefix: 'SN', table: 'senales', column: 'numero_senal' },
+  factura: { prefix: 'FA', table: 'facturas', column: 'numero_factura' },
+  proforma: { prefix: 'PF', table: 'proformas', column: 'numero_proforma' }
+};
+
+/**
+ * Número que *previsiblemente* tocará al guardar, para poder enseñarlo en el
+ * asistente sin consumirlo. Solo lee el contador; el número definitivo lo
+ * asigna `getNextDocumentNumber` al guardar de verdad. Si alguien guarda antes,
+ * el definitivo será otro: por eso esto nunca debe escribirse en la BD.
+ */
+export async function peekNextDocumentNumber(type: DocumentType): Promise<string> {
+  const year = new Date().getFullYear();
+  const config = DOCUMENT_NUMBER_CONFIG[type];
+  const formatear = (n: number) => `${config.prefix}-${year}-${n.toString().padStart(4, '0')}`;
+
+  if (!isSupabaseConfigured) return formatear(1);
+
+  try {
+    const { data, error } = await supabase
+      .from('document_counters')
+      .select('last_number')
+      .eq('doc_type', type)
+      .eq('year', year)
+      .maybeSingle();
+
+    if (!error && data) {
+      return formatear((data.last_number as number) + 1);
+    }
+    if (!error && !data) {
+      // Todavía no hay contador para este año
+      return formatear(1);
+    }
+  } catch (err) {
+    console.warn('No se pudo leer el contador de documentos:', err);
+  }
+
+  // Sin acceso al contador: deducirlo del último documento emitido
+  try {
+    const { data } = await supabase
+      .from(config.table)
+      .select(config.column)
+      .like(config.column, `${config.prefix}-${year}-%`)
+      .order(config.column, { ascending: false })
+      .limit(1);
+
+    const ultimo = data?.[0]
+      ? ((data[0] as unknown as Record<string, unknown>)[config.column] as string)
+      : null;
+    const match = ultimo?.match(/(\d+)$/);
+    return formatear(match ? parseInt(match[1], 10) + 1 : 1);
+  } catch {
+    return formatear(1);
+  }
+}
+
 export async function getNextDocumentNumber(type: DocumentType): Promise<string> {
   const year = new Date().getFullYear();
-  const prefixes: Record<DocumentType, { prefix: string; table: string; column: string }> = {
-    compraventa: { prefix: 'CV', table: 'contratos', column: 'numero_contrato' },
-    senal: { prefix: 'SN', table: 'senales', column: 'numero_senal' },
-    factura: { prefix: 'FA', table: 'facturas', column: 'numero_factura' },
-    proforma: { prefix: 'PF', table: 'proformas', column: 'numero_proforma' }
-  };
+  const prefixes = DOCUMENT_NUMBER_CONFIG;
 
   const config = prefixes[type];
   const pattern = `${config.prefix}-${year}-%`;
