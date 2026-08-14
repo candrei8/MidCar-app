@@ -232,15 +232,15 @@ export function DocumentGeneratorModal({
     return true;
   };
 
-  // Factura y proforma no pueden avanzar a la vista previa sin su número
-  // secuencial asignado: evita descargar PDFs sin número o con un número
-  // distinto al que luego se registraría en la BD.
+  // Factura y proforma no pueden avanzar a la vista previa sin número: saldría
+  // un PDF sin numerar. Vale el escrito a mano o el previsto que se enseña en
+  // el paso de datos (el definitivo se pide al guardar, no aquí).
   const documentNumberReady = (): boolean => {
     if (documentType === 'factura') {
-      return Boolean(((formData as Partial<FacturaData>).numeroFactura || '').trim());
+      return Boolean(((formData as Partial<FacturaData>).numeroFactura || numeroPrevisto || '').trim());
     }
     if (documentType === 'proforma') {
-      return Boolean(((formData as Partial<ProformaData>).numeroProforma || '').trim());
+      return Boolean(((formData as Partial<ProformaData>).numeroProforma || numeroPrevisto || '').trim());
     }
     return true;
   };
@@ -770,7 +770,7 @@ export function DocumentGeneratorModal({
                   <p className="text-xs text-amber-600">
                     {!vehicleIdentityValid()
                       ? `Introduce la matrícula${documentType === 'factura' || documentType === 'compraventa' ? ' y el bastidor' : ''} del vehículo para continuar`
-                      : 'Asignando el número de documento…'}
+                      : 'Consultando el número de documento…'}
                   </p>
                 )}
               </div>
