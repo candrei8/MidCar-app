@@ -1,11 +1,13 @@
 "use client"
 
-import { useState, useMemo, useCallback, memo } from "react"
+import { Suspense, useState, useMemo, useCallback, memo } from "react"
 import Link from "next/link"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { formatCurrency, cn } from "@/lib/utils"
 import { MARCAS, COMBUSTIBLES } from "@/lib/constants"
 import type { Vehicle } from "@/types"
 import { useFilteredData } from "@/hooks/useFilteredData"
+import { normalizarMarca } from "@/lib/dashboard-metrics"
 
 // Helper para obtener imagen válida
 const getValidImageUrl = (url: string | null | undefined): string => {
@@ -21,15 +23,41 @@ const isPlaceholderImage = (url: string | null | undefined): boolean => {
     return url.includes('placeholder-')
 }
 
-type StatusFilterType = 'todos' | 'disponible' | 'reservado' | 'vendido'
+type StatusFilterType = 'todos' | 'stock' | 'disponible' | 'reservado' | 'vendido'
+
+const STATUS_VALUES: StatusFilterType[] = ['todos', 'stock', 'disponible', 'reservado', 'vendido']
+
+function toInt(value: string | null): number | null {
+    if (value === null || value === '') return null
+    const n = Number(value)
+    return Number.isFinite(n) ? n : null
+}
 type PriceRangeType = 'todos' | 'bajo' | 'medio' | 'alto' | 'premium'
 type YearRangeType = 'todos' | 'nuevo' | 'reciente' | 'medio' | 'antiguo'
 
 export default function InventarioPage() {
+    return (
+        <Suspense fallback={null}>
+            <Inventario />
+        </Suspense>
+    )
+}
+
+function Inventario() {
+    // Filtros iniciales desde la URL (los enlaces del panel llegan así)
+    const searchParams = useSearchParams()
+    const router = useRouter()
+    const pathname = usePathname()
+    const estadoParam = searchParams.get('estado') as StatusFilterType | null
     const [searchQuery, setSearchQuery] = useState("")
-    const [statusFilter, setStatusFilter] = useState<StatusFilterType>("todos")
-    const [brandFilter, setBrandFilter] = useState<string>("todos")
-    const [fuelFilter, setFuelFilter] = useState<string>("todos")
+    const [statusFilter, setStatusFilter] = useState<StatusFilterType>(estadoParam && STATUS_VALUES.includes(estadoParam) ? estadoParam : "todos")
+    const [brandFilter, setBrandFilter] = useState<string>(searchParams.get('marca') || "todos")
+    const [fuelFilter, setFuelFilter] = useState<string>(searchParams.get('combustible') || "todos")
+    const diasMin = toInt(searchParams.get('diasMin'))
+    const diasMax = toInt(searchParams.get('diasMax'))
+    const sinCoste = searchParams.get('sinCoste') === '1'
+    const ordenAntiguedad = searchParams.get('orden') === 'antiguedad'
+    const hasPanelFilter = diasMin !== null || diasMax !== null || sinCoste || ordenAntiguedad
     const [priceFilter, setPriceFilter] = useState<PriceRangeType>("todos")
     const [yearFilter, setYearFilter] = useState<YearRangeType>("todos")
     const [showFilters, setShowFilters] = useState(false)
@@ -50,10 +78,16 @@ export default function InventarioPage() {
     // Filter vehicles - optimizado con early returns
     const filteredVehicles = useMemo(() => {
         const searchLower = searchQuery.toLowerCase()
-        return baseVehicles.filter(vehicle => {
+        const brandKey = normalizarMarca(brandFilter)
+        const result = baseVehicles.filter(vehicle => {
             // Early returns para evitar comprobaciones innecesarias
-            if (statusFilter !== "todos" && vehicle.estado !== statusFilter) return false
-            if (brandFilter !== "todos" && vehicle.marca !== brandFilter) return false
+            if (statusFilter === "stock") {
+                if (vehicle.estado !== "disponible" && vehicle.estado !== "reservado") return false
+            } else if (statusFilter !== "todos" && vehicle.estado !== statusFilter) return false
+            if (brandFilter !== "todos" && normalizarMarca(vehicle.marca || '') !== brandKey) return false
+            if (diasMin !== null && (vehicle.dias_en_stock || 0) < diasMin) return false
+            if (diasMax !== null && (vehicle.dias_en_stock || 0) > diasMax) return false
+            if (sinCoste && (vehicle.precio_compra > 0 || (vehicle.estado !== 'disponible' && vehicle.estado !== 'reservado' && vehicle.estado !== 'vendido'))) return false
             if (fuelFilter !== "todos" && vehicle.combustible !== fuelFilter) return false
 
             // Search filter - busca en todos los campos relevantes del vehículo
@@ -96,7 +130,26 @@ export default function InventarioPage() {
 
             return true
         })
-    }, [baseVehicles, searchQuery, statusFilter, brandFilter, fuelFilter, priceFilter, yearFilter])
+        if (ordenAntiguedad) result.sort((a, b) => (b.dias_en_stock || 0) - (a.dias_en_stock || 0))
+        return result
+    }, [baseVehicles, searchQuery, statusFilter, brandFilter, fuelFilter, priceFilter, yearFilter, diasMin, diasMax, sinCoste, ordenAntiguedad])
+
+    const panelFilterText = [
+        statusFilter === 'stock' ? 'en stock (disponibles y reservados)' : null,
+        diasMin !== null && diasMax !== null ? `entre ${diasMin} y ${diasMax} días a la venta`
+            : diasMin !== null ? `más de ${diasMin - 1} días a la venta`
+            : diasMax !== null ? `hasta ${diasMax} días a la venta` : null,
+        sinCoste ? 'sin precio de compra' : null,
+        ordenAntiguedad ? 'del más antiguo al más reciente' : null,
+    ].filter(Boolean).join(' · ')
+
+    const clearPanelFilter = () => {
+        const params = new URLSearchParams(searchParams.toString())
+        ;['diasMin', 'diasMax', 'sinCoste', 'orden'].forEach(k => params.delete(k))
+        if (statusFilter === 'stock') { params.delete('estado'); setStatusFilter('todos') }
+        const qs = params.toString()
+        router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+    }
 
     // Stats - single-pass optimizado
     const stats = useMemo(() => {
@@ -122,6 +175,7 @@ export default function InventarioPage() {
         setFuelFilter("todos")
         setPriceFilter("todos")
         setYearFilter("todos")
+        if (hasPanelFilter || searchParams.toString()) router.replace(pathname, { scroll: false })
     }
 
     const getStatusBadge = useCallback((estado: string) => {
@@ -322,6 +376,13 @@ export default function InventarioPage() {
 
             {/* Main Content: Vehicle Grid */}
             <main className="flex-1 px-4 py-4 pb-32 md:pb-8">
+                {panelFilterText && (
+                    <div className="mb-4 flex items-center gap-3 rounded-xl border border-[#135bec]/20 bg-[#135bec]/5 px-4 py-2.5 text-sm text-slate-700">
+                        <span className="material-symbols-outlined text-[#135bec] text-[20px]" aria-hidden>filter_alt</span>
+                        <p className="flex-1">Mostrando coches {panelFilterText}</p>
+                        <button onClick={clearPanelFilter} className="shrink-0 text-sm font-bold text-[#135bec] hover:underline">Quitar</button>
+                    </div>
+                )}
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {filteredVehicles.map((vehicle) => (
                         <VehicleCard key={vehicle.id} vehicle={vehicle} getStatusBadge={getStatusBadge} />

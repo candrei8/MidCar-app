@@ -401,8 +401,10 @@ button, a, [role="button"], .interactive {
 /* Override legacy dark mode classes for light mode */
 html:not(.dark) {
 
-  /* Text colors - convert white-based to slate-based */
-  .text-white {
+  /* Text colors - convert white-based to slate-based.
+     Excepto cuando el propio elemento pinta un fondo de color (botones azules,
+     etiquetas verdes…): ahí el texto blanco es intencionado y debe verse blanco */
+  .text-white:not([class*="bg-primary"]):not([class*="bg-[#"]):not([class*="bg-blue-"]):not([class*="bg-green-"]):not([class*="bg-red-"]):not([class*="bg-emerald-"]):not([class*="bg-amber-"]):not([class*="bg-orange-"]):not([class*="bg-purple-"]):not([class*="bg-violet-"]):not([class*="bg-indigo-"]):not([class*="bg-slate-"]):not([class*="bg-gray-"]):not([class*="bg-black"]):not([class*="bg-gradient"]):not([class*="bg-success"]):not([class*="bg-danger"]):not([class*="bg-warning"]):not([class*="bg-sky-"]):not([class*="bg-teal-"]):not([class*="bg-rose-"]):not([class*="bg-pink-"]) {
     color: #0f172a !important;
   }
 
@@ -680,4 +682,176 @@ html:not(.dark) {
   .focus-visible\:ring-offset-background {
     --tw-ring-offset-color: #f6f6f8 !important;
   }
+}
+/* ===== DASHBOARD ===== */
+.dash-card {
+  background: #ffffff;
+  border: 1px solid rgb(226 232 240 / 0.8);
+  border-radius: 1.25rem;
+  box-shadow: 0 1px 2px rgb(16 24 40 / 0.04), 0 1px 3px rgb(16 24 40 / 0.03);
+}
+
+.dash-interactive {
+  transition: box-shadow 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.dash-interactive:hover {
+  border-color: rgb(19 91 236 / 0.25);
+  box-shadow: 0 4px 16px -4px rgb(19 91 236 / 0.12), 0 1px 3px rgb(16 24 40 / 0.04);
+}
+
+.dash-interactive:active {
+  transform: scale(0.99);
+}
+
+.dash-interactive:focus-visible,
+.dash-btn:focus-visible,
+.dash-segment:focus-visible,
+.dash-link:focus-visible {
+  outline: 2px solid #135bec;
+  outline-offset: 2px;
+}
+
+.dash-hero {
+  font-size: clamp(1.25rem, 0.95rem + 1.4vw, 1.875rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: #0f172a;
+  font-variant-numeric: tabular-nums;
+}
+
+.dash-root .tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.dash-link {
+  color: #135bec;
+  border-radius: 0.375rem;
+}
+
+.dash-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.dash-segmented {
+  gap: 2px;
+  padding: 3px;
+  border-radius: 0.875rem;
+  background: rgb(226 232 240 / 0.7);
+  scrollbar-width: none;
+}
+
+.dash-segment {
+  flex-shrink: 0;
+  min-height: 36px;
+  padding: 0 0.875rem;
+  border-radius: 0.7rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #475569;
+  white-space: nowrap;
+  transition: background-color 140ms ease, color 140ms ease, box-shadow 140ms ease;
+}
+
+.dash-segment:hover {
+  color: #0f172a;
+}
+
+.dash-segment-active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 1px 2px rgb(16 24 40 / 0.08), 0 1px 1px rgb(16 24 40 / 0.04);
+}
+
+.dash-segmented-sm .dash-segment {
+  min-height: 30px;
+  padding: 0 0.75rem;
+  font-size: 0.75rem;
+}
+
+.dash-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  min-height: 42px;
+  padding: 0 1rem;
+  border-radius: 0.875rem;
+  border: 1px solid rgb(226 232 240);
+  background: #ffffff;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+  transition: background-color 140ms ease, border-color 140ms ease;
+}
+
+.dash-btn:hover {
+  border-color: rgb(203 213 225);
+  background: #f8fafc;
+}
+
+.dash-btn-primary {
+  border-color: #135bec;
+  background: #135bec;
+  color: #ffffff;
+}
+
+.dash-btn-primary:hover {
+  border-color: #0d4ed3;
+  background: #0d4ed3;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dash-root *,
+  .dash-root *::before,
+  .dash-root *::after {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+  }
+}
+
+/* Tooltip de gráficos: colores fijados aquí (no con .text-white, que la capa
+   de compatibilidad de modo claro reescribe a oscuro) */
+.dash-tooltip {
+  width: max-content;
+  max-width: 240px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #0f172a;
+  color: #f8fafc;
+  font-size: 12px;
+  line-height: 1.35;
+  box-shadow: 0 10px 30px -8px rgb(15 23 42 / 0.45), 0 2px 6px rgb(15 23 42 / 0.2);
+}
+
+.dash-tooltip-title {
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.dash-tooltip-muted {
+  color: #cbd5e1;
+}
+
+.dash-tooltip-note {
+  margin-top: 2px;
+  padding-top: 6px;
+  border-top: 1px solid rgb(255 255 255 / 0.12);
+  color: #cbd5e1;
+  font-size: 11px;
+}
+
+.dash-tooltip-arrow {
+  position: absolute;
+  bottom: -5px;
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  background: #0f172a;
+  transform: rotate(45deg);
+  border-radius: 2px;
 }

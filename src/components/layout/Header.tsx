@@ -163,6 +163,8 @@ export function Header() {
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => setShowMobileSearch(!showMobileSearch)}
+                            aria-label={showMobileSearch ? 'Cerrar búsqueda' : 'Buscar'}
+                            aria-expanded={showMobileSearch}
                             className={cn(
                                 "flex items-center justify-center size-9 rounded-full transition-colors",
                                 showMobileSearch ? "bg-[#135bec]/10 text-[#135bec]" : "text-slate-400 hover:bg-slate-100 hover:text-slate-900"
@@ -241,8 +243,8 @@ export function Header() {
             <header className="hidden lg:flex sticky top-0 z-20 items-center bg-white px-6 py-3 shadow-sm border-b border-slate-100">
                 {/* Logo */}
                 <Link href="/dashboard" className="flex items-center gap-2 mr-8">
-                    <div className="w-8 h-8 bg-[#135bec] rounded-lg flex items-center justify-center">
-                        <span className="text-white font-bold text-sm">M</span>
+                    <div className="w-8 h-8 bg-[#135bec] text-white rounded-lg flex items-center justify-center">
+                        <span className="font-bold text-sm">M</span>
                     </div>
                     <span className="font-bold text-lg text-slate-900">
                         MidCar

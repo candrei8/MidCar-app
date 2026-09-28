@@ -18,18 +18,27 @@ export async function getVehicles(): Promise<Vehicle[]> {
         return []
     }
 
-    const { data, error } = await supabase
-        .from('vehicles')
-        .select('*')
-        .order('created_at', { ascending: false })
+    // PostgREST corta en 1000 filas por petición: se pagina hasta traerlas todas
+    const PAGE = 1000
+    const rows: Record<string, unknown>[] = []
+    for (let from = 0; ; from += PAGE) {
+        const { data, error } = await supabase
+            .from('vehicles')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .order('id', { ascending: true })
+            .range(from, from + PAGE - 1)
 
-    if (error) {
-        console.error('Error fetching vehicles:', error)
-        return []
+        if (error) {
+            console.error('Error fetching vehicles:', error)
+            throw new Error('No se pudieron cargar los vehículos')
+        }
+        rows.push(...(data || []))
+        if (!data || data.length < PAGE) break
     }
 
     // Transform database format to app format
-    return (data || []).map(transformVehicleFromDB)
+    return rows.map(transformVehicleFromDB)
 }
 
 export async function getVehicleById(id: string): Promise<Vehicle | null> {
@@ -235,10 +244,14 @@ function transformVehicleToDB(vehicle: Partial<Vehicle>): Record<string, unknown
 
 function calculateDaysInStock(fechaEntrada: string | null): number {
     if (!fechaEntrada) return 0
-    const entrada = new Date(fechaEntrada)
+    // 'YYYY-MM-DD' se interpreta como fecha local (no medianoche UTC) para que
+    // el contador no vaya un día atrasado cerca de la medianoche en Madrid
+    const [y, m, d] = fechaEntrada.slice(0, 10).split('-').map(Number)
+    if (!y || !m || !d) return 0
+    const entrada = new Date(y, m - 1, d)
     const hoy = new Date()
-    const diff = hoy.getTime() - entrada.getTime()
-    return Math.floor(diff / (1000 * 60 * 60 * 24))
+    const hoyLocal = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate())
+    return Math.max(0, Math.round((hoyLocal.getTime() - entrada.getTime()) / (1000 * 60 * 60 * 24)))
 }
 
 // ============================================================================
@@ -330,16 +343,19 @@ export async function getContactsStats(): Promise<{
 }> {
     if (!isSupabaseConfigured) return { total: 0, pendiente: 0, comunicado: 0, tramite: 0, reservado: 0, postventa: 0, busqueda: 0, cerrado: 0 }
 
-    const { data, error } = await supabase
-        .from('contacts')
-        .select('estado')
-
-    if (error || !data) return { total: 0, pendiente: 0, comunicado: 0, tramite: 0, reservado: 0, postventa: 0, busqueda: 0, cerrado: 0 }
-
-    const counts = { total: data.length, pendiente: 0, comunicado: 0, tramite: 0, reservado: 0, postventa: 0, busqueda: 0, cerrado: 0 }
-    for (const c of data) {
-        if (c.estado in counts) counts[c.estado as keyof typeof counts]++
+    // Conteos en el servidor (head: true): la tabla supera las 1000 filas que
+    // devuelve PostgREST por petición, así que no se descargan las filas
+    const estados = ['pendiente', 'comunicado', 'tramite', 'reservado', 'postventa', 'busqueda', 'cerrado'] as const
+    const countFor = async (estado?: string) => {
+        let q = supabase.from('contacts').select('id', { count: 'exact', head: true })
+        if (estado) q = q.eq('estado', estado)
+        const { count, error } = await q
+        if (error) throw new Error('No se pudieron contar los contactos')
+        return count ?? 0
     }
+    const [total, ...porEstado] = await Promise.all([countFor(), ...estados.map(e => countFor(e))])
+    const counts = { total, pendiente: 0, comunicado: 0, tramite: 0, reservado: 0, postventa: 0, busqueda: 0, cerrado: 0 }
+    estados.forEach((e, i) => { counts[e] = porEstado[i] })
     return counts
 }
 
@@ -564,41 +580,6 @@ export async function getLeadsPage({
         data: (data || []).map(transformLeadFromDB),
         total: count ?? 0,
     }
-}
-
-// Get lead counts by estado (for dashboard stats) — fetches only estado column
-export async function getLeadsStats(): Promise<{
-    total: number
-    nuevo: number
-    contactado: number
-    visita_agendada: number
-    prueba_programada: number
-    propuesta_enviada: number
-    negociacion: number
-    vendido: number
-    perdido: number
-    valorPipeline: number
-    tasaConversion: number
-}> {
-    const empty = { total: 0, nuevo: 0, contactado: 0, visita_agendada: 0, prueba_programada: 0, propuesta_enviada: 0, negociacion: 0, vendido: 0, perdido: 0, valorPipeline: 0, tasaConversion: 0 }
-    if (!isSupabaseConfigured) return empty
-
-    const { data, error } = await supabase
-        .from('leads')
-        .select('estado, probabilidad, presupuesto_cliente')
-
-    if (error || !data) return empty
-
-    const counts = { ...empty, total: data.length }
-    for (const l of data) {
-        const estado = l.estado as string
-        if (estado in counts) (counts as Record<string, number>)[estado]++
-        if (estado !== 'vendido' && estado !== 'perdido') {
-            counts.valorPipeline += ((l.presupuesto_cliente || 0) * (l.probabilidad || 0) / 100)
-        }
-    }
-    counts.tasaConversion = counts.total > 0 ? (counts.vendido / counts.total) * 100 : 0
-    return counts
 }
 
 export async function getLeadById(id: string): Promise<Lead | null> {
